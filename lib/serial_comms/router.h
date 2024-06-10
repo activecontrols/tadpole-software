@@ -15,11 +15,11 @@ using namespace std;
 
 struct func;
 
-class router {
+class Router {
 private:
     // funcs is a vector of function pointers and their names
     static vector<func> funcs;
-    router(); // prevent instantiation
+    Router(); // prevent instantiation
     static void init();
 public:
     // send sends a message over the serial port. the caller is responsible for
@@ -28,7 +28,7 @@ public:
     // receive reads a message from the serial port into the supplied buffer.
     // the caller is responsible for freeing the memory of the message
     static void receive(char msg[], int len);
-    // add registers a new function to the router
+    // add registers a new function to the Router
     static void add(func f);
     // run starts monitoring the serial port for messages and calls the
     // appropriate function when a message is received. this function never
@@ -38,7 +38,7 @@ public:
 
 struct func {
     void (*f)();
-    char *name;
+    const char *name;
 };
 
 #endif //TADPOLE_SOFTWARE_ROUTER_H
