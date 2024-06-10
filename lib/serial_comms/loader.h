@@ -5,17 +5,44 @@
 #ifndef TADPOLE_SOFTWARE_LOADER_H
 #define TADPOLE_SOFTWARE_LOADER_H
 
+enum class curve_type {
+    sine,
+    chirp,
+    lerp,
+};
+
+typedef struct {
+    float time;      // seconds since start
+    float lox_angle; // 0-90 degrees?
+    float ipa_angle; // 0-90 degrees?
+} lerp_point_open;
+
 typedef struct {
     float time;      // seconds since start
     float thrust;    // 0-100
-    float lox_angle; // 0-90 degrees?
-    float ipa_angle; // 0-90 degrees?
-} waypoint;
+} lerp_point_closed;
 
 typedef struct {
-    char curve_label[50];
-    int num_waypoints;
-    char checksum[4];
+    char curve_label[50]; // max 49 char string label
+    curve_type ctype;
+    union { // which of these is used depends on ctype
+        struct {
+            float amplitude;
+            float frequency;
+        } sine_params;
+
+        struct {
+            float amplitude;
+            float start;
+            float end;
+        } chirp_params;
+
+        struct {
+            int num_waypoints;
+            char checksum[4];
+            bool is_open;
+        } lerp_params;
+    };
 } curve_header;
 
 typedef struct {
@@ -36,7 +63,6 @@ typedef struct {
     // density vs temp. range is 0-29 degrees C
     float rho_ipa_by_temp[30];
     float lox_vapor_press_by_temp[30];
-    bool loop_open;
 } control_config; // all placeholders for now
 
 #endif //TADPOLE_SOFTWARE_LOADER_H
