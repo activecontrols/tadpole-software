@@ -5,6 +5,13 @@
 #include "loader.h"
 #include "router.h"
 
+control_config Loader::config;
+curve_header Loader::header;
+lerp_point_open* Loader::los;
+lerp_point_closed* Loader::lcs;
+bool Loader::loaded_curve;
+bool Loader::loaded_config;
+
 void Loader::begin() {
     Router::add({load_curve, "load_curve"});
     Router::add({load_config, "load_config"});
