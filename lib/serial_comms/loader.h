@@ -29,17 +29,17 @@ typedef struct {
         struct {
             float amplitude;
             float frequency;
-        } sine_params;
+        } sine;
         struct {
             float amplitude;
             float start;
             float end;
-        } chirp_params;
+        } chirp;
         struct {
-            int num_waypoints;
+            int num_points;
             char checksum[4];
             bool is_open;
-        } lerp_params;
+        } lerp;
     };
 } curve_header;
 
@@ -66,10 +66,16 @@ typedef struct {
 
 class Loader {
 public:
+    static control_config config;
+    static curve_header header;
+    static lerp_point_open* los;
+    static lerp_point_closed* lcs;
+    static bool loaded_curve;
+    static bool loaded_config;
+
     static void load_curve();
     static void load_config();
-    static void begin();
-private:
+    static void begin(); // registers loader functions with the router
     Loader() = delete; // prevent instantiation
 };
 

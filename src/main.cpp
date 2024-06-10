@@ -12,3 +12,5 @@ void setup() {
     Loader::begin(); // registers loader functions with the router
     Router::run(); // nothing runs after this. router handles everything
 }
+
+void loop() {}

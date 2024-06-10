@@ -19,7 +19,6 @@ class Router {
 private:
     // funcs is a vector of function pointers and their names
     static vector<func> funcs;
-    Router() = delete; // prevent instantiation
     static void init();
 public:
     // send sends a message over the serial port. the caller is responsible for
@@ -34,6 +33,7 @@ public:
     // appropriate function when a message is received. this function never
     // returns.
     [[noreturn]] static void run();
+    Router() = delete; // prevent instantiation
 };
 
 struct func {
