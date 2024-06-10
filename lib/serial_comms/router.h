@@ -19,15 +19,15 @@ class Router {
 private:
     // funcs is a vector of function pointers and their names
     static vector<func> funcs;
-    Router(); // prevent instantiation
+    Router() = delete; // prevent instantiation
     static void init();
 public:
     // send sends a message over the serial port. the caller is responsible for
     // freeing the memory of the message
-    static void send(char msg[], int len);
+    static void send(char msg[], unsigned int len);
     // receive reads a message from the serial port into the supplied buffer.
     // the caller is responsible for freeing the memory of the message
-    static void receive(char msg[], int len);
+    static void receive(char msg[], unsigned int len);
     // add registers a new function to the Router
     static void add(func f);
     // run starts monitoring the serial port for messages and calls the

@@ -30,13 +30,11 @@ typedef struct {
             float amplitude;
             float frequency;
         } sine_params;
-
         struct {
             float amplitude;
             float start;
             float end;
         } chirp_params;
-
         struct {
             int num_waypoints;
             char checksum[4];
@@ -45,6 +43,7 @@ typedef struct {
     };
 } curve_header;
 
+// all placeholders for now
 typedef struct {
     float lox_mdot_gains[30];
     float ipa_mdot_gains[30];
@@ -63,6 +62,15 @@ typedef struct {
     // density vs temp. range is 0-29 degrees C
     float rho_ipa_by_temp[30];
     float lox_vapor_press_by_temp[30];
-} control_config; // all placeholders for now
+} control_config;
+
+class Loader {
+public:
+    static void load_curve();
+    static void load_config();
+    static void begin();
+private:
+    Loader() = delete; // prevent instantiation
+};
 
 #endif //TADPOLE_SOFTWARE_LOADER_H

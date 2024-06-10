@@ -6,11 +6,11 @@
 
 vector<func> Router::funcs;
 
-void Router::send(char msg[], int len) {
+void Router::send(char msg[], unsigned int len) {
     COMMS_SERIAL.write(msg, len);
 }
 
-void Router::receive(char msg[], int len) {
+void Router::receive(char msg[], unsigned int len) {
     COMMS_SERIAL.readBytes(msg, len);
 }
 

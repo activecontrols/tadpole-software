@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include "../lib/serial_comms/router.h"
+#include "../lib/serial_comms/loader.h"
 
 void ping() {
     char msg[] = "pong";
@@ -7,7 +8,7 @@ void ping() {
 }
 
 void setup() {
-    // put your setup code here, to run once:
-    Router::add({ping, "ping"});
-    Router::run();
+    Router::add({ping, "ping"}); // example registration
+    Loader::begin(); // registers loader functions with the router
+    Router::run(); // nothing runs after this. router handles everything
 }
