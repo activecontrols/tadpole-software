@@ -1,7 +1,15 @@
+/*
+    * odrive.h
+    *
+    *  Created on: 2021-07-10 by Vincent Palmerio
+    * 
+*/
+
+
 #ifndef ODRIVE_H
 #define ODRIVE_H
 
-#include <ODriveArduino.h>
+#include <ODriveUART.h>
 #include <loader.h>
 #include <Wire.h>
 
@@ -15,8 +23,8 @@
 
 namespace ODriveController {
 
-    ODriveArduino loxODrive(LOX_ODRIVE_SERIAL);
-    ODriveArduino fuelODrive(FUEL_ODRIVE_SERIAL);
+    ODriveUART loxODrive(LOX_ODRIVE_SERIAL);
+    ODriveUART fuelODrive(FUEL_ODRIVE_SERIAL);
 
     const int odriveMotor = 0;
 
@@ -39,12 +47,6 @@ namespace ODriveController {
     extern void clearErrors();
 
     extern void setThrust(float thrust);
-
-    AxisState getODriveState(HardwareSerial &serial);
-    String getParameterAsString(const String& path, HardwareSerial &serial);
-    int getParameterAsInt(const String& path, HardwareSerial &serial);
-    float getParameterAsFloat(const String& path, HardwareSerial &serial);
-    String readLine(unsigned long timeout_ms, HardwareSerial &serial);
 
 }
 
