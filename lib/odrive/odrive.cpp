@@ -5,8 +5,10 @@
     * 
 */
 
+#include <Router.h>
+#include <Loader.h>
+
 #include "odrive.h"
-#include "router.h"
 
 void ODriveController::setupODrives()
 {
@@ -39,3 +41,62 @@ void ODriveController::setupODrives()
     }
 
 }
+
+void ODriveController::setFuelODrivePosition(float position)
+{
+    fuelODrive.setPosition(position);
+}
+
+void ODriveController::setLOXODrivePosition(float position)
+{
+    loxODrive.setPosition(position);
+}
+
+void ODriveController::clearErrors()
+{
+    loxODrive.clearErrors();
+    fuelODrive.clearErrors();
+}
+
+void ODriveController::followCurve()
+{
+    switch (Loader::header.ctype) {
+        case curve_type::lerp:
+            if (Loader::header.lerp.is_open) {
+                followOpenLerpCurve();
+            } else {
+                followClosedLerpCurve();
+            }
+            break;
+        case curve_type::sine:
+            followSineCurve();
+            break;
+        case curve_type::chirp:
+            followChirpCurve();
+            break;
+        default:
+            break;
+    }
+}
+
+void ODriveController::followOpenLerpCurve()
+{
+    lerp_point_open *point = Loader::los;
+    elapsedMillis timer = elapsedMillis();
+    for (int i = 0; i < Loader::header.lerp.num_points; i++) {
+
+        setLOXODrivePosition(point[i].lox_angle);
+        setFuelODrivePosition(point[i].ipa_angle);
+
+        while (timer < point[i].time) {
+            loxODrive.getPosition();
+            fuelODrive.getPosition();
+
+            logODriveDataCSV();
+        }
+    }
+
+    Router::send("Finished following curve!");
+
+}
+

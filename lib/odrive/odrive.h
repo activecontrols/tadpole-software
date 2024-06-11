@@ -9,9 +9,9 @@
 #ifndef ODRIVE_H
 #define ODRIVE_H
 
-#include <ODriveUART.h>
-#include <loader.h>
 #include <Wire.h>
+
+#include "ODriveUART.h"
 
 #define LOX_ODRIVE_SERIAL Serial1
 #define FUEL_ODRIVE_SERIAL Serial2
@@ -26,27 +26,20 @@ namespace ODriveController {
     ODriveUART loxODrive(LOX_ODRIVE_SERIAL);
     ODriveUART fuelODrive(FUEL_ODRIVE_SERIAL);
 
-    const int odriveMotor = 0;
-
-    curve_header curveHeader;
-
-    void* lerpPoints;
-
     extern void setupODrives();
     extern void setFuelODrivePosition(float position);
     extern void setLOXODrivePosition(float position);
-    extern char* getODriveDataCSV();
-
-    extern void setCurveHeader(curve_header ch);
-    extern void setLerpPoints(void *points);
-
-    extern void followThrottleCurve();
-    extern void followSineCurve();
-    extern void followChirpCurve();
-
+    extern void setThrust(float thrust);
     extern void clearErrors();
 
-    extern void setThrust(float thrust);
+    extern void logODriveDataCSV();
+    extern char* getODriveDataCSV();
+
+    extern void followCurve();
+    void followOpenLerpCurve();
+    void followClosedLerpCurve();
+    void followSineCurve();
+    void followChirpCurve();
 
 }
 
