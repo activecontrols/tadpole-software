@@ -5,6 +5,8 @@
 #ifndef TADPOLE_SOFTWARE_LOADER_H
 #define TADPOLE_SOFTWARE_LOADER_H
 
+#include <SD.h>
+
 enum class curve_type {
     sine,
     chirp,
@@ -73,10 +75,16 @@ public:
     static bool loaded_curve;
     static bool loaded_config;
 
-    static void load_curve();
-    static void load_config();
     static void begin(); // registers loader functions with the router
     Loader() = delete; // prevent instantiation
+private:
+    // triggered by comms
+    static void load_curve_serial();
+    static void load_config_serial();
+    static void load_curve_sd();
+    static void load_config_sd();
+
+    static void load_curve_generic(bool serial, File* f);
 };
 
 #endif //TADPOLE_SOFTWARE_LOADER_H

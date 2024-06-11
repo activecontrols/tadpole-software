@@ -1,6 +1,6 @@
 #include <Arduino.h>
-#include "../lib/serial_comms/router.h"
-#include "../lib/serial_comms/loader.h"
+#include "../lib/serial_comms/Router.h"
+#include "../lib/data/Loader.h"
 
 void ping() {
     char msg[] = "pong";

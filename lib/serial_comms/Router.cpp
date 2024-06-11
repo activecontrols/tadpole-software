@@ -2,12 +2,16 @@
 // Created by Ishan Goel on 6/9/24.
 //
 
-#include "router.h"
+#include "Router.h"
 
 vector<func> Router::funcs;
 
 void Router::send(char msg[], unsigned int len) {
     COMMS_SERIAL.write(msg, len);
+}
+
+void Router::send(const char *msg) {
+    COMMS_SERIAL.write(msg);
 }
 
 void Router::receive(char msg[], unsigned int len) {

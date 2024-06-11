@@ -24,6 +24,7 @@ public:
     // send sends a message over the serial port. the caller is responsible for
     // freeing the memory of the message
     static void send(char msg[], unsigned int len);
+    static void send(const char * msg);
     // receive reads a message from the serial port into the supplied buffer.
     // the caller is responsible for freeing the memory of the message
     static void receive(char msg[], unsigned int len);
