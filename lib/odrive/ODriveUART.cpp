@@ -1,4 +1,4 @@
-// Author: Driver Robotics Inc.
+// Author: ODrive Robotics Inc.
 // License: MIT
 // Documentation: https://docs.odriverobotics.com/v/latest/guides/arduino-uart-guide.html
 

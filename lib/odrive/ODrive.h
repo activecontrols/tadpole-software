@@ -30,8 +30,8 @@ private:
     static void setThrust(float thrust);
     static void clearErrors();
 
-    static void idenfityLOXODrive(); // flashes LED on LOX Driver
-    static void idenfityFuelODrive(); // flashes LED on fuel Driver
+    static void idenfityLOXODrive(); // flashes LED on LOX ODrive
+    static void idenfityFuelODrive(); // flashes LED on fuel ODrive
 
     static void logCurveTelemCSV(unsigned long time, lerp_point_open &point);
     static std::string getODriveDataCSV();

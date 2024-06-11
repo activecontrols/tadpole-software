@@ -1,11 +1,11 @@
-// Author: Driver Robotics Inc.
+// Author: ODrive Robotics Inc.
 // License: MIT
-// Documentation: https://docs.odriverobotics.com/v/latest/guides/arduino-uart-guide.html
+// Documentation: https://docs.oODriveobotics.com/v/latest/guides/arduino-uart-guide.html
 
 #ifndef ODriveEnums_h
 #define ODriveEnums_h
 
-// Driver.GpioMode
+// ODrive.GpioMode
 enum ODriveGpioMode {
     GPIO_MODE_DIGITAL                        = 0,
     GPIO_MODE_DIGITAL_PULL_UP                = 1,
@@ -27,7 +27,7 @@ enum ODriveGpioMode {
     GPIO_MODE_AUTO                           = 17,
 };
 
-// Driver.StreamProtocolType
+// ODrive.StreamProtocolType
 enum ODriveStreamProtocolType {
     STREAM_PROTOCOL_TYPE_FIBRE               = 0,
     STREAM_PROTOCOL_TYPE_ASCII               = 1,
@@ -36,13 +36,13 @@ enum ODriveStreamProtocolType {
     STREAM_PROTOCOL_TYPE_OTHER               = 4,
 };
 
-// Driver.Can.Protocol
+// ODrive.Can.Protocol
 enum ODriveProtocol {
     PROTOCOL_NONE                            = 0x00000000,
     PROTOCOL_SIMPLE                          = 0x00000001,
 };
 
-// Driver.Axis.AxisState
+// ODrive.Axis.AxisState
 enum ODriveAxisState {
     AXIS_STATE_UNDEFINED                     = 0,
     AXIS_STATE_IDLE                          = 1,
@@ -60,7 +60,7 @@ enum ODriveAxisState {
     AXIS_STATE_ANTICOGGING_CALIBRATION       = 14,
 };
 
-// Driver.Controller.ControlMode
+// ODrive.Controller.ControlMode
 enum ODriveControlMode {
     CONTROL_MODE_VOLTAGE_CONTROL             = 0,
     CONTROL_MODE_TORQUE_CONTROL              = 1,
@@ -68,7 +68,7 @@ enum ODriveControlMode {
     CONTROL_MODE_POSITION_CONTROL            = 3,
 };
 
-// Driver.ComponentStatus
+// ODrive.ComponentStatus
 enum ODriveComponentStatus {
     COMPONENT_STATUS_NOMINAL                 = 0,
     COMPONENT_STATUS_NO_RESPONSE             = 1,
@@ -88,7 +88,7 @@ enum ODriveComponentStatus {
     COMPONENT_STATUS_SPINOUT_DETECTED        = 15,
 };
 
-// Driver.Error
+// ODrive.Error
 enum ODriveError {
     ODRIVE_ERROR_NONE                        = 0x00000000,
     ODRIVE_ERROR_INITIALIZING                = 0x00000001,
@@ -115,7 +115,7 @@ enum ODriveError {
     ODRIVE_ERROR_CALIBRATION_ERROR           = 0x40000000,
 };
 
-// Driver.ProcedureResult
+// ODrive.ProcedureResult
 enum ODriveProcedureResult {
     PROCEDURE_RESULT_SUCCESS                 = 0,
     PROCEDURE_RESULT_BUSY                    = 1,
@@ -135,7 +135,7 @@ enum ODriveProcedureResult {
     PROCEDURE_RESULT_NOT_CONVERGING          = 15,
 };
 
-// Driver.EncoderId
+// ODrive.EncoderId
 enum ODriveEncoderId {
     ENCODER_ID_NONE                          = 0,
     ENCODER_ID_INC_ENCODER0                  = 1,
@@ -154,7 +154,7 @@ enum ODriveEncoderId {
     ENCODER_ID_ONBOARD_ENCODER1              = 14,
 };
 
-// Driver.SpiEncoderMode
+// ODrive.SpiEncoderMode
 enum ODriveSpiEncoderMode {
     SPI_ENCODER_MODE_DISABLED                = 0,
     SPI_ENCODER_MODE_RLS                     = 1,
@@ -166,8 +166,8 @@ enum ODriveSpiEncoderMode {
     SPI_ENCODER_MODE_BISSC                   = 7,
 };
 
-// Driver.Rs485EncoderMode
-enum ODriveRs485EncoderMode {
+// ODrive.Rs485EncoderMode
+enum OODrives485EncoderMode {
     RS485_ENCODER_MODE_DISABLED              = 0,
     RS485_ENCODER_MODE_AMT21_POLLING         = 1,
     RS485_ENCODER_MODE_AMT21_EVENT_DRIVEN    = 2,
@@ -175,7 +175,7 @@ enum ODriveRs485EncoderMode {
     RS485_ENCODER_MODE_ODRIVE_OA1            = 4,
 };
 
-// Driver.Controller.InputMode
+// ODrive.Controller.InputMode
 enum ODriveInputMode {
     INPUT_MODE_INACTIVE                      = 0,
     INPUT_MODE_PASSTHROUGH                   = 1,
@@ -188,14 +188,14 @@ enum ODriveInputMode {
     INPUT_MODE_TUNING                        = 8,
 };
 
-// Driver.MotorType
+// ODrive.MotorType
 enum ODriveMotorType {
     MOTOR_TYPE_HIGH_CURRENT                  = 0,
     MOTOR_TYPE_GIMBAL                        = 2,
     MOTOR_TYPE_ACIM                          = 3,
 };
 
-// Driver.Can.Error
+// ODrive.Can.Error
 enum ODriveCanError {
     CAN_ERROR_NONE                           = 0x00000000,
     CAN_ERROR_DUPLICATE_CAN_IDS              = 0x00000001,
