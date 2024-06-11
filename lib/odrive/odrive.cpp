@@ -5,6 +5,8 @@
     * 
 */
 
+#include <sstream>
+#include <string.h>
 #include <Router.h>
 #include <Loader.h>
 
@@ -58,6 +60,52 @@ void ODriveController::clearErrors()
     fuelODrive.clearErrors();
 }
 
+void ODriveController::logCurveTelemCSV(int time, lerp_point_open &point)
+{
+    char *csvRowODriveData = getODriveDataCSV();
+
+    std::stringstream ss;
+    ss << time << "," << point.lox_angle << "," << point.ipa_angle << "," << csvRowODriveData;
+
+    const char* csvRowTelemetry = ss.str().c_str();
+
+    Router::send(csvRowTelemetry);
+
+    //log to sd card
+
+    free(csvRowODriveData);
+    csvRowODriveData = NULL;
+
+}
+
+char *ODriveController::getODriveDataCSV()
+{
+    int loxThrottlePos = loxODrive.getPosition();
+    int fuelThrottlePos = fuelODrive.getPosition();
+
+    int loxThrottleVel = loxODrive.getVelocity();
+    int fuelThrottleVel = fuelODrive.getVelocity();
+
+    float loxVoltage = loxODrive.getParameterAsFloat("vbus_voltage");
+    float fuelVoltage = fuelODrive.getParameterAsFloat("vbus_voltage");
+
+    float loxCurrent = loxODrive.getParameterAsFloat("ibus");
+    float fuelCurrent = fuelODrive.getParameterAsFloat("ibus");
+
+    std::stringstream ss;
+    ss << loxThrottlePos << "," << fuelThrottlePos << ","
+       << loxThrottleVel << "," << fuelThrottleVel << ","
+       << loxVoltage << "," << fuelVoltage << ","
+       << loxCurrent << "," << fuelCurrent;
+
+    std::string csvString = ss.str();
+    char *cstr = new char[csvString.length() + 1];
+    strcpy(cstr, csvString.c_str());
+    cstr[csvString.length()] = '\0';
+
+    return cstr;
+}
+
 void ODriveController::followCurve()
 {
     switch (Loader::header.ctype) {
@@ -81,6 +129,11 @@ void ODriveController::followCurve()
 
 void ODriveController::followOpenLerpCurve()
 {
+    //create file for logging csv data in sd card
+        //include curve id in the csv header or file name
+        //include curve type in file name
+    //make the first line the csv header
+
     lerp_point_open *point = Loader::los;
     elapsedMillis timer = elapsedMillis();
     for (int i = 0; i < Loader::header.lerp.num_points; i++) {
@@ -88,11 +141,11 @@ void ODriveController::followOpenLerpCurve()
         setLOXODrivePosition(point[i].lox_angle);
         setFuelODrivePosition(point[i].ipa_angle);
 
-        while (timer < point[i].time) {
-            loxODrive.getPosition();
-            fuelODrive.getPosition();
+        //log timer and log point it is following? or log the number of the point it is following
 
-            logODriveDataCSV();
+        while (timer < point[i].time) {
+
+            logCurveTelemCSV();
         }
     }
 

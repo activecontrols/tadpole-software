@@ -32,8 +32,12 @@ namespace ODriveController {
     extern void setThrust(float thrust);
     extern void clearErrors();
 
-    extern void logODriveDataCSV();
+    extern void idenfityLOXODrive(); //flashes LED on LOX ODrive
+    extern void idenfityFuelODrive(); //flashes LED on fuel ODrive
+
+    extern void logCurveTelemCSV();
     extern char* getODriveDataCSV();
+    extern char* getODriveInfo();
 
     extern void followCurve();
     void followOpenLerpCurve();
