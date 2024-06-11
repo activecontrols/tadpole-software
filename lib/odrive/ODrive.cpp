@@ -9,14 +9,13 @@
 #include <string.h>
 #include <Router.h>
 
-#include "odrive.h"
+#include "ODrive.h"
 #include "ODriveUART.h"
 
 ODriveUART loxODrive(LOX_ODRIVE_SERIAL);
 ODriveUART fuelODrive(FUEL_ODRIVE_SERIAL);
 
-void ODriveController::setupODrives()
-{
+void ODrive::begin() {
     LOX_ODRIVE_SERIAL.begin(LOX_ODRIVE_SERIAL_RATE);
     FUEL_ODRIVE_SERIAL.begin(FUEL_ODRIVE_SERIAL_RATE);
 
@@ -36,7 +35,7 @@ void ODriveController::setupODrives()
         loxODrive.setState(AXIS_STATE_CLOSED_LOOP_CONTROL);
         delay(10);
     }
-   
+
     Router::send("Setting fuel odrive to closed loop control...");
     while (fuelODrive.getState() != AXIS_STATE_CLOSED_LOOP_CONTROL) {
         fuelODrive.clearErrors();
@@ -44,33 +43,28 @@ void ODriveController::setupODrives()
         fuelODrive.setState(AXIS_STATE_CLOSED_LOOP_CONTROL);
         delay(10);
     }
-
 }
 
-void ODriveController::setFuelODrivePosition(float position)
-{
+void ODrive::setFuelODrivePosition(float position) {
     fuelODrive.setPosition(position);
 }
 
-void ODriveController::setLOXODrivePosition(float position)
-{
+void ODrive::setLOXODrivePosition(float position) {
     loxODrive.setPosition(position);
 }
 
-void ODriveController::clearErrors()
-{
+void ODrive::clearErrors() {
     loxODrive.clearErrors();
     fuelODrive.clearErrors();
 }
 
-void ODriveController::logCurveTelemCSV(int time, lerp_point_open &point)
-{
+void ODrive::logCurveTelemCSV(int time, lerp_point_open &point) {
     char *csvRowODriveData = getODriveDataCSV();
 
     std::stringstream ss;
     ss << time << "," << point.lox_angle << "," << point.ipa_angle << "," << csvRowODriveData;
 
-    const char* csvRowTelemetry = ss.str().c_str();
+    const char *csvRowTelemetry = ss.str().c_str();
 
     Router::send(csvRowTelemetry);
 
@@ -81,8 +75,7 @@ void ODriveController::logCurveTelemCSV(int time, lerp_point_open &point)
 
 }
 
-char *ODriveController::getODriveDataCSV()
-{
+char *ODrive::getODriveDataCSV() {
     int loxThrottlePos = loxODrive.getPosition();
     int fuelThrottlePos = fuelODrive.getPosition();
 
@@ -109,8 +102,7 @@ char *ODriveController::getODriveDataCSV()
     return cstr;
 }
 
-void ODriveController::followCurve()
-{
+void ODrive::followCurve() {
     switch (Loader::header.ctype) {
         case curve_type::lerp:
             if (Loader::header.lerp.is_open) {
@@ -130,8 +122,7 @@ void ODriveController::followCurve()
     }
 }
 
-void ODriveController::followOpenLerpCurve()
-{
+void ODrive::followOpenLerpCurve() {
     //create file for logging csv data in sd card
         //include curve id in the csv header or file name
         //include curve type in file name
@@ -147,7 +138,6 @@ void ODriveController::followOpenLerpCurve()
         //log timer and log point it is following? or log the number of the point it is following
 
         while (timer < point[i].time) {
-
             logCurveTelemCSV(timer, point[i]);
         }
     }
