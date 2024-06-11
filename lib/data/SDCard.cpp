@@ -28,16 +28,16 @@ void SDCard::ls() {
         entry.close();
     }
     root.close();
-    Router::send(result.c_str());
+    Router::info(result.c_str());
 }
 
 void SDCard::rm() {
     char filename[50];
     Router::receive(filename, 50);
     if (SD.remove(filename)) {
-        Router::send("File removed.");
+        Router::info("File removed.");
     } else {
-        Router::send("File not found.");
+        Router::info("File not found.");
     }
 }
 

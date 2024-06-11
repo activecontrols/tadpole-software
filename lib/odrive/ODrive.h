@@ -11,6 +11,7 @@
 
 #include <Wire.h>
 #include <Loader.h>
+//#include <string>
 
 #define LOX_ODRIVE_SERIAL Serial1
 #define FUEL_ODRIVE_SERIAL Serial2
@@ -20,7 +21,7 @@
 
 #define ODRIVE_COMM_TIMEOUT 10 //in millis
 
-class ODrive {
+class Driver {
 public:
     static void begin();
 private:
@@ -29,12 +30,12 @@ private:
     static void setThrust(float thrust);
     static void clearErrors();
 
-    static void idenfityLOXODrive(); // flashes LED on LOX ODrive
-    static void idenfityFuelODrive(); // flashes LED on fuel ODrive
+    static void idenfityLOXODrive(); // flashes LED on LOX Driver
+    static void idenfityFuelODrive(); // flashes LED on fuel Driver
 
-    static void logCurveTelemCSV(int time, lerp_point_open &point);
-    static char* getODriveDataCSV();
-    static char* getODriveInfo();
+    static void logCurveTelemCSV(unsigned long time, lerp_point_open &point);
+    static std::string getODriveDataCSV();
+    static std::string getODriveInfo();
 
     static void followCurve();
     static void followOpenLerpCurve();

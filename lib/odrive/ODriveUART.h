@@ -1,4 +1,4 @@
-// Author: ODrive Robotics Inc.
+// Author: Driver Robotics Inc.
 // License: MIT
 // Documentation: https://docs.odriverobotics.com/v/latest/guides/arduino-uart-guide.html
 
@@ -22,7 +22,7 @@ public:
     ODriveUART(Stream& serial);
 
     /**
-     * @brief Clears the error status of the ODrive and restarts the brake
+     * @brief Clears the error status of the Driver and restarts the brake
      * resistor if it was disabled due to an error.
      */
     void clearErrors();
@@ -58,7 +58,7 @@ public:
     void setTorque(float torque);
 
     /**
-     * @brief Puts the ODrive into trapezoidal trajectory mode and sends a new
+     * @brief Puts the Driver into trapezoidal trajectory mode and sends a new
      * position setpoint.
      */
     void trapezoidalMove(float position);
@@ -92,12 +92,12 @@ public:
     void setParameter(const String& path, long value) { setParameter(path, String(value)); }
 
     /**
-     * @brief Tells the ODrive to change its axis state.
+     * @brief Tells the Driver to change its axis state.
      */
     void setState(ODriveAxisState requested_state);
 
     /**
-     * @brief Requests the current axis state from the ODrive.
+     * @brief Requests the current axis state from the Driver.
      * 
      * Returns AXIS_STATE_UNDEFINED in case of a communication error.
      */

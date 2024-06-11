@@ -6,6 +6,7 @@
 #define TADPOLE_SOFTWARE_ROUTER_H
 
 #include <vector>
+#include <string>
 #include <Wire.h>
 
 using namespace std;
@@ -21,10 +22,13 @@ private:
     static vector<func> funcs;
     static void init();
 public:
+    // info sends a string & newline over serial
+    static void info(const char *msg);
+    static void info(String msg) { info(msg.c_str()); }
+    static void info(std::string msg) { info(msg.c_str()); }
     // send sends a message over the serial port. the caller is responsible for
     // freeing the memory of the message
     static void send(char msg[], unsigned int len);
-    static void send(const char * msg);
     // receive reads a message from the serial port into the supplied buffer.
     // the caller is responsible for freeing the memory of the message
     static void receive(char msg[], unsigned int len);

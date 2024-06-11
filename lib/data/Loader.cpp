@@ -47,13 +47,13 @@ void Loader::load_curve_generic(bool serial, File* f) {
 
 void Loader::load_curve_serial() {
     load_curve_generic(true, nullptr);
-    Router::send("Loaded curve!");
+    Router::info("Loaded curve!");
 }
 
 void Loader::load_config_serial() {
     Router::receive((char *) &config, sizeof(config));
     loaded_config = true;
-    Router::send("Loaded config!");
+    Router::info("Loaded config!");
 }
 
 void Loader::load_curve_sd() {
@@ -64,10 +64,10 @@ void Loader::load_curve_sd() {
         load_curve_generic(false, &f);
         f.close();
     } else {
-        Router::send("File not found.");
+        Router::info("File not found.");
         return;
     }
-    Router::send("Loaded curve!");
+    Router::info("Loaded curve!");
 }
 
 void Loader::load_config_sd() {
@@ -78,11 +78,11 @@ void Loader::load_config_sd() {
         f.read((char *) &config, sizeof(config));
         f.close();
     } else {
-        Router::send("File not found.");
+        Router::info("File not found.");
         return;
     }
     loaded_config = true;
-    Router::send("Loaded config!");
+    Router::info("Loaded config!");
 }
 
 void Loader::write_curve_sd() {
@@ -90,7 +90,7 @@ void Loader::write_curve_sd() {
     Router::receive(filename, 50);
     File f = SDCard::open(filename, FILE_WRITE);
     if (!f) {
-        Router::send("File not found.");
+        Router::info("File not found.");
         return;
     }
     f.write((char *) &header, sizeof(header));
@@ -107,7 +107,7 @@ void Loader::write_curve_sd() {
             break;
     }
     f.close();
-    Router::send("Wrote curve!");
+    Router::info("Wrote curve!");
 }
 
 void Loader::write_config_sd() {
@@ -115,10 +115,10 @@ void Loader::write_config_sd() {
     Router::receive(filename, 50);
     File f = SDCard::open(filename, FILE_WRITE);
     if (!f) {
-        Router::send("File not found.");
+        Router::info("File not found.");
         return;
     }
     f.write((char *) &config, sizeof(config));
     f.close();
-    Router::send("Wrote config!");
+    Router::info("Wrote config!");
 }

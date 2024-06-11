@@ -6,7 +6,7 @@
 */
 
 #include <sstream>
-#include <string.h>
+#include <string>
 #include <Router.h>
 
 #include "ODrive.h"
@@ -15,28 +15,28 @@
 ODriveUART loxODrive(LOX_ODRIVE_SERIAL);
 ODriveUART fuelODrive(FUEL_ODRIVE_SERIAL);
 
-void ODrive::begin() {
+void Driver::begin() {
     LOX_ODRIVE_SERIAL.begin(LOX_ODRIVE_SERIAL_RATE);
     FUEL_ODRIVE_SERIAL.begin(FUEL_ODRIVE_SERIAL_RATE);
 
     while (loxODrive.getState() == AXIS_STATE_UNDEFINED) {
-        Router::send("Waiting to connect to lox odrive...");
+        Router::info("Waiting to connect to lox odrive...");
         delay(100);
     }
 
     while (fuelODrive.getState() == AXIS_STATE_UNDEFINED) {
-        Router::send("Waiting to connect to fuel odrive...");
+        Router::info("Waiting to connect to fuel odrive...");
         delay(100);
     }
 
-    Router::send("Setting lox odrive to closed loop control...");
+    Router::info("Setting lox odrive to closed loop control...");
     while (loxODrive.getState() != AXIS_STATE_CLOSED_LOOP_CONTROL) {
         loxODrive.clearErrors();
         loxODrive.setState(AXIS_STATE_CLOSED_LOOP_CONTROL);
         delay(10);
     }
 
-    Router::send("Setting fuel odrive to closed loop control...");
+    Router::info("Setting fuel odrive to closed loop control...");
     while (fuelODrive.getState() != AXIS_STATE_CLOSED_LOOP_CONTROL) {
         fuelODrive.clearErrors();
 
@@ -45,37 +45,30 @@ void ODrive::begin() {
     }
 }
 
-void ODrive::setFuelODrivePosition(float position) {
+void Driver::setFuelODrivePosition(float position) {
     fuelODrive.setPosition(position);
 }
 
-void ODrive::setLOXODrivePosition(float position) {
+void Driver::setLOXODrivePosition(float position) {
     loxODrive.setPosition(position);
 }
 
-void ODrive::clearErrors() {
+void Driver::clearErrors() {
     loxODrive.clearErrors();
     fuelODrive.clearErrors();
 }
 
-void ODrive::logCurveTelemCSV(int time, lerp_point_open &point) {
-    char *csvRowODriveData = getODriveDataCSV();
+void Driver::logCurveTelemCSV(unsigned long time, lerp_point_open &point) {
+    std::string csvRowODriveData = getODriveDataCSV();
 
     std::stringstream ss;
     ss << time << "," << point.lox_angle << "," << point.ipa_angle << "," << csvRowODriveData;
-
-    const char *csvRowTelemetry = ss.str().c_str();
-
-    Router::send(csvRowTelemetry);
+    Router::info(ss.str());
 
     //log to sd card
-
-    free(csvRowODriveData);
-    csvRowODriveData = NULL;
-
 }
 
-char *ODrive::getODriveDataCSV() {
+std::string Driver::getODriveDataCSV() {
     int loxThrottlePos = loxODrive.getPosition();
     int fuelThrottlePos = fuelODrive.getPosition();
 
@@ -94,22 +87,13 @@ char *ODrive::getODriveDataCSV() {
        << loxVoltage << "," << fuelVoltage << ","
        << loxCurrent << "," << fuelCurrent;
 
-    std::string csvString = ss.str();
-    char *cstr = new char[csvString.length() + 1];
-    strcpy(cstr, csvString.c_str());
-    cstr[csvString.length()] = '\0';
-
-    return cstr;
+    return ss.str();
 }
 
-void ODrive::followCurve() {
+void Driver::followCurve() {
     switch (Loader::header.ctype) {
         case curve_type::lerp:
-            if (Loader::header.lerp.is_open) {
-                followOpenLerpCurve();
-            } else {
-                followClosedLerpCurve();
-            }
+            Loader::header.lerp.is_open ? followOpenLerpCurve() : followClosedLerpCurve();
             break;
         case curve_type::sine:
             followSineCurve();
@@ -122,7 +106,7 @@ void ODrive::followCurve() {
     }
 }
 
-void ODrive::followOpenLerpCurve() {
+void Driver::followOpenLerpCurve() {
     //create file for logging csv data in sd card
         //include curve id in the csv header or file name
         //include curve type in file name
@@ -137,12 +121,10 @@ void ODrive::followOpenLerpCurve() {
 
         //log timer and log point it is following? or log the number of the point it is following
 
-        while (timer < point[i].time) {
+        while (timer/1000.0 < point[i].time) {
             logCurveTelemCSV(timer, point[i]);
         }
     }
-
-    Router::send("Finished following curve!");
-
+    Router::info("Finished following curve!");
 }
 

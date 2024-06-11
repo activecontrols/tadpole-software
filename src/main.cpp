@@ -6,8 +6,7 @@
 #define ENABLE_ODRIVE_COMM false
 
 void ping() {
-    char msg[] = "pong";
-    Router::send(msg, sizeof(msg));
+    Router::info("pong");
 }
 
 void setup() {
