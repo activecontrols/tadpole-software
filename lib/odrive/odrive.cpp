@@ -145,7 +145,7 @@ void ODriveController::followOpenLerpCurve()
 
         while (timer < point[i].time) {
 
-            logCurveTelemCSV();
+            logCurveTelemCSV(timer, point[i]);
         }
     }
 

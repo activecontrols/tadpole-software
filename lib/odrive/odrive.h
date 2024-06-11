@@ -35,7 +35,7 @@ namespace ODriveController {
     extern void idenfityLOXODrive(); //flashes LED on LOX ODrive
     extern void idenfityFuelODrive(); //flashes LED on fuel ODrive
 
-    extern void logCurveTelemCSV();
+    extern void logCurveTelemCSV(int time, lerp_point_open &point);
     extern char* getODriveDataCSV();
     extern char* getODriveInfo();
 
