@@ -14,6 +14,7 @@ public:
 private:
     // used by comms
     static void ls();
+    static void rm();
 //    static void cat();
 };
 

@@ -83,6 +83,8 @@ private:
     static void load_config_serial();
     static void load_curve_sd();
     static void load_config_sd();
+    static void write_curve_sd();
+    static void write_config_sd();
 
     static void load_curve_generic(bool serial, File* f);
 };

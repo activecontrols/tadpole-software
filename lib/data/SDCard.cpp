@@ -31,6 +31,16 @@ void SDCard::ls() {
     Router::send(result.c_str());
 }
 
+void SDCard::rm() {
+    char filename[50];
+    Router::receive(filename, 50);
+    if (SD.remove(filename)) {
+        Router::send("File removed.");
+    } else {
+        Router::send("File not found.");
+    }
+}
+
 // issue: receiver may not know when to stop reading. send size beforehand if absolutely needed.
 //void SDCard::cat() {
 //    char filename[50];
