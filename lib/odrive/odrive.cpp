@@ -8,9 +8,12 @@
 #include <sstream>
 #include <string.h>
 #include <Router.h>
-#include <Loader.h>
 
 #include "odrive.h"
+#include "ODriveUART.h"
+
+ODriveUART loxODrive(LOX_ODRIVE_SERIAL);
+ODriveUART fuelODrive(FUEL_ODRIVE_SERIAL);
 
 void ODriveController::setupODrives()
 {

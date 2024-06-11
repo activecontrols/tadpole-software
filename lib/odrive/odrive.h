@@ -10,8 +10,7 @@
 #define ODRIVE_H
 
 #include <Wire.h>
-
-#include "ODriveUART.h"
+#include <Loader.h>
 
 #define LOX_ODRIVE_SERIAL Serial1
 #define FUEL_ODRIVE_SERIAL Serial2
@@ -22,9 +21,6 @@
 #define ODRIVE_COMM_TIMEOUT 10 //in millis
 
 namespace ODriveController {
-
-    ODriveUART loxODrive(LOX_ODRIVE_SERIAL);
-    ODriveUART fuelODrive(FUEL_ODRIVE_SERIAL);
 
     extern void setupODrives();
     extern void setFuelODrivePosition(float position);
