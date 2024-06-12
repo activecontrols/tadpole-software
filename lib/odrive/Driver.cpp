@@ -87,14 +87,15 @@ namespace Driver {
     
     namespace {
 
-        void logCurveTelemCSV(unsigned long time, lerp_point_open &point) {
+        void logCurveTelemCSV(File *file, unsigned long time, int pointNum, lerp_point_open &point) {
             std::string csvRowODriveData = getODriveDataCSV();
 
             std::stringstream ss;
-            ss << time << "," << point.lox_angle << "," << point.ipa_angle << "," << csvRowODriveData;
-            Router::info(ss.str());
+            ss << "," << time << "," << pointNum << point.lox_angle << "," << point.ipa_angle << "," << csvRowODriveData;
+            std::string csvRow = ss.str();
+            Router::info(csvRow);
 
-            //log to sd card
+            file->println(csvRow.c_str());
         }
 
         File createCurveLog() {
@@ -102,15 +103,24 @@ namespace Driver {
             std::stringstream ss;
             ss << Loader::header.curve_label;
 
+            const char *csvHeader = nullptr;
             switch (Loader::header.ctype) {
                 case curve_type::lerp:
-                    ss << "_lerp";
+                    if (Loader::header.lerp.is_open) {
+                        ss << "_lerp_open";
+                        csvHeader = ODRIVE_OPEN_CURVE_HEADER;
+                    } else {
+                        ss << "_lerp_closed";
+                        csvHeader = ODRIVE_CLOSED_CURVE_HEADER;
+                    }
                     break;
                 case curve_type::sine:
-                    ss << "_sine";
+                    ss << "_sine_closed";
+                    csvHeader = ODRIVE_CLOSED_CURVE_HEADER;
                     break;
                 case curve_type::chirp:
                     ss << "_chirp";
+                    csvHeader = ODRIVE_CLOSED_CURVE_HEADER;
                     break;
                 default:
                     break;
@@ -121,6 +131,10 @@ namespace Driver {
             char *filename = (char*) ss.str().c_str();
 
             File odriveLogFile = SDCard::open(filename, 'w');
+
+            odriveLogFile.println(csvHeader);
+
+            //get Odrive firmware info and log it
 
             return odriveLogFile;
         }
@@ -139,7 +153,7 @@ namespace Driver {
                 //log timer and log point it is following? or log the number of the point it is following
 
                 while (timer/1000.0 < point[i].time) {
-                    logCurveTelemCSV(timer, point[i]);
+                    logCurveTelemCSV(&odriveLogFile, timer, i, point[i]);
                 }
             }
             Router::info("Finished following curve!");

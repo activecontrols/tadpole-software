@@ -20,6 +20,20 @@
 
 #define ODRIVE_COMM_TIMEOUT 10 //in millis
 
+#define ODRIVE_OPEN_CURVE_HEADER "info,current_time,point_number," \
+                                  "point_lox_angle,point_ipa_angle," \
+                                  "lox_throttle_pos,ipa_throttle_pos," \
+                                  "lox_throttle_vel,ipa_throttle_vel," \
+                                  "lox_voltage,ipa_voltage," \
+                                  "lox_current,ipa_current"
+
+#define ODRIVE_CLOSED_CURVE_HEADER "info,current_time,point_number," \
+                                   "point_thrust," \
+                                   "lox_throttle_pos,ipa_throttle_pos," \
+                                   "lox_throttle_vel,ipa_throttle_vel," \
+                                   "lox_voltage,ipa_voltage," \
+                                   "lox_current,ipa_current"
+
 namespace Driver {
 
     extern void begin();
