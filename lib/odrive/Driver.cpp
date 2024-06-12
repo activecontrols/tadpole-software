@@ -128,7 +128,7 @@ namespace Driver {
             elapsedMillis timer = elapsedMillis();
             for (int i = 0; i < Loader::header.lerp.num_points; i++) {
 
-                setThrust(point[i].thrust); 
+                //setThrust(point[i].thrust); 
                 
                 //log thrust as it is changing by PID
 
