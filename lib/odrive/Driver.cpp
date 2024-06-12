@@ -165,6 +165,12 @@ namespace Driver {
     }
 
     void followCurve() {
+
+        if (!Loader::loaded_curve) {
+            Router::info("No curve loaded.");
+            return;
+        }
+
         switch (Loader::header.ctype) {
             case curve_type::lerp:
                 Loader::header.lerp.is_open ? followOpenLerpCurve() : followClosedLerpCurve();
