@@ -73,6 +73,10 @@ namespace Driver {
             std::string filename = ss.str();
             File odriveLogFile = SDCard::open(filename.c_str(), 'w');
 
+            if (!odriveLogFile) {
+                return odriveLogFile;
+            }
+
             odriveLogFile.println(csvHeader);
             odriveLogFile.println(getODriveDataCSV().c_str());
 
@@ -92,7 +96,6 @@ namespace Driver {
                     logCurveTelemCSV(timer, i, (void *) &point[i]);
                 }
             }
-            Router::info("Finished following curve!");
         }
 
         void followClosedLerpCurve() {
@@ -109,7 +112,6 @@ namespace Driver {
                     logCurveTelemCSV(timer, i, (void *) &point[i]);
                 }
             }
-            Router::info("Finished following curve!");
         }
 
         void followSineCurve() {
@@ -232,6 +234,11 @@ namespace Driver {
 
         odriveLogFile = createCurveLog();
 
+        if (!odriveLogFile) {
+            Router::info("Failed to create log file. Aborting.");
+            return;
+        }
+
         switch (Loader::header.ctype) {
             case curve_type::lerp:
                 Loader::header.lerp.is_open ? followOpenLerpCurve() : followClosedLerpCurve();
@@ -245,5 +252,10 @@ namespace Driver {
             default:
                 break;
         }
+
+        odriveLogFile.flush();
+        odriveLogFile.close();
+
+        Router::info("Finished following curve!");
     }
 }
