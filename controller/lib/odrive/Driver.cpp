@@ -47,6 +47,9 @@ namespace Driver {
             fuelODrive.setState(AXIS_STATE_CLOSED_LOOP_CONTROL);
             delay(10);
         }
+
+        Router::info(getODriveInfo());
+
     }
 
     void setFuelODrivePosition(float position) {
@@ -84,7 +87,35 @@ namespace Driver {
         return ss.str();
     }
 
-    
+    std::string getODriveInfo()
+    {
+        int loxHWVersionMajor = loxODrive.getParameterAsInt("hw_version_major");
+        int loxHWVersionMinor = loxODrive.getParameterAsInt("hw_version_minor");
+        int loxFWVersionMajor = loxODrive.getParameterAsInt("fw_version_major");
+        int loxFWVersionMinor = loxODrive.getParameterAsInt("fw_version_minor");
+        String loxMisconfigured = loxODrive.getParameterAsString("misconfigured");
+        String loxRebootRequired = loxODrive.getParameterAsString("reboot_required");
+
+        int fuelHWVersionMajor = fuelODrive.getParameterAsInt("hw_version_major");
+        int fuelHWVersionMinor = fuelODrive.getParameterAsInt("hw_version_minor");
+        int fuelFWVersionMajor = fuelODrive.getParameterAsInt("fw_version_major");
+        int fuelFWVersionMinor = fuelODrive.getParameterAsInt("fw_version_minor");
+        String fuelMisconfigured = fuelODrive.getParameterAsString("misconfigured");
+        String fuelRebootRequired = fuelODrive.getParameterAsString("reboot_required");
+
+        stringstream ss = stringstream();
+        ss << "LOX ODrive Hardware Version: " << loxHWVersionMajor << "." << loxHWVersionMinor 
+        << " | LOX Firmware Version: " << loxFWVersionMajor << "." << loxFWVersionMinor 
+        << " | LOX Misconfigured: " << loxMisconfigured 
+        << " | LOX Reboot Required: " << loxRebootRequired << " ||| ";
+        ss << "Fuel ODrive Hardware Version: " << fuelHWVersionMajor << "." << fuelHWVersionMinor 
+        << " | Fuel Firmware Version: " << fuelFWVersionMajor << "." << fuelFWVersionMinor 
+        << " | Fuel Misconfigured: " << fuelMisconfigured 
+        << " | Fuel Reboot Required: " << fuelRebootRequired << "\n";
+
+        return ss.str();
+    }
+
     namespace {
 
         void logCurveTelemCSV(File *file, unsigned long time, int pointNum, lerp_point_open &point) {
@@ -134,7 +165,7 @@ namespace Driver {
 
             odriveLogFile.println(csvHeader);
 
-            //get Odrive firmware info and log it
+            odriveLogFile.println(getODriveDataCSV().c_str());
 
             return odriveLogFile;
         }
@@ -149,8 +180,6 @@ namespace Driver {
 
                 setLOXODrivePosition(point[i].lox_angle);
                 setFuelODrivePosition(point[i].ipa_angle);
-
-                //log timer and log point it is following? or log the number of the point it is following
 
                 while (timer/1000.0 < point[i].time) {
                     logCurveTelemCSV(&odriveLogFile, timer, i, point[i]);
@@ -170,8 +199,6 @@ namespace Driver {
                 //setThrust(point[i].thrust); 
                 
                 //log thrust as it is changing by PID
-
-                //log timer and log point it is following? or log the number of the point it is following
 
                 while (timer/1000.0 < point[i].time) {
                     //logCurveTelemCSV(timer, point[i]);
