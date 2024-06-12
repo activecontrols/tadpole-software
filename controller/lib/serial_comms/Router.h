@@ -29,23 +29,23 @@ namespace Router {
 //public:
     extern bool logenabled; // defaults to true
     // init_comms initializes the serial port
-    extern void init_comms();
+    void init_comms();
     // info sends a string & newline over serial
-    extern void info(const char *msg);
-    extern void info(String msg);
-    extern void info(std::string msg);
+    void info(const char *msg);
+    inline void info(const String& msg) { info(msg.c_str()); }
+    inline void info(const std::string& msg) { info(msg.c_str()); }
     // log writes a string to the log file if logging is enabled
-    extern void log(const char *msg);
-    extern void log(String msg);
-    extern void log(std::string msg);
+    void log(const char *msg);
+    inline void log(const String& msg) { log(msg.c_str()); }
+    inline void log(const std::string& msg) { log(msg.c_str()); }
     // send sends a message over the serial port. the caller is responsible for
     // freeing the memory of the message
-    extern void send(char msg[], unsigned int len);
+    void send(char msg[], unsigned int len);
     // receive reads a message from the serial port into the supplied buffer.
     // the caller is responsible for freeing the memory of the message
-    extern void receive(char msg[], unsigned int len);
-    // add registers a new function to the Router
-    extern void add(func f);
+    void receive(char msg[], unsigned int len);
+    // add registers a new function to the router
+    void add(func f);
     // run starts monitoring the serial port for messages and calls the
     // appropriate function when a message is received. this function never
     // returns.
