@@ -32,12 +32,12 @@ namespace Router {
     extern void init_comms();
     // info sends a string & newline over serial
     extern void info(const char *msg);
-    void info(String msg) { info(msg.c_str()); }
-    void info(std::string msg) { info(msg.c_str()); }
+    extern void info(String msg);
+    extern void info(std::string msg);
     // log writes a string to the log file if logging is enabled
     extern void log(const char *msg);
-    void log(String msg) { log(msg.c_str()); }
-    void log(std::string msg) { log(msg.c_str()); }
+    extern void log(String msg);
+    extern void log(std::string msg);
     // send sends a message over the serial port. the caller is responsible for
     // freeing the memory of the message
     extern void send(char msg[], unsigned int len);

@@ -46,6 +46,14 @@ namespace Router {
         COMMS_SERIAL.println(msg);
     }
 
+    void info(String msg) { info(msg.c_str()); }
+
+    void info(std::string msg) { info(msg.c_str()); }
+
+    void log(String msg) { log(msg.c_str()); }
+
+    void log(std::string msg) { log(msg.c_str()); }
+
     void send(char msg[], unsigned int len) {
         COMMS_SERIAL.write(msg, len);
     }
