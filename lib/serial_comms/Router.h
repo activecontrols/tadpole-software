@@ -8,6 +8,7 @@
 #include <vector>
 #include <string>
 #include <Wire.h>
+#include <SD.h>
 
 using namespace std;
 

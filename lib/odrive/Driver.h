@@ -11,7 +11,7 @@
 
 #include <Wire.h>
 #include <Loader.h>
-//#include <string>
+#include <string>
 
 #define LOX_ODRIVE_SERIAL Serial1
 #define FUEL_ODRIVE_SERIAL Serial2

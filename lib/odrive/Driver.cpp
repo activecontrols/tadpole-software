@@ -129,3 +129,31 @@ void Driver::followOpenLerpCurve() {
     Router::info("Finished following curve!");
 }
 
+void Driver::followClosedLerpCurve() {
+
+}
+
+void Driver::followSineCurve() {
+
+}
+
+void Driver::followChirpCurve() {
+
+}
+
+std::string Driver::getODriveInfo() {
+    return std::string();
+}
+
+void Driver::idenfityLOXODrive() {
+
+}
+
+void Driver::idenfityFuelODrive() {
+
+}
+
+void Driver::setThrust(float thrust) {
+
+}
+
