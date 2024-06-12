@@ -12,11 +12,10 @@
 #include "Driver.h"
 #include "ODriveUART.h"
 
-ODriveUART loxODrive(LOX_ODRIVE_SERIAL);
-ODriveUART fuelODrive(FUEL_ODRIVE_SERIAL);
-
-
 namespace Driver {
+
+    ODriveUART loxODrive(LOX_ODRIVE_SERIAL);
+    ODriveUART fuelODrive(FUEL_ODRIVE_SERIAL);
 
     void begin() {
         Router::add({Driver::followCurve, "follow_curve"});
