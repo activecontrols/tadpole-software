@@ -34,20 +34,20 @@
 
 namespace Driver {
 
-    extern void begin();
+    void begin();
 
-    extern void setFuelODrivePosition(float position);
-    extern void setLOXODrivePosition(float position);
-    extern void setThrust(float thrust);
-    extern void clearErrors();
+    void setFuelODrivePosition(float position);
+    void setLOXODrivePosition(float position);
+    void setThrust(float thrust);
+    void clearErrors();
 
-    extern void idenfityLOXODrive(); // flashes LED on LOX ODrive
-    extern void idenfityFuelODrive(); // flashes LED on fuel ODrive
+    void idenfityLOXODrive(); // flashes LED on LOX ODrive
+    void idenfityFuelODrive(); // flashes LED on fuel ODrive
 
-    extern std::string getODriveDataCSV();
-    extern std::string getODriveInfo();
+    std::string getODriveDataCSV();
+    std::string getODriveInfo();
 
-    extern void followCurve();
+    void followCurve();
     
 };
 
