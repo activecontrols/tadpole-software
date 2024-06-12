@@ -117,6 +117,8 @@ namespace Driver {
 
     namespace {
 
+        File odriveLogFile;
+
         void logCurveTelemCSV(File *file, unsigned long time, int pointNum, void *point) {
             std::string csvRowODriveData = getODriveDataCSV();
 
@@ -178,8 +180,6 @@ namespace Driver {
         }
 
         void followOpenLerpCurve() {
-            
-            File odriveLogFile = createCurveLog();
 
             lerp_point_open *point = Loader::los;
             elapsedMillis timer = elapsedMillis();
@@ -197,8 +197,6 @@ namespace Driver {
 
         void followClosedLerpCurve() {
             
-            File odriveLogFile = createCurveLog();
-
             lerp_point_closed *point = Loader::lcs;
             elapsedMillis timer = elapsedMillis();
             for (int i = 0; i < Loader::header.lerp.num_points; i++) {
@@ -216,7 +214,7 @@ namespace Driver {
 
         void followSineCurve() {
             
-            File odriveLogFile = createCurveLog();
+            
             //create sine curve
             //follow sine curve
             //log data
@@ -224,7 +222,7 @@ namespace Driver {
 
         void followChirpCurve() {
             
-            File odriveLogFile = createCurveLog();
+            
 
             //create chirp curve
             //follow chirp curve
@@ -238,6 +236,8 @@ namespace Driver {
             Router::info("No curve loaded.");
             return;
         }
+
+        odriveLogFile = createCurveLog();
 
         switch (Loader::header.ctype) {
             case curve_type::lerp:
