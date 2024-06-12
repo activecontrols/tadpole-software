@@ -117,11 +117,19 @@ namespace Driver {
 
     namespace {
 
-        void logCurveTelemCSV(File *file, unsigned long time, int pointNum, lerp_point_open &point) {
+        void logCurveTelemCSV(File *file, unsigned long time, int pointNum, void *point) {
             std::string csvRowODriveData = getODriveDataCSV();
 
             std::stringstream ss;
-            ss << "," << time << "," << pointNum << point.lox_angle << "," << point.ipa_angle << "," << csvRowODriveData;
+            
+            if (Loader::header.lerp.is_open) {
+                lerp_point_open *openPoint = (lerp_point_open*) point;
+                ss << "," << time << "," << pointNum << openPoint->lox_angle << "," << openPoint->ipa_angle << "," << csvRowODriveData;
+            } else {
+                lerp_point_closed *closedPoint = (lerp_point_closed*) point;
+                ss << "," << time << "," << pointNum << closedPoint->thrust << "," << csvRowODriveData;
+            }
+            
             std::string csvRow = ss.str();
             Router::info(csvRow);
 
@@ -181,7 +189,7 @@ namespace Driver {
                 setFuelODrivePosition(point[i].ipa_angle);
 
                 while (timer/1000.0 < point[i].time) {
-                    logCurveTelemCSV(&odriveLogFile, timer, i, point[i]);
+                    logCurveTelemCSV(&odriveLogFile, timer, i, (void *) &point[i]);
                 }
             }
             Router::info("Finished following curve!");
@@ -200,7 +208,7 @@ namespace Driver {
                 //log thrust as it is changing by PID
 
                 while (timer/1000.0 < point[i].time) {
-                    //logCurveTelemCSV(timer, point[i]);
+                    logCurveTelemCSV(&odriveLogFile, timer, i, (void *) &point[i]);
                 }
             }
             Router::info("Finished following curve!");
