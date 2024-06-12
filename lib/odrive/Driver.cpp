@@ -7,6 +7,7 @@
 
 #include <sstream>
 #include <Router.h>
+#include <SDCard.h>
 
 #include "Driver.h"
 #include "ODriveUART.h"
@@ -96,11 +97,37 @@ namespace Driver {
             //log to sd card
         }
 
+        File createCurveLog() {
+            
+            std::stringstream ss;
+            ss << Loader::header.curve_label;
+
+            switch (Loader::header.ctype) {
+                case curve_type::lerp:
+                    ss << "_lerp";
+                    break;
+                case curve_type::sine:
+                    ss << "_sine";
+                    break;
+                case curve_type::chirp:
+                    ss << "_chirp";
+                    break;
+                default:
+                    break;
+            }
+
+            ss << ".csv";
+
+            char *filename = (char*) ss.str().c_str();
+
+            File odriveLogFile = SDCard::open(filename, 'w');
+
+            return odriveLogFile;
+        }
+
         void followOpenLerpCurve() {
-            //create file for logging csv data in sd card
-                //include curve id in the csv header or file name
-                //include curve type in file name
-            //make the first line the csv header
+            
+            File odriveLogFile = createCurveLog();
 
             lerp_point_open *point = Loader::los;
             elapsedMillis timer = elapsedMillis();
@@ -119,10 +146,8 @@ namespace Driver {
         }
 
         void followClosedLerpCurve() {
-            //create file for logging csv data in sd card
-                //include curve id in the csv header or file name
-                //include curve type in file name
-            //make the first line the csv header
+            
+            File odriveLogFile = createCurveLog();
 
             lerp_point_closed *point = Loader::lcs;
             elapsedMillis timer = elapsedMillis();
@@ -142,21 +167,16 @@ namespace Driver {
         }
 
         void followSineCurve() {
-            //create file for logging csv data in sd card
-                //include curve id in the csv header or file name
-                //include curve type in file name
-            //make the first line the csv header
-
+            
+            File odriveLogFile = createCurveLog();
             //create sine curve
             //follow sine curve
             //log data
         }
 
         void followChirpCurve() {
-            //create file for logging csv data in sd card
-                //include curve id in the csv header or file name
-                //include curve type in file name
-            //make the first line the csv header
+            
+            File odriveLogFile = createCurveLog();
 
             //create chirp curve
             //follow chirp curve
