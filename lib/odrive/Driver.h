@@ -5,7 +5,6 @@
     * 
 */
 
-
 #ifndef ODRIVE_H
 #define ODRIVE_H
 
@@ -21,27 +20,32 @@
 
 #define ODRIVE_COMM_TIMEOUT 10 //in millis
 
-class Driver {
-public:
-    static void begin();
-private:
-    static void setFuelODrivePosition(float position);
-    static void setLOXODrivePosition(float position);
-    static void setThrust(float thrust);
-    static void clearErrors();
+namespace Driver {
 
-    static void idenfityLOXODrive(); // flashes LED on LOX ODrive
-    static void idenfityFuelODrive(); // flashes LED on fuel ODrive
+    extern void begin();
 
-    static void logCurveTelemCSV(unsigned long time, lerp_point_open &point);
-    static std::string getODriveDataCSV();
-    static std::string getODriveInfo();
+    extern void setFuelODrivePosition(float position);
+    extern void setLOXODrivePosition(float position);
+    extern void setThrust(float thrust);
+    extern void clearErrors();
 
-    static void followCurve();
-    static void followOpenLerpCurve();
-    static void followClosedLerpCurve();
-    static void followSineCurve();
-    static void followChirpCurve();
+    extern void idenfityLOXODrive(); // flashes LED on LOX ODrive
+    extern void idenfityFuelODrive(); // flashes LED on fuel ODrive
+
+    extern std::string getODriveDataCSV();
+    extern std::string getODriveInfo();
+
+    extern void followCurve();
+
+    // namespace {
+    //     void logCurveTelemCSV(unsigned long time, lerp_point_open &point);
+
+    //     void followOpenLerpCurve();
+    //     void followClosedLerpCurve();
+    //     void followSineCurve();
+    //     void followChirpCurve();
+    // }
+    
 };
 
 #endif
