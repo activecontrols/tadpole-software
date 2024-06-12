@@ -17,6 +17,105 @@ namespace Driver {
     ODriveUART loxODrive(LOX_ODRIVE_SERIAL);
     ODriveUART fuelODrive(FUEL_ODRIVE_SERIAL);
 
+    namespace { // private
+
+        void logCurveTelemCSV(File *file, unsigned long time, int pointNum, lerp_point_open &point) {
+            std::string csvRowODriveData = getODriveDataCSV();
+
+            std::stringstream ss;
+            ss << "," << time << "," << pointNum << point.lox_angle << "," << point.ipa_angle << ","
+               << csvRowODriveData;
+            std::string csvRow = ss.str();
+            Router::info(csvRow);
+
+            file->println(csvRow.c_str());
+        }
+
+        File createCurveLog() {
+            std::stringstream ss;
+            ss << Loader::header.curve_label;
+
+            const char *csvHeader = nullptr;
+            switch (Loader::header.ctype) {
+                case curve_type::lerp:
+                    if (Loader::header.lerp.is_open) {
+                        ss << "_lerp_open";
+                        csvHeader = ODRIVE_OPEN_CURVE_HEADER;
+                    } else {
+                        ss << "_lerp_closed";
+                        csvHeader = ODRIVE_CLOSED_CURVE_HEADER;
+                    }
+                    break;
+                case curve_type::sine:
+                    ss << "_sine_closed";
+                    csvHeader = ODRIVE_CLOSED_CURVE_HEADER;
+                    break;
+                case curve_type::chirp:
+                    ss << "_chirp";
+                    csvHeader = ODRIVE_CLOSED_CURVE_HEADER;
+                    break;
+                default:
+                    break;
+            }
+            ss << ".csv";
+
+            std::string filename = ss.str();
+            File odriveLogFile = SDCard::open(filename.c_str(), 'w');
+
+            odriveLogFile.println(csvHeader);
+            odriveLogFile.println(getODriveDataCSV().c_str());
+
+            return odriveLogFile;
+        }
+
+        void followOpenLerpCurve() {
+            File odriveLogFile = createCurveLog();
+            lerp_point_open *point = Loader::los;
+            elapsedMillis timer = elapsedMillis();
+
+            for (int i = 0; i < Loader::header.lerp.num_points; i++) {
+                setLOXODrivePosition(point[i].lox_angle);
+                setFuelODrivePosition(point[i].ipa_angle);
+
+                while (timer / 1000.0 < point[i].time) {
+                    logCurveTelemCSV(&odriveLogFile, timer, i, point[i]);
+                }
+            }
+            Router::info("Finished following curve!");
+        }
+
+        void followClosedLerpCurve() {
+            File odriveLogFile = createCurveLog();
+            lerp_point_closed *point = Loader::lcs;
+            elapsedMillis timer = elapsedMillis();
+
+            for (int i = 0; i < Loader::header.lerp.num_points; i++) {
+                //setThrust(point[i].thrust);
+
+                //log thrust as it is changing by PID
+                while (timer / 1000.0 < point[i].time) {
+                    //logCurveTelemCSV(timer, point[i]);
+                }
+            }
+            Router::info("Finished following curve!");
+        }
+
+        void followSineCurve() {
+            File odriveLogFile = createCurveLog();
+            //create sine curve
+            //follow sine curve
+            //log data
+        }
+
+        void followChirpCurve() {
+            File odriveLogFile = createCurveLog();
+
+            //create chirp curve
+            //follow chirp curve
+            //log data
+        }
+    }
+
     void begin() {
         Router::add({Driver::followCurve, "follow_curve"});
         LOX_ODRIVE_SERIAL.begin(LOX_ODRIVE_SERIAL_RATE);
@@ -79,15 +178,14 @@ namespace Driver {
 
         std::stringstream ss;
         ss << loxThrottlePos << "," << fuelThrottlePos << ","
-        << loxThrottleVel << "," << fuelThrottleVel << ","
-        << loxVoltage << "," << fuelVoltage << ","
-        << loxCurrent << "," << fuelCurrent;
+           << loxThrottleVel << "," << fuelThrottleVel << ","
+           << loxVoltage << "," << fuelVoltage << ","
+           << loxCurrent << "," << fuelCurrent;
 
         return ss.str();
     }
 
-    std::string getODriveInfo()
-    {
+    std::string getODriveInfo() {
         int loxHWVersionMajor = loxODrive.getParameterAsInt("hw_version_major");
         int loxHWVersionMinor = loxODrive.getParameterAsInt("hw_version_minor");
         int loxFWVersionMajor = loxODrive.getParameterAsInt("fw_version_major");
@@ -103,129 +201,19 @@ namespace Driver {
         String fuelRebootRequired = fuelODrive.getParameterAsString("reboot_required");
 
         stringstream ss = stringstream();
-        ss << "LOX ODrive Hardware Version: " << loxHWVersionMajor << "." << loxHWVersionMinor 
-        << " | LOX Firmware Version: " << loxFWVersionMajor << "." << loxFWVersionMinor 
-        << " | LOX Misconfigured: " << loxMisconfigured 
-        << " | LOX Reboot Required: " << loxRebootRequired << " ||| ";
-        ss << "Fuel ODrive Hardware Version: " << fuelHWVersionMajor << "." << fuelHWVersionMinor 
-        << " | Fuel Firmware Version: " << fuelFWVersionMajor << "." << fuelFWVersionMinor 
-        << " | Fuel Misconfigured: " << fuelMisconfigured 
-        << " | Fuel Reboot Required: " << fuelRebootRequired << "\n";
+        ss << "LOX ODrive Hardware Version: " << loxHWVersionMajor << "." << loxHWVersionMinor
+           << " | LOX Firmware Version: " << loxFWVersionMajor << "." << loxFWVersionMinor
+           << " | LOX Misconfigured: " << loxMisconfigured
+           << " | LOX Reboot Required: " << loxRebootRequired << " ||| ";
+        ss << "Fuel ODrive Hardware Version: " << fuelHWVersionMajor << "." << fuelHWVersionMinor
+           << " | Fuel Firmware Version: " << fuelFWVersionMajor << "." << fuelFWVersionMinor
+           << " | Fuel Misconfigured: " << fuelMisconfigured
+           << " | Fuel Reboot Required: " << fuelRebootRequired << "\n";
 
         return ss.str();
     }
 
-    namespace {
-
-        void logCurveTelemCSV(File *file, unsigned long time, int pointNum, lerp_point_open &point) {
-            std::string csvRowODriveData = getODriveDataCSV();
-
-            std::stringstream ss;
-            ss << "," << time << "," << pointNum << point.lox_angle << "," << point.ipa_angle << "," << csvRowODriveData;
-            std::string csvRow = ss.str();
-            Router::info(csvRow);
-
-            file->println(csvRow.c_str());
-        }
-
-        File createCurveLog() {
-            
-            std::stringstream ss;
-            ss << Loader::header.curve_label;
-
-            const char *csvHeader = nullptr;
-            switch (Loader::header.ctype) {
-                case curve_type::lerp:
-                    if (Loader::header.lerp.is_open) {
-                        ss << "_lerp_open";
-                        csvHeader = ODRIVE_OPEN_CURVE_HEADER;
-                    } else {
-                        ss << "_lerp_closed";
-                        csvHeader = ODRIVE_CLOSED_CURVE_HEADER;
-                    }
-                    break;
-                case curve_type::sine:
-                    ss << "_sine_closed";
-                    csvHeader = ODRIVE_CLOSED_CURVE_HEADER;
-                    break;
-                case curve_type::chirp:
-                    ss << "_chirp";
-                    csvHeader = ODRIVE_CLOSED_CURVE_HEADER;
-                    break;
-                default:
-                    break;
-            }
-
-            ss << ".csv";
-
-            char *filename = (char*) ss.str().c_str();
-
-            File odriveLogFile = SDCard::open(filename, 'w');
-
-            odriveLogFile.println(csvHeader);
-
-            odriveLogFile.println(getODriveDataCSV().c_str());
-
-            return odriveLogFile;
-        }
-
-        void followOpenLerpCurve() {
-            
-            File odriveLogFile = createCurveLog();
-
-            lerp_point_open *point = Loader::los;
-            elapsedMillis timer = elapsedMillis();
-            for (int i = 0; i < Loader::header.lerp.num_points; i++) {
-
-                setLOXODrivePosition(point[i].lox_angle);
-                setFuelODrivePosition(point[i].ipa_angle);
-
-                while (timer/1000.0 < point[i].time) {
-                    logCurveTelemCSV(&odriveLogFile, timer, i, point[i]);
-                }
-            }
-            Router::info("Finished following curve!");
-        }
-
-        void followClosedLerpCurve() {
-            
-            File odriveLogFile = createCurveLog();
-
-            lerp_point_closed *point = Loader::lcs;
-            elapsedMillis timer = elapsedMillis();
-            for (int i = 0; i < Loader::header.lerp.num_points; i++) {
-
-                //setThrust(point[i].thrust); 
-                
-                //log thrust as it is changing by PID
-
-                while (timer/1000.0 < point[i].time) {
-                    //logCurveTelemCSV(timer, point[i]);
-                }
-            }
-            Router::info("Finished following curve!");
-        }
-
-        void followSineCurve() {
-            
-            File odriveLogFile = createCurveLog();
-            //create sine curve
-            //follow sine curve
-            //log data
-        }
-
-        void followChirpCurve() {
-            
-            File odriveLogFile = createCurveLog();
-
-            //create chirp curve
-            //follow chirp curve
-            //log data
-        }
-    }
-
     void followCurve() {
-
         if (!Loader::loaded_curve) {
             Router::info("No curve loaded.");
             return;
