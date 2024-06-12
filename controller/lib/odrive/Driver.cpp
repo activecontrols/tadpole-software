@@ -119,7 +119,7 @@ namespace Driver {
 
         File odriveLogFile;
 
-        void logCurveTelemCSV(File *file, unsigned long time, int pointNum, void *point) {
+        void logCurveTelemCSV(unsigned long time, int pointNum, void *point) {
             std::string csvRowODriveData = getODriveDataCSV();
 
             std::stringstream ss;
@@ -135,7 +135,7 @@ namespace Driver {
             std::string csvRow = ss.str();
             Router::info(csvRow);
 
-            file->println(csvRow.c_str());
+            odriveLogFile.println(csvRow.c_str());
         }
 
         File createCurveLog() {
@@ -189,7 +189,7 @@ namespace Driver {
                 setFuelODrivePosition(point[i].ipa_angle);
 
                 while (timer/1000.0 < point[i].time) {
-                    logCurveTelemCSV(&odriveLogFile, timer, i, (void *) &point[i]);
+                    logCurveTelemCSV(timer, i, (void *) &point[i]);
                 }
             }
             Router::info("Finished following curve!");
@@ -206,7 +206,7 @@ namespace Driver {
                 //log thrust as it is changing by PID
 
                 while (timer/1000.0 < point[i].time) {
-                    logCurveTelemCSV(&odriveLogFile, timer, i, (void *) &point[i]);
+                    logCurveTelemCSV(timer, i, (void *) &point[i]);
                 }
             }
             Router::info("Finished following curve!");
