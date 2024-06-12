@@ -18,8 +18,6 @@
 #define LOX_ODRIVE_SERIAL_RATE 115200
 #define FUEL_ODRIVE_SERIAL_RATE 115200
 
-#define ODRIVE_COMM_TIMEOUT 10 //in millis
-
 #define ODRIVE_OPEN_CURVE_HEADER "info,current_time,point_number," \
                                   "point_lox_angle,point_ipa_angle," \
                                   "lox_throttle_pos,ipa_throttle_pos," \
@@ -50,15 +48,6 @@ namespace Driver {
     extern std::string getODriveInfo();
 
     extern void followCurve();
-
-    // namespace {
-    //     void logCurveTelemCSV(unsigned long time, lerp_point_open &point);
-
-    //     void followOpenLerpCurve();
-    //     void followClosedLerpCurve();
-    //     void followSineCurve();
-    //     void followChirpCurve();
-    // }
     
 };
 
