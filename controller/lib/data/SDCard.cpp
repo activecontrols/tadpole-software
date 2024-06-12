@@ -14,7 +14,7 @@ boolean SDCard::begin() {
     return true;
 }
 
-File SDCard::open(char filename[], char mode) {
+File SDCard::open(const char* filename, char mode) {
     return SD.open(filename, mode);
 }
 

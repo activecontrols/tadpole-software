@@ -10,7 +10,7 @@
 class SDCard {
 public:
     static boolean begin();
-    static File open(char filename[], char mode);
+    static File open(const char* filename, char mode);
 private:
     // used by comms
     static void ls();
