@@ -3,8 +3,41 @@
 //
 
 #include "Router.h"
+#include <SDCard.h>
 
 vector<func> Router::funcs;
+char Router::logfilename[50] = "log.txt";
+File Router::logfile;
+bool Router::logenabled = true;
+bool Router::logopen = false;
+
+
+void Router::setLog() {
+    Router::receive(logfilename, 50);
+    logfilename[49] = 0; // just in case
+}
+
+// assumes sd inited fine.
+void Router::log(const char *msg) {
+    if (!logenabled) {
+        if (logopen) {
+            logfile.close();
+            logopen = false;
+        }
+        return;
+    }
+    if (!logopen) {
+        logfile = SD.open(logfilename, FILE_WRITE);
+        if (!logfile) {
+            Router::info("COULDN'T OPEN LOG FILE. LOGGING DISABLED.");
+            logenabled = false;
+            Router::log(""); // trigger the close asap
+            return;
+        }
+        logopen = true;
+    }
+    logfile.println(msg);
+}
 
 void Router::info(const char *msg) {
     COMMS_SERIAL.println(msg);
@@ -19,15 +52,13 @@ void Router::receive(char msg[], unsigned int len) {
 }
 
 void Router::add(func f) {
-    if (funcs.empty()) {
-        init(); // nice way to avoid having to call init() in main
-    }
     funcs.push_back(f);
 }
 
-void Router::init() {
+void Router::init_comms() {
     COMMS_SERIAL.begin(COMMS_RATE);
     COMMS_SERIAL.setTimeout((unsigned long) -1); // wrap around to max long so we never time out
+    Router::add({setLog, "set_log"});
 }
 
 [[noreturn]] void Router::run() { // attribute here enables dead-code warning & compiler optimization
