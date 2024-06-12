@@ -9,13 +9,14 @@
 #include <string>
 #include <Router.h>
 
-#include "ODrive.h"
+#include "Driver.h"
 #include "ODriveUART.h"
 
 ODriveUART loxODrive(LOX_ODRIVE_SERIAL);
 ODriveUART fuelODrive(FUEL_ODRIVE_SERIAL);
 
 void Driver::begin() {
+    Router::add({Driver::followCurve, "follow_curve"});
     LOX_ODRIVE_SERIAL.begin(LOX_ODRIVE_SERIAL_RATE);
     FUEL_ODRIVE_SERIAL.begin(FUEL_ODRIVE_SERIAL_RATE);
 

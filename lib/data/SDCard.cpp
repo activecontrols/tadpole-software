@@ -7,9 +7,11 @@
 #include "Router.h"
 
 boolean SDCard::begin() {
+    if (!SD.begin(BUILTIN_SDCARD)) return false;
     Router::add({ls, "ls"});
-
-    return SD.begin(BUILTIN_SDCARD);
+    Router::add({rm, "rm"});
+//    Router::add({cat, "cat"});
+    return true;
 }
 
 File SDCard::open(char filename[], char mode) {

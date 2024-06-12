@@ -1,21 +1,31 @@
 #include <Arduino.h>
-#include "../lib/odrive/ODrive.h"
-#include "../lib/serial_comms/Router.h"
-#include "../lib/data/Loader.h"
+#include "Driver.h"
+#include "Router.h"
+#include "Loader.h"
+#include "SDCard.h"
 
-#define ENABLE_ODRIVE_COMM false
+#define ENABLE_ODRIVE_COMM true
 
-void ping() {
-    Router::info("pong");
-}
+//void ping() {
+//    Router::info("pong");
+//}
 
 void setup() {
-    Router::add({ping, "ping"}); // example registration
-    Loader::begin(); // registers loader functions with the router
+    Router::init_comms();
+//    Router::add({ping, "ping"}); // example registration
+    if (!SDCard::begin()) {
+        Router::logenabled = false;
+        Router::info("SD card not found. Logging disabled.");
+    }
+
+    Loader::begin(); // registers data loader functions with the router
+
 #if (ENABLE_ODRIVE_COMM)
-    ODrive::setupODrives(); // sets up the LOX and Fuel odrives
+    Driver::begin(); // initializes the odrives and functions to start curves
 #endif
+
     Router::run(); // nothing runs after this. router handles everything
 }
 
+// code never reaches here because of Router::run()
 void loop() {}
