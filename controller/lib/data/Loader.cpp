@@ -23,6 +23,14 @@ void Loader::begin() {
 }
 
 void Loader::load_curve_generic(bool serial, File* f) {
+
+    if (loaded_curve) {
+        free(los);
+        los = NULL;
+        free(lcs);
+        lcs = NULL;
+    }
+
     auto receive = [=](char *buf, unsigned int len) {
         if (serial) Router::receive(buf, len); else f->read(buf, len);
     };
