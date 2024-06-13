@@ -1,9 +1,11 @@
 /*
-    * odrive.cpp
+    * Driver.cpp
     *
     *  Created on: 2021-07-10 by Vincent Palmerio
-    * 
-*/
+    *  Description: This file contains the implementation of the Driver namespace, which provides functions for controlling ODrive motors.
+    *               It includes functions for logging telemetry data, creating log files, and following different types of curves.
+    *               The curves supported are lerp (linear interpolation), sine, and chirp.
+    */
 
 #include <sstream>
 #include <SDCard.h>
@@ -24,6 +26,14 @@ namespace Driver {
 
         File odriveLogFile;
 
+        /**
+         * Logs the telemetry data for a curve in CSV format.
+         * @param time The elapsed time in seconds.
+         * @param phase The current phase of the curve.
+         * @param thrust The thrust value (for closed lerp curves) or -1 (for other curve types).
+         * @param lox_pos The LOX position.
+         * @param ipa_pos The IPA position.
+         */
         void logCurveTelemCSV(float time, int phase, float thrust, float lox_pos, float ipa_pos) {
             std::stringstream ss;
             ss << time << "," << phase << "," << thrust << "," << lox_pos << "," << ipa_pos << getODriveStatusCSV();
@@ -32,6 +42,10 @@ namespace Driver {
             odriveLogFile.println(csvRow.c_str());
         }
 
+        /**
+         * Creates a log file for the current curve.
+         * @return The created log file.
+         */
         File createCurveLog() {
             std::stringstream ssfilename;
             ssfilename << Loader::header.curve_label;
@@ -63,6 +77,15 @@ namespace Driver {
             return odriveLogFile;
         }
 
+        /**
+         * Performs linear interpolation between two values.
+         * @param a The starting value.
+         * @param b The ending value.
+         * @param t0 The starting time.
+         * @param t1 The ending time.
+         * @param t The current time.
+         * @return The interpolated value at the current time.
+         */
         float lerp(float a, float b, float t0, float t1, float t) {
             if (t <= t0) return a;
             if (t >= t1) return b;
@@ -70,6 +93,9 @@ namespace Driver {
             return a + (b - a) * ((t - t0) / (t1 - t0));
         }
 
+        /**
+         * Follows an open lerp curve by interpolating between LOX and IPA positions.
+         */
         void followOpenLerpCurve() {
             lerp_point_open *los = Loader::los;
 
@@ -92,6 +118,9 @@ namespace Driver {
             }
         }
 
+        /**
+         * Follows a closed lerp curve by interpolating between thrust values.
+         */
         void followClosedLerpCurve() {
             lerp_point_closed *lcs = Loader::lcs;
             elapsedMillis timer = elapsedMillis();
@@ -111,6 +140,9 @@ namespace Driver {
             }
         }
 
+        /**
+         * Follows an open sine curve by generating LOX and IPA positions based on sine wave.
+         */
         void followOpenSineCurve() {
             
             float amplitude = Loader::header.sine_open.ipa_amplitude;
@@ -137,6 +169,9 @@ namespace Driver {
             }
         }
 
+        /**
+         * Follows a closed sine curve by generating thrust values based on sine wave.
+         */
         void followClosedSineCurve() {
 
             float amplitude = Loader::header.sine_closed.amplitude;
@@ -177,8 +212,6 @@ namespace Driver {
 
         Router::add({Driver::setPosCmd, "set_odrive_pos"});
         Router::add({Driver::setThrustCmd, "set_thrust"});
-        
-        //modify router to allow parameters
 
         LOX_ODRIVE_SERIAL.begin(LOX_ODRIVE_SERIAL_RATE);
         FUEL_ODRIVE_SERIAL.begin(FUEL_ODRIVE_SERIAL_RATE);
@@ -212,14 +245,25 @@ namespace Driver {
 
     }
 
+    /**
+     * Set the position for the odrive controlling IPA flow
+     * @param pos value to be sent to odrive (valid values are from -1 to 1)
+     */
     void setIPAPos(float pos) {
         fuelODrive.setPosition(pos);
     }
 
+    /**
+     * Set the position for the odrive controlling LOX flow
+     * @param pos value to be sent to odrive (valid values are from -1 to 1)
+     */
     void setLOXPos(float pos) {
         loxODrive.setPosition(pos);
     }
 
+    /**
+     * Command for the Router lib to change the position of the IPA or LOX ODrive manually
+     */
     void setPosCmd() {
 
         char odriveSel[1] = {'\0'};
@@ -255,6 +299,9 @@ namespace Driver {
         }
     }
 
+    /**
+     * Command for the Router lib to change the thrust manually
+     */
     void setThrustCmd() {
 
         char posString[POSITION_BUFFER_SIZE] = {'\0'};
@@ -282,6 +329,7 @@ namespace Driver {
     }
 
     /*
+     * Sets the thrust
      * Uses a closed loop control to set the angle positions of the odrives
      * using feedback from the pressue sensor. The function will set the odrive positions itself, and
      * returns a tuple of lox and fuel throttle positions
@@ -292,11 +340,17 @@ namespace Driver {
         return std::make_pair(0, 0); //(lox position, ipa position)
     }
 
+    /**
+     * Clears errors for both the LOX and IPA odrives
+     */
     void clearErrors() {
         loxODrive.clearErrors();
         fuelODrive.clearErrors();
     }
 
+    /**
+     * Blinks the LED on the LOX ODrive for 5 seconds
+     */
     void idenfityLOXODrive() {
         Router::info("Identifying LOX ODrive for 5 seconds...");
         loxODrive.setParameter("identify", true);
@@ -305,6 +359,9 @@ namespace Driver {
         Router::info("Done");
     }
 
+    /**
+     * Blinks the LED on the IPA ODrive for 5 seconds
+     */
     void idenfityFuelODrive() {
         Router::info("Identifying LOX ODrive for 5 seconds...");
         fuelODrive.setParameter("identify", true);
@@ -313,6 +370,10 @@ namespace Driver {
         Router::info("Done");
     }
 
+    /**
+     * Returns a CSV string containing both the IPA and LOX ODrive Telemetry information, in the following format:
+     * lox_pos,ipa_pos,lox_vel,ipa_vel,lox_voltage,ipa_voltage,lox_current,ipa_current
+     */
     std::string getODriveStatusCSV() {
         float loxThrottlePos = loxODrive.getPosition();
         float fuelThrottlePos = fuelODrive.getPosition();
@@ -335,6 +396,10 @@ namespace Driver {
         return ss.str();
     }
 
+    /**
+     * Returns a string containing the hardware and firmware major and minor versons of the IPA and LOX ODrives and whether
+     * they are misconfigured or require a reboot
+     */
     std::string getODriveInfo() {
         int loxHWVersionMajor = loxODrive.getParameterAsInt("hw_version_major");
         int loxHWVersionMinor = loxODrive.getParameterAsInt("hw_version_minor");
@@ -363,6 +428,9 @@ namespace Driver {
         return ss.str();
     }
 
+    /**
+     * Initiates curve following based on the curve header loaded in Loader.cpp
+     */
     void followCurve() {
         if (!Loader::loaded_curve) {
             Router::info("No curve loaded.");
