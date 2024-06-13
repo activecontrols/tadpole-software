@@ -92,9 +92,9 @@ namespace Driver {
                         }
                     } else { // closed
                         float thrust = lerp(lcs[i].thrust, lcs[i + 1].thrust, lcs[i].time, lcs[i + 1].time, seconds);
-                        setThrust(thrust);
+                        auto odrive_pos = setThrust(thrust);
                         if (timer - lastlog >= LOG_INTERVAL_MS) {
-                            logCurveTelemCSV(seconds, i, thrust, -1, -1);
+                            logCurveTelemCSV(seconds, i, thrust, odrive_pos.first, odrive_pos.second);
                             lastlog = timer;
                         }
                     }
@@ -126,9 +126,9 @@ namespace Driver {
                         }
                     } else {
                         float thrust = amplitude * sin(2 * M_PI * seconds / period);
-                        setThrust(thrust);
-                        if (timer - lastlog > LOG_INTERVAL_MS) {
-                            logCurveTelemCSV(seconds, i, thrust, -1, -1);
+                        auto odrive_pos = setThrust(thrust);
+                        if (timer - lastlog >= LOG_INTERVAL_MS) {
+                            logCurveTelemCSV(seconds, i, thrust, odrive_pos.first, odrive_pos.second);
                             lastlog = timer;
                         }
                     }
@@ -197,8 +197,15 @@ namespace Driver {
         loxODrive.setPosition(pos);
     }
 
-    void setThrust(float thrust) {
+    /*
+     * Uses a closed loop control to set the angle positions of the odrives
+     * using feedback from the pressue sensor. The function will set the odrive positions itself, and
+     * returns a tuple of lox and fuel throttle positions
+     */
+    std::pair<float, float> setThrust(float thrust) {
         // TODO: closed loop magic
+
+        return std::make_pair(0, 0); //(lox position, ipa position)
     }
 
     void clearErrors() {

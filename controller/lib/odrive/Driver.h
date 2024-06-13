@@ -46,7 +46,8 @@ namespace Driver {
 
     void setIPAPos(float position);
     void setLOXPos(float position);
-    void setThrust(float thrust);
+    std::pair<float, float> setThrust(float thrust);
+    inline void setThrustCommand(float thrust) { setThrust(thrust); }
     void clearErrors();
 
     void idenfityLOXODrive(); // flashes LED on LOX ODrive
