@@ -23,12 +23,14 @@ namespace Driver {
 
     namespace { // private
 
-        void logCurveTelemCSV(File *file, float time, int phase, float thrust, float lox_pos, float ipa_pos) {
+        File odriveLogFile;
+
+        void logCurveTelemCSV(float time, int phase, float thrust, float lox_pos, float ipa_pos) {
             std::stringstream ss;
             ss << time << "," << phase << "," << thrust << "," << lox_pos << "," << ipa_pos << getODriveStatusCSV();
             std::string csvRow = ss.str();
             Router::info(csvRow);
-            file->println(csvRow.c_str());
+            odriveLogFile.println(csvRow.c_str());
         }
 
         File createCurveLog() {
@@ -52,6 +54,11 @@ namespace Driver {
 
             std::string filename = ssfilename.str();
             File odriveLogFile = SDCard::open(filename.c_str(), FILE_WRITE);
+
+            if (!odriveLogFile) { // Failed to create a log file
+                return odriveLogFile;
+            }
+
             odriveLogFile.println(LOG_HEADER);
 
             return odriveLogFile;
@@ -69,7 +76,6 @@ namespace Driver {
             lerp_point_closed *lcs = Loader::lcs;
             bool open = Loader::header.is_open;
 
-            File logfile = createCurveLog();
             elapsedMillis timer = elapsedMillis();
             unsigned long lastlog = timer;
 
@@ -82,14 +88,14 @@ namespace Driver {
                         setLOXPos(lox_pos);
                         setIPAPos(ipa_pos);
                         if (timer - lastlog > LOG_INTERVAL_MS) { // log every 10ms
-                            logCurveTelemCSV(&logfile, seconds, i, -1, lox_pos, ipa_pos);
+                            logCurveTelemCSV(seconds, i, -1, lox_pos, ipa_pos);
                             lastlog = timer;
                         }
                     } else { // closed
                         float thrust = lerp(lcs[i].thrust, lcs[i + 1].thrust, lcs[i].time, lcs[i + 1].time, seconds);
                         setThrust(thrust);
                         if (timer - lastlog >= LOG_INTERVAL_MS) {
-                            logCurveTelemCSV(&logfile, seconds, i, thrust, -1, -1);
+                            logCurveTelemCSV(seconds, i, thrust, -1, -1);
                             lastlog = timer;
                         }
                     }
@@ -100,7 +106,7 @@ namespace Driver {
         }
 
         void followSineCurve() {
-            File odriveLogFile = createCurveLog();
+            
 
             float amplitude = Loader::header.sine.amplitude;
             float period = Loader::header.sine.period;
@@ -116,14 +122,14 @@ namespace Driver {
                         setLOXPos(lox_pos);
                         setIPAPos(ipa_pos);
                         if (timer - lastlog >= LOG_INTERVAL_MS) { // log every 10ms
-                            logCurveTelemCSV(&odriveLogFile, seconds, i, -1, lox_pos, ipa_pos);
+                            logCurveTelemCSV(seconds, i, -1, lox_pos, ipa_pos);
                             lastlog = timer;
                         }
                     } else {
                         float thrust = amplitude * sin(2 * M_PI * seconds / period);
                         setThrust(thrust);
                         if (timer - lastlog > LOG_INTERVAL_MS) {
-                            logCurveTelemCSV(&odriveLogFile, seconds, i, thrust, -1, -1);
+                            logCurveTelemCSV(seconds, i, thrust, -1, -1);
                             lastlog = timer;
                         }
                     }
@@ -133,7 +139,7 @@ namespace Driver {
         }
 
         void followChirpCurve() {
-            File odriveLogFile = createCurveLog();
+            
 
         }
     }
@@ -245,6 +251,13 @@ namespace Driver {
             return;
         }
 
+        odriveLogFile = createCurveLog();
+
+        if (!odriveLogFile) {
+            Router::info("Failed to create log file. Aborting.");
+            return;
+        }
+
         switch (Loader::header.ctype) {
             case curve_type::lerp:
                 followLerpCurve();
@@ -258,5 +271,10 @@ namespace Driver {
             default:
                 break;
         }
+
+        odriveLogFile.flush();
+        odriveLogFile.close();
+
+        Router::info("Finished following curve!");
     }
 }
