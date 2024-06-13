@@ -22,10 +22,16 @@ typedef struct {
     bool is_open;
     union { // which of these is used depends on ctype
         struct {
+            float ipa_amplitude;
+            float ipa_period;
+            int ipa_num_cycles;
+            int ipa_mix_ratio; // one side of mixture ratio (ie 70:30 for oxidizer to fuel, where 30 is ipa_mixture_ratio)
+        } sine_open;
+        struct {
             float amplitude;
             float period;
             int num_cycles;
-        } sine;
+        } sine_closed;
         struct {
             float amplitude;
             float start;

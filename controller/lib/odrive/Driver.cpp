@@ -70,71 +70,95 @@ namespace Driver {
             return a + (b - a) * ((t - t0) / (t1 - t0));
         }
 
-        void followLerpCurve() {
+        void followOpenLerpCurve() {
             lerp_point_open *los = Loader::los;
-            lerp_point_closed *lcs = Loader::lcs;
-            bool open = Loader::header.is_open;
 
+            elapsedMillis timer = elapsedMillis();
+            unsigned long lastlog = timer;
+
+            for (int i = 0; i < Loader::header.lerp.num_points - 1; i++) {
+                while (timer / 1000.0 < los[i].time) {
+                    float seconds = timer / 1000.0;
+                    float lox_pos = lerp(los[i].lox_angle, los[i + 1].lox_angle, los[i].time, los[i + 1].time, seconds);
+                    float ipa_pos = lerp(los[i].ipa_angle, los[i + 1].ipa_angle, los[i].time, los[i + 1].time, seconds);
+                    setLOXPos(lox_pos);
+                    setIPAPos(ipa_pos);
+                    if (timer - lastlog > LOG_INTERVAL_MS) { // log every 10ms
+                        logCurveTelemCSV(seconds, i, -1, lox_pos, ipa_pos);
+                        lastlog = timer;
+                    }
+                    delay(COMMAND_INTERVAL_MS);
+                }
+            }
+        }
+
+        void followClosedLerpCurve() {
+            lerp_point_closed *lcs = Loader::lcs;
             elapsedMillis timer = elapsedMillis();
             unsigned long lastlog = timer;
 
             for (int i = 0; i < Loader::header.lerp.num_points-1; i++) {
-                while (timer / 1000.0 < (open ? los[i].time : lcs[i].time)) {
+                while (timer / 1000.0 < lcs[i].time) {
                     float seconds = timer / 1000.0;
-                    if (open) {
-                        float lox_pos = lerp(los[i].lox_angle, los[i + 1].lox_angle, los[i].time, los[i + 1].time, seconds);
-                        float ipa_pos = lerp(los[i].ipa_angle, los[i + 1].ipa_angle, los[i].time, los[i + 1].time, seconds);
-                        setLOXPos(lox_pos);
-                        setIPAPos(ipa_pos);
-                        if (timer - lastlog > LOG_INTERVAL_MS) { // log every 10ms
-                            logCurveTelemCSV(seconds, i, -1, lox_pos, ipa_pos);
-                            lastlog = timer;
-                        }
-                    } else { // closed
-                        float thrust = lerp(lcs[i].thrust, lcs[i + 1].thrust, lcs[i].time, lcs[i + 1].time, seconds);
-                        auto odrive_pos = setThrust(thrust);
-                        if (timer - lastlog >= LOG_INTERVAL_MS) {
-                            logCurveTelemCSV(seconds, i, thrust, odrive_pos.first, odrive_pos.second);
-                            lastlog = timer;
-                        }
+                    float thrust = lerp(lcs[i].thrust, lcs[i + 1].thrust, lcs[i].time, lcs[i + 1].time, seconds);
+                    auto odrive_pos = setThrust(thrust);
+                    if (timer - lastlog >= LOG_INTERVAL_MS) {
+                        logCurveTelemCSV(seconds, i, thrust, odrive_pos.first, odrive_pos.second);
+                        lastlog = timer;
                     }
                     delay(COMMAND_INTERVAL_MS);
                 }
             }
-            Router::info("Finished following curve!");
         }
 
-        void followSineCurve() {
+        void followOpenSineCurve() {
             
-
-            float amplitude = Loader::header.sine.amplitude;
-            float period = Loader::header.sine.period;
+            float amplitude = Loader::header.sine_open.ipa_amplitude;
+            float period = Loader::header.sine_open.ipa_period;
+            int num_cycles = Loader::header.sine_open.ipa_num_cycles;
+            float ipa_mix_ratio = Loader::header.sine_open.ipa_mix_ratio;
 
             elapsedMillis timer = elapsedMillis();
             unsigned long lastlog = timer;
-            for (int i = 0; i < Loader::header.sine.num_cycles; i++) {
+            for (int i = 0; i < num_cycles; i++) {
                 while (timer / 1000.0 < period) {
                     float seconds = timer / 1000.0;
-                    if (Loader::header.is_open) {
-                        float lox_pos = amplitude * sin(2 * M_PI * seconds / period);
-                        float ipa_pos = amplitude * sin(2 * M_PI * seconds / period);
-                        setLOXPos(lox_pos);
-                        setIPAPos(ipa_pos);
-                        if (timer - lastlog >= LOG_INTERVAL_MS) { // log every 10ms
-                            logCurveTelemCSV(seconds, i, -1, lox_pos, ipa_pos);
-                            lastlog = timer;
-                        }
-                    } else {
-                        float thrust = amplitude * sin(2 * M_PI * seconds / period);
-                        auto odrive_pos = setThrust(thrust);
-                        if (timer - lastlog >= LOG_INTERVAL_MS) {
-                            logCurveTelemCSV(seconds, i, thrust, odrive_pos.first, odrive_pos.second);
-                            lastlog = timer;
-                        }
+                    float ipa_pos = amplitude * sin(2 * M_PI * seconds / period);
+                    float lox_pos = (ipa_pos / ipa_mix_ratio) * (abs(ipa_mix_ratio - 1));
+
+                    setLOXPos(lox_pos);
+                    setIPAPos(ipa_pos);
+                    if (timer - lastlog >= LOG_INTERVAL_MS) { // log every 10ms
+                        logCurveTelemCSV(seconds, i, -1, lox_pos, ipa_pos);
+                        lastlog = timer;
                     }
                     delay(COMMAND_INTERVAL_MS);
                 }
             }
+        }
+
+        void followClosedSineCurve() {
+
+            float amplitude = Loader::header.sine_closed.amplitude;
+            float period = Loader::header.sine_closed.period;
+            int num_cycles = Loader::header.sine_open.ipa_num_cycles;
+
+            elapsedMillis timer = elapsedMillis();
+            unsigned long lastlog = timer;
+            for (int i = 0; i < num_cycles; i++) {
+                while (timer / 1000.0 < period) {
+                    float seconds = timer / 1000.0;
+                    
+                    float thrust = amplitude * sin(2 * M_PI * seconds / period);
+                    auto odrive_pos = setThrust(thrust);
+                    if (timer - lastlog >= LOG_INTERVAL_MS) {
+                        logCurveTelemCSV(seconds, i, thrust, odrive_pos.first, odrive_pos.second);
+                        lastlog = timer;
+                    }
+                    delay(COMMAND_INTERVAL_MS);
+                }
+            }
+
         }
 
         void followChirpCurve() {
@@ -352,12 +376,14 @@ namespace Driver {
             return;
         }
 
+        bool open = Loader::header.is_open;
+
         switch (Loader::header.ctype) {
             case curve_type::lerp:
-                followLerpCurve();
+                (open ? followOpenLerpCurve() : followClosedLerpCurve());
                 break;
             case curve_type::sine:
-                followSineCurve();
+                (open ? followOpenSineCurve() : followClosedSineCurve());
                 break;
             case curve_type::chirp:
                 followChirpCurve();
