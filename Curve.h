@@ -20,18 +20,13 @@ typedef struct {
     char curve_label[50]; // max 49 char string label
     curve_type ctype;
     bool is_open;
+    float of_ratio; // used for open loop control for sine and chirp. we currently assume O/F > 1. can change later.
     union { // which of these is used depends on ctype
         struct {
-            float ipa_amplitude;
-            float ipa_period;
-            int ipa_num_cycles;
-            int ipa_mix_ratio; // one side of mixture ratio (ie 70:30 for oxidizer to fuel, where 30 is ipa_mixture_ratio)
-        } sine_open;
-        struct {
-            float amplitude;
-            float period;
+            float amplitude; // 0-1
+            float period; // seconds
             int num_cycles;
-        } sine_closed;
+        } sine;
         struct {
             float amplitude;
             float start;

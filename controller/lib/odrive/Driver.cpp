@@ -10,6 +10,7 @@
 #include <sstream>
 #include <SDCard.h>
 #include <cmath>
+#include <tuple>
 
 #include "Driver.h"
 #include "ODriveUART.h"
@@ -86,7 +87,7 @@ namespace Driver {
          * @param t The current time.
          * @return The interpolated value at the current time.
          */
-        float lerp(float a, float b, float t0, float t1, float t) {
+        inline float lerp(float a, float b, float t0, float t1, float t) {
             if (t <= t0) return a;
             if (t >= t1) return b;
             if (t0 == t1) return b; // immediately get to b
@@ -109,7 +110,7 @@ namespace Driver {
                     float ipa_pos = lerp(los[i].ipa_angle, los[i + 1].ipa_angle, los[i].time, los[i + 1].time, seconds);
                     setLOXPos(lox_pos);
                     setIPAPos(ipa_pos);
-                    if (timer - lastlog > LOG_INTERVAL_MS) { // log every 10ms
+                    if (timer - lastlog > LOG_INTERVAL_MS) {
                         logCurveTelemCSV(seconds, i, -1, lox_pos, ipa_pos);
                         lastlog = timer;
                     }
@@ -141,59 +142,39 @@ namespace Driver {
         }
 
         /**
-         * Follows an open sine curve by generating LOX and IPA positions based on sine wave.
+         * Follows a closed or open sine curve by generating lox/ipa positions or thrust values.
          */
-        void followOpenSineCurve() {
-            
-            float amplitude = Loader::header.sine_open.ipa_amplitude;
-            float period = Loader::header.sine_open.ipa_period;
-            int num_cycles = Loader::header.sine_open.ipa_num_cycles;
-            float ipa_mix_ratio = Loader::header.sine_open.ipa_mix_ratio;
-
-            elapsedMillis timer = elapsedMillis();
-            unsigned long lastlog = timer;
-            for (int i = 0; i < num_cycles; i++) {
-                while (timer / 1000.0 < period) {
-                    float seconds = timer / 1000.0;
-                    float ipa_pos = amplitude * sin(2 * M_PI * seconds / period);
-                    float lox_pos = (ipa_pos / ipa_mix_ratio) * (abs(ipa_mix_ratio - 1));
-
-                    setLOXPos(lox_pos);
-                    setIPAPos(ipa_pos);
-                    if (timer - lastlog >= LOG_INTERVAL_MS) { // log every 10ms
-                        logCurveTelemCSV(seconds, i, -1, lox_pos, ipa_pos);
-                        lastlog = timer;
-                    }
-                    delay(COMMAND_INTERVAL_MS);
-                }
+        void followSineCurve() {
+            float amplitude = Loader::header.sine.amplitude;
+            if (amplitude > 1.0 || amplitude < -1.0) {
+                Router::info("|amplitude| > 1.0, saturating.");
+                amplitude = amplitude > 0 ? 1.0 : -1.0;
             }
-        }
-
-        /**
-         * Follows a closed sine curve by generating thrust values based on sine wave.
-         */
-        void followClosedSineCurve() {
-
-            float amplitude = Loader::header.sine_closed.amplitude;
-            float period = Loader::header.sine_closed.period;
-            int num_cycles = Loader::header.sine_open.ipa_num_cycles;
+            float period = Loader::header.sine.period;
+            int num_cycles = Loader::header.sine.num_cycles;
 
             elapsedMillis timer = elapsedMillis();
             unsigned long lastlog = timer;
+            float ipa_pos, lox_pos, thrust = -1;
+
             for (int i = 0; i < num_cycles; i++) {
                 while (timer / 1000.0 < period) {
                     float seconds = timer / 1000.0;
-                    
-                    float thrust = amplitude * sin(2 * M_PI * seconds / period);
-                    auto odrive_pos = setThrust(thrust);
+                    if (Loader::header.is_open) {
+                        lox_pos = amplitude * (sin(2 * M_PI * seconds / period) + 1.0) / 2.0;
+                        ipa_pos = lox_pos / Loader::header.of_ratio;
+                        setLOXPos(lox_pos);
+                        setIPAPos(ipa_pos);
+                    } else {
+                        thrust = amplitude * (sin(2 * M_PI * seconds / period) + 1.0) / 2.0;
+                        std::tie(lox_pos, ipa_pos) = setThrust(thrust);
+                    }
                     if (timer - lastlog >= LOG_INTERVAL_MS) {
-                        logCurveTelemCSV(seconds, i, thrust, odrive_pos.first, odrive_pos.second);
+                        logCurveTelemCSV(seconds, i, thrust, lox_pos, ipa_pos);
                         lastlog = timer;
                     }
-                    delay(COMMAND_INTERVAL_MS);
                 }
             }
-
         }
 
         void followChirpCurve() {
@@ -265,7 +246,6 @@ namespace Driver {
      * Command for the Router lib to change the position of the IPA or LOX ODrive manually.
      */
     void setPosCmd() {
-
         char odriveSel[1] = {'\0'};
         Router::info("LOX or IPA? (Type l or i)");
         Router::receive(odriveSel, 1);
@@ -303,7 +283,6 @@ namespace Driver {
      * Command for the Router lib to change the thrust manually.
      */
     void setThrustCmd() {
-
         char posString[POSITION_BUFFER_SIZE] = {'\0'};
         Router::info("Thrust value?");
         Router::receive(posString, POSITION_BUFFER_SIZE);
@@ -332,7 +311,7 @@ namespace Driver {
      * Sets the thrust
      * Uses a closed loop control to set the angle positions of the odrives
      * using feedback from the pressue sensor. The function will set the odrive positions itself, and
-     * returns a tuple of lox and fuel throttle positions.
+     * returns a tuple of (lox, fuel) throttle positions.
      */
     std::pair<float, float> setThrust(float thrust) {
         // TODO: closed loop magic
@@ -451,7 +430,7 @@ namespace Driver {
                 (open ? followOpenLerpCurve() : followClosedLerpCurve());
                 break;
             case curve_type::sine:
-                (open ? followOpenSineCurve() : followClosedSineCurve());
+                followSineCurve();
                 break;
             case curve_type::chirp:
                 followChirpCurve();
