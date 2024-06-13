@@ -8,9 +8,13 @@
 #include <sstream>
 #include <Router.h>
 #include <SDCard.h>
+#include <cmath>
 
 #include "Driver.h"
 #include "ODriveUART.h"
+
+#define LOG_INTERVAL_MS 10
+#define COMMAND_INTERVAL_MS 1
 
 namespace Driver {
 
@@ -19,82 +23,77 @@ namespace Driver {
 
     namespace { // private
 
-        void logCurveTelemCSV(File *file, unsigned long time, int pointNum, lerp_point_open &point) {
-            std::string csvRowODriveData = getODriveDataCSV();
-
+        void logCurveTelemCSV(File *file, float time, int phase, float thrust, float lox_pos, float ipa_pos) {
             std::stringstream ss;
-            ss << "," << time << "," << pointNum << point.lox_angle << "," << point.ipa_angle << ","
-               << csvRowODriveData;
+            ss << time << "," << phase << "," << thrust << "," << lox_pos << "," << ipa_pos << getODriveStatusCSV();
             std::string csvRow = ss.str();
             Router::info(csvRow);
-
             file->println(csvRow.c_str());
         }
 
         File createCurveLog() {
-            std::stringstream ss;
-            ss << Loader::header.curve_label;
+            std::stringstream ssfilename;
+            ssfilename << Loader::header.curve_label;
 
-            const char *csvHeader = nullptr;
             switch (Loader::header.ctype) {
                 case curve_type::lerp:
-                    if (Loader::header.lerp.is_open) {
-                        ss << "_lerp_open";
-                        csvHeader = ODRIVE_OPEN_CURVE_HEADER;
-                    } else {
-                        ss << "_lerp_closed";
-                        csvHeader = ODRIVE_CLOSED_CURVE_HEADER;
-                    }
+                    ssfilename << (Loader::header.is_open ? "_lerp_open" : "_lerp_closed");
                     break;
                 case curve_type::sine:
-                    ss << "_sine_closed";
-                    csvHeader = ODRIVE_CLOSED_CURVE_HEADER;
+                    ssfilename << (Loader::header.is_open ? "_sine_open" : "_sine_closed");
                     break;
                 case curve_type::chirp:
-                    ss << "_chirp";
-                    csvHeader = ODRIVE_CLOSED_CURVE_HEADER;
+                    ssfilename << (Loader::header.is_open ? "_chirp_open" : "_chirp_closed");
                     break;
                 default:
                     break;
             }
-            ss << ".csv";
+            ssfilename << ".csv";
 
-            std::string filename = ss.str();
-            File odriveLogFile = SDCard::open(filename.c_str(), 'w');
-
-            odriveLogFile.println(csvHeader);
-            odriveLogFile.println(getODriveDataCSV().c_str());
+            std::string filename = ssfilename.str();
+            File odriveLogFile = SDCard::open(filename.c_str(), FILE_WRITE);
+            odriveLogFile.println(LOG_HEADER);
 
             return odriveLogFile;
         }
 
-        void followOpenLerpCurve() {
-            File odriveLogFile = createCurveLog();
-            lerp_point_open *point = Loader::los;
-            elapsedMillis timer = elapsedMillis();
-
-            for (int i = 0; i < Loader::header.lerp.num_points; i++) {
-                setLOXODrivePosition(point[i].lox_angle);
-                setFuelODrivePosition(point[i].ipa_angle);
-
-                while (timer / 1000.0 < point[i].time) {
-                    logCurveTelemCSV(&odriveLogFile, timer, i, point[i]);
-                }
-            }
-            Router::info("Finished following curve!");
+        float lerp(float a, float b, float t0, float t1, float t) {
+            if (t <= t0) return a;
+            if (t >= t1) return b;
+            if (t0 == t1) return b; // immediately get to b
+            return a + (b - a) * ((t - t0) / (t1 - t0));
         }
 
-        void followClosedLerpCurve() {
-            File odriveLogFile = createCurveLog();
-            lerp_point_closed *point = Loader::lcs;
+        void followLerpCurve() {
+            lerp_point_open *los = Loader::los;
+            lerp_point_closed *lcs = Loader::lcs;
+            bool open = Loader::header.is_open;
+
+            File logfile = createCurveLog();
             elapsedMillis timer = elapsedMillis();
+            unsigned long lastlog = timer;
 
-            for (int i = 0; i < Loader::header.lerp.num_points; i++) {
-                //setThrust(point[i].thrust);
-
-                //log thrust as it is changing by PID
-                while (timer / 1000.0 < point[i].time) {
-                    //logCurveTelemCSV(timer, point[i]);
+            for (int i = 0; i < Loader::header.lerp.num_points-1; i++) {
+                while (timer / 1000.0 < (open ? los[i].time : lcs[i].time)) {
+                    float seconds = timer / 1000.0;
+                    if (open) {
+                        float lox_pos = lerp(los[i].lox_angle, los[i + 1].lox_angle, los[i].time, los[i + 1].time, seconds);
+                        float ipa_pos = lerp(los[i].ipa_angle, los[i + 1].ipa_angle, los[i].time, los[i + 1].time, seconds);
+                        setLOXPos(lox_pos);
+                        setIPAPos(ipa_pos);
+                        if (timer - lastlog > LOG_INTERVAL_MS) { // log every 10ms
+                            logCurveTelemCSV(&logfile, seconds, i, -1, lox_pos, ipa_pos);
+                            lastlog = timer;
+                        }
+                    } else { // closed
+                        float thrust = lerp(lcs[i].thrust, lcs[i + 1].thrust, lcs[i].time, lcs[i + 1].time, seconds);
+                        setThrust(thrust);
+                        if (timer - lastlog >= LOG_INTERVAL_MS) {
+                            logCurveTelemCSV(&logfile, seconds, i, thrust, -1, -1);
+                            lastlog = timer;
+                        }
+                    }
+                    delay(COMMAND_INTERVAL_MS);
                 }
             }
             Router::info("Finished following curve!");
@@ -102,17 +101,40 @@ namespace Driver {
 
         void followSineCurve() {
             File odriveLogFile = createCurveLog();
-            //create sine curve
-            //follow sine curve
-            //log data
+
+            float amplitude = Loader::header.sine.amplitude;
+            float period = Loader::header.sine.period;
+
+            elapsedMillis timer = elapsedMillis();
+            unsigned long lastlog = timer;
+            for (int i = 0; i < Loader::header.sine.num_cycles; i++) {
+                while (timer / 1000.0 < period) {
+                    float seconds = timer / 1000.0;
+                    if (Loader::header.is_open) {
+                        float lox_pos = amplitude * sin(2 * M_PI * seconds / period);
+                        float ipa_pos = amplitude * sin(2 * M_PI * seconds / period);
+                        setLOXPos(lox_pos);
+                        setIPAPos(ipa_pos);
+                        if (timer - lastlog >= LOG_INTERVAL_MS) { // log every 10ms
+                            logCurveTelemCSV(&odriveLogFile, seconds, i, -1, lox_pos, ipa_pos);
+                            lastlog = timer;
+                        }
+                    } else {
+                        float thrust = amplitude * sin(2 * M_PI * seconds / period);
+                        setThrust(thrust);
+                        if (timer - lastlog > LOG_INTERVAL_MS) {
+                            logCurveTelemCSV(&odriveLogFile, seconds, i, thrust, -1, -1);
+                            lastlog = timer;
+                        }
+                    }
+                    delay(COMMAND_INTERVAL_MS);
+                }
+            }
         }
 
         void followChirpCurve() {
             File odriveLogFile = createCurveLog();
 
-            //create chirp curve
-            //follow chirp curve
-            //log data
         }
     }
 
@@ -150,12 +172,16 @@ namespace Driver {
 
     }
 
-    void setFuelODrivePosition(float position) {
-        fuelODrive.setPosition(position);
+    void setIPAPos(float pos) {
+        fuelODrive.setPosition(pos);
     }
 
-    void setLOXODrivePosition(float position) {
-        loxODrive.setPosition(position);
+    void setLOXPos(float pos) {
+        loxODrive.setPosition(pos);
+    }
+
+    void setThrust(float thrust) {
+        // TODO: closed loop magic
     }
 
     void clearErrors() {
@@ -163,12 +189,12 @@ namespace Driver {
         fuelODrive.clearErrors();
     }
 
-    std::string getODriveDataCSV() {
-        int loxThrottlePos = loxODrive.getPosition();
-        int fuelThrottlePos = fuelODrive.getPosition();
+    std::string getODriveStatusCSV() {
+        float loxThrottlePos = loxODrive.getPosition();
+        float fuelThrottlePos = fuelODrive.getPosition();
 
-        int loxThrottleVel = loxODrive.getVelocity();
-        int fuelThrottleVel = fuelODrive.getVelocity();
+        float loxThrottleVel = loxODrive.getVelocity();
+        float fuelThrottleVel = fuelODrive.getVelocity();
 
         float loxVoltage = loxODrive.getParameterAsFloat("vbus_voltage");
         float fuelVoltage = fuelODrive.getParameterAsFloat("vbus_voltage");
@@ -221,7 +247,7 @@ namespace Driver {
 
         switch (Loader::header.ctype) {
             case curve_type::lerp:
-                Loader::header.lerp.is_open ? followOpenLerpCurve() : followClosedLerpCurve();
+                followLerpCurve();
                 break;
             case curve_type::sine:
                 followSineCurve();

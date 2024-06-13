@@ -33,7 +33,7 @@ void Loader::load_curve_generic(bool serial, File* f) {
             break; // params already present in header
         case curve_type::lerp:
             // load lerp points in from serial
-            if (header.lerp.is_open) {
+            if (header.is_open) {
                 los = (lerp_point_open *) (extmem_calloc(header.lerp.num_points, sizeof(lerp_point_open)));
                 receive((char *) &los, sizeof(lerp_point_open) * header.lerp.num_points);
             } else {
@@ -99,7 +99,7 @@ void Loader::write_curve_sd() {
         case curve_type::chirp:
             break; // params already present in header
         case curve_type::lerp:
-            if (header.lerp.is_open) {
+            if (header.is_open) {
                 f.write((char *) los, sizeof(lerp_point_open) * header.lerp.num_points);
             } else {
                 f.write((char *) lcs, sizeof(lerp_point_closed) * header.lerp.num_points);

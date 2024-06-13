@@ -19,10 +19,12 @@ typedef struct {
 typedef struct {
     char curve_label[50]; // max 49 char string label
     curve_type ctype;
+    bool is_open;
     union { // which of these is used depends on ctype
         struct {
             float amplitude;
-            float frequency;
+            float period;
+            int num_cycles;
         } sine;
         struct {
             float amplitude;
@@ -32,7 +34,6 @@ typedef struct {
         struct {
             int num_points;
             char checksum[4];
-            bool is_open;
         } lerp;
     };
 } curve_header;
