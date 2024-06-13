@@ -36,7 +36,7 @@ namespace Driver {
          */
         void logCurveTelemCSV(float time, int phase, float thrust, float lox_pos, float ipa_pos) {
             std::stringstream ss;
-            ss << time << "," << phase << "," << thrust << "," << lox_pos << "," << ipa_pos << getODriveStatusCSV();
+            ss << "," << time << "," << phase << "," << thrust << "," << lox_pos << "," << ipa_pos << getODriveStatusCSV();
             std::string csvRow = ss.str();
             Router::info(csvRow);
             odriveLogFile.println(csvRow.c_str());
@@ -73,6 +73,7 @@ namespace Driver {
             }
 
             odriveLogFile.println(LOG_HEADER);
+            odriveLogFile.println(getODriveInfo().c_str());
 
             return odriveLogFile;
         }
@@ -246,23 +247,23 @@ namespace Driver {
     }
 
     /**
-     * Set the position for the odrive controlling IPA flow
-     * @param pos value to be sent to odrive (valid values are from -1 to 1)
+     * Set the position for the odrive controlling IPA flow.
+     * @param pos value to be sent to odrive (valid values are from -1 to 1).
      */
     void setIPAPos(float pos) {
         fuelODrive.setPosition(pos);
     }
 
     /**
-     * Set the position for the odrive controlling LOX flow
-     * @param pos value to be sent to odrive (valid values are from -1 to 1)
+     * Set the position for the odrive controlling LOX flow.
+     * @param pos value to be sent to odrive (valid values are from -1 to 1).
      */
     void setLOXPos(float pos) {
         loxODrive.setPosition(pos);
     }
 
     /**
-     * Command for the Router lib to change the position of the IPA or LOX ODrive manually
+     * Command for the Router lib to change the position of the IPA or LOX ODrive manually.
      */
     void setPosCmd() {
 
@@ -300,7 +301,7 @@ namespace Driver {
     }
 
     /**
-     * Command for the Router lib to change the thrust manually
+     * Command for the Router lib to change the thrust manually.
      */
     void setThrustCmd() {
 
@@ -332,7 +333,7 @@ namespace Driver {
      * Sets the thrust
      * Uses a closed loop control to set the angle positions of the odrives
      * using feedback from the pressue sensor. The function will set the odrive positions itself, and
-     * returns a tuple of lox and fuel throttle positions
+     * returns a tuple of lox and fuel throttle positions.
      */
     std::pair<float, float> setThrust(float thrust) {
         // TODO: closed loop magic
@@ -341,7 +342,7 @@ namespace Driver {
     }
 
     /**
-     * Clears errors for both the LOX and IPA odrives
+     * Clears errors for both the LOX and IPA odrives.
      */
     void clearErrors() {
         loxODrive.clearErrors();
@@ -349,7 +350,7 @@ namespace Driver {
     }
 
     /**
-     * Blinks the LED on the LOX ODrive for 5 seconds
+     * Blinks the LED on the LOX ODrive for 5 seconds.
      */
     void idenfityLOXODrive() {
         Router::info("Identifying LOX ODrive for 5 seconds...");
@@ -360,7 +361,7 @@ namespace Driver {
     }
 
     /**
-     * Blinks the LED on the IPA ODrive for 5 seconds
+     * Blinks the LED on the IPA ODrive for 5 seconds.
      */
     void idenfityFuelODrive() {
         Router::info("Identifying LOX ODrive for 5 seconds...");
@@ -398,7 +399,7 @@ namespace Driver {
 
     /**
      * Returns a string containing the hardware and firmware major and minor versons of the IPA and LOX ODrives and whether
-     * they are misconfigured or require a reboot
+     * they are misconfigured or require a reboot.
      */
     std::string getODriveInfo() {
         int loxHWVersionMajor = loxODrive.getParameterAsInt("hw_version_major");
@@ -429,7 +430,7 @@ namespace Driver {
     }
 
     /**
-     * Initiates curve following based on the curve header loaded in Loader.cpp
+     * Initiates curve following based on the curve header loaded in Loader.cpp.
      */
     void followCurve() {
         if (!Loader::loaded_curve) {
