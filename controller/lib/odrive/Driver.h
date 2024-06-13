@@ -19,7 +19,7 @@
 #define LOX_ODRIVE_SERIAL_RATE 115200
 #define FUEL_ODRIVE_SERIAL_RATE 115200
 
-#define LOG_HEADER "info,time,phase,thrust_cmd" \
+#define LOG_HEADER "time,phase,thrust_cmd" \
                    "lox_pos_cmd,ipa_pos_cmd," \
                    "lox_pos,ipa_pos," \
                    "lox_vel,ipa_vel," \

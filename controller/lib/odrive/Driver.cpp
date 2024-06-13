@@ -73,7 +73,6 @@ namespace Driver {
             }
 
             odriveLogFile.println(LOG_HEADER);
-            odriveLogFile.println(getODriveInfo().c_str());
 
             return odriveLogFile;
         }
