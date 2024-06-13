@@ -10,6 +10,7 @@
 
 #include <Wire.h>
 #include <Loader.h>
+#include <Router.h>
 #include <string>
 
 #define LOX_ODRIVE_SERIAL Serial1
@@ -53,6 +54,8 @@ namespace Driver {
 
     std::string getODriveStatusCSV();
     std::string getODriveInfo();
+    inline void printODriveStatus() { Router::info(getODriveStatusCSV()); }
+    inline void printODriveInfo() { Router::info(getODriveInfo()); }
 
     void followCurve();
     

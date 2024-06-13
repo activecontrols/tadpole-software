@@ -6,7 +6,6 @@
 */
 
 #include <sstream>
-#include <Router.h>
 #include <SDCard.h>
 #include <cmath>
 
@@ -146,6 +145,18 @@ namespace Driver {
 
     void begin() {
         Router::add({Driver::followCurve, "follow_curve"});
+        Router::add({Driver::idenfityLOXODrive, "identify_lox_odrive"});
+        Router::add({Driver::idenfityFuelODrive, "identify_fuel_odrive"});
+        Router::add({Driver::clearErrors, "clear_odrive_errors"});
+        Router::add({Driver::printODriveInfo, "get_odrive_info"});
+        Router::add({Driver::printODriveStatus, "get_odrive_status"});
+
+        // Router::add({Driver::setIPAPos, "set_ipa_pos"});
+        // Router::add({Driver::setLOXPos, "set_lox_pos"});
+        // Router::add({Driver::setThrust, "set_thrust"});
+        
+        //modify router to allow parameters
+
         LOX_ODRIVE_SERIAL.begin(LOX_ODRIVE_SERIAL_RATE);
         FUEL_ODRIVE_SERIAL.begin(FUEL_ODRIVE_SERIAL_RATE);
 
