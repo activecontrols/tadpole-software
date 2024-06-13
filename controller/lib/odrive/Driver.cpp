@@ -151,9 +151,8 @@ namespace Driver {
         Router::add({Driver::printODriveInfo, "get_odrive_info"});
         Router::add({Driver::printODriveStatus, "get_odrive_status"});
 
-        // Router::add({Driver::setIPAPos, "set_ipa_pos"});
-        // Router::add({Driver::setLOXPos, "set_lox_pos"});
-        // Router::add({Driver::setThrust, "set_thrust"});
+        Router::add({Driver::setPosCmd, "set_odrive_pos"});
+        Router::add({Driver::setThrustCmd, "set_thrust"});
         
         //modify router to allow parameters
 
@@ -195,6 +194,67 @@ namespace Driver {
 
     void setLOXPos(float pos) {
         loxODrive.setPosition(pos);
+    }
+
+    void setPosCmd() {
+
+        char odriveSel[1] = {'\0'};
+        Router::info("LOX or IPA? (Type l or i)");
+        Router::receive(odriveSel, 1);
+
+        char posString[POSITION_BUFFER_SIZE] = {'\0'};
+        Router::info("Position?");
+        Router::receive(posString, POSITION_BUFFER_SIZE);
+
+        float pos;
+        int result = std::sscanf(posString, "%f", &pos);
+        if (result != 1) {
+            Router::info("Could not convert input to a float, not continuing");
+            return;
+        }
+
+        if (pos < MIN_ODRIVE_POS || pos > MAX_ODRIVE_POS) {
+            Router::info("Position outside defined range in code, not continuing");
+            return;
+        }
+
+        switch (odriveSel[0]) {
+            case 'l':
+                setLOXPos(pos);
+                break;
+            case 'i':
+                setIPAPos(pos);
+                break;
+            default:
+                Router::info("Invalid odrive specified");
+                break;
+        }
+    }
+
+    void setThrustCmd() {
+
+        char posString[POSITION_BUFFER_SIZE] = {'\0'};
+        Router::info("Thrust value?");
+        Router::receive(posString, POSITION_BUFFER_SIZE);
+
+        float pos;
+        int result = std::sscanf(posString, "%f", &pos);
+        if (result != 1) {
+            Router::info("Could not convert input to a float, not continuing");
+            return;
+        }
+
+        if (pos < MIN_TRHUST || pos > MAX_THRUST) {
+            Router::info("Thrust outside defined range in code, not continuing");
+            return;
+        }
+
+        auto odrivePos = setThrust(pos);
+
+        stringstream ss;
+        ss << "LOX pos: " << odrivePos.first << " IPA pos: " << odrivePos.second;
+
+        Router::info(ss.str());
     }
 
     /*

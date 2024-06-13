@@ -40,14 +40,21 @@
                    "lox_voltage,ipa_voltage," \
                    "lox_current,ipa_current"
 
+#define POSITION_BUFFER_SIZE 50
+#define MAX_THRUST 100
+#define MIN_TRHUST 0
+#define MAX_ODRIVE_POS 1
+#define MIN_ODRIVE_POS -1
+
 namespace Driver {
 
     void begin();
 
     void setIPAPos(float position);
     void setLOXPos(float position);
+    void setPosCmd();
     std::pair<float, float> setThrust(float thrust);
-    inline void setThrustCommand(float thrust) { setThrust(thrust); }
+    void setThrustCmd();
     void clearErrors();
 
     void idenfityLOXODrive(); // flashes LED on LOX ODrive
