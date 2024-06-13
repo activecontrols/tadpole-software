@@ -195,6 +195,22 @@ namespace Driver {
         fuelODrive.clearErrors();
     }
 
+    void idenfityLOXODrive() {
+        Router::info("Identifying LOX ODrive for 5 seconds...");
+        loxODrive.setParameter("identify", true);
+        delay(5000);
+        loxODrive.setParameter("identify", false);
+        Router::info("Done");
+    }
+
+    void idenfityFuelODrive() {
+        Router::info("Identifying LOX ODrive for 5 seconds...");
+        fuelODrive.setParameter("identify", true);
+        delay(5000);
+        fuelODrive.setParameter("identify", false);
+        Router::info("Done");
+    }
+
     std::string getODriveStatusCSV() {
         float loxThrottlePos = loxODrive.getPosition();
         float fuelThrottlePos = fuelODrive.getPosition();
