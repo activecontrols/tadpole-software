@@ -1,7 +1,7 @@
 /*
     * Driver.cpp
     *
-    *  Created on: 2024-07-10 by Vincent Palmerio
+    *  Created on: 2024-06-10 by Vincent Palmerio
     *  Maintained by Vincent Palmerio and Ishan Goel
     *  Description: This file contains the implementation of the Driver namespace, which provides functions for controlling ODrive motors.
     *               It includes functions for logging telemetry data, creating log files, and following different types of curves.
@@ -92,11 +92,21 @@ namespace Driver {
          * @param t The current time.
          * @return The interpolated value at the current time.
          */
-        inline float lerp(float a, float b, float t0, float t1, float t) {
+        float lerp(float a, float b, float t0, float t1, float t) {
             if (t <= t0) return a;
             if (t >= t1) return b;
             if (t0 == t1) return b; // immediately get to b
             return a + (b - a) * ((t - t0) / (t1 - t0));
+        }
+
+        /**
+         * Saturates a value between the minimum and maximum position for the odrive.
+         * @param value The value to be saturated
+         */
+        void saturatePos(float &value) {
+            if (value < MIN_ODRIVE_POS || value > MAX_ODRIVE_POS) {
+                value = value < 0 ? MIN_ODRIVE_POS : MAX_ODRIVE_POS;
+            }
         }
 
         /**
@@ -113,6 +123,8 @@ namespace Driver {
                     float seconds = timer / 1000.0;
                     float lox_pos = lerp(los[i].lox_angle, los[i + 1].lox_angle, los[i].time, los[i + 1].time, seconds);
                     float ipa_pos = lerp(los[i].ipa_angle, los[i + 1].ipa_angle, los[i].time, los[i + 1].time, seconds);
+                    saturatePos(lox_pos);
+                    saturatePos(ipa_pos);
                     setLOXPos(lox_pos);
                     setIPAPos(ipa_pos);
                     if (timer - lastlog > LOG_INTERVAL_MS) {
@@ -166,8 +178,10 @@ namespace Driver {
                 while (timer / 1000.0 < period) {
                     float seconds = timer / 1000.0;
                     if (Loader::header.is_open) {
-                        lox_pos = amplitude * (sin(2 * M_PI * seconds / period) + 1.0) / 2.0;
+                        lox_pos = abs(amplitude * (sin(2 * M_PI * seconds / period) + 1.0) / 2.0);
                         ipa_pos = lox_pos / Loader::header.of_ratio;
+                        saturatePos(lox_pos);
+                        saturatePos(ipa_pos);
                         setLOXPos(lox_pos);
                         setIPAPos(ipa_pos);
                     } else {
