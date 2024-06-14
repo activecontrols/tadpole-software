@@ -1,7 +1,8 @@
 /*
     * Driver.cpp
     *
-    *  Created on: 2021-07-10 by Vincent Palmerio
+    *  Created on: 2024-07-10 by Vincent Palmerio
+    *  Maintained by Vincent Palmerio and Ishan Goel
     *  Description: This file contains the implementation of the Driver namespace, which provides functions for controlling ODrive motors.
     *               It includes functions for logging telemetry data, creating log files, and following different types of curves.
     *               The curves supported are lerp (linear interpolation), sine, and chirp.

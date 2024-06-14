@@ -1,6 +1,11 @@
-//
-// Created by Ishan Goel on 6/9/24.
-//
+/*
+    * Router.h
+    *
+    *  Created on: 2024-06-09 by Ishan Goel
+    *  Description: This file contains the declaration of the Router namespace and functionality 
+    *  to initialize the serial port, send and receive messages, log messages, and register functions 
+    *  to be called based on received messages.
+*/
 
 #ifndef TADPOLE_SOFTWARE_ROUTER_H
 #define TADPOLE_SOFTWARE_ROUTER_H
@@ -18,15 +23,7 @@ using namespace std;
 struct func;
 
 namespace Router {
-//private:
-//    // funcs is a vector of function pointers and their names
-//    static vector<func> funcs;
-//    static char logfilename[50];
-//    static File logfile;
-//    static bool logopen;
-//
-//    static void setLog();
-//public:
+
     extern bool logenabled; // defaults to true
     // init_comms initializes the serial port
     void init_comms();

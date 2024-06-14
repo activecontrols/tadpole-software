@@ -1,8 +1,11 @@
 /*
-    * odrive.h
+    * Driver.h
     *
-    *  Created on: 2021-07-10 by Vincent Palmerio
-    * 
+    *  Created on: 2024-07-10 by Vincent Palmerio
+    *  Maintained by Vincent Palmerio and Ishan Goel
+    *  Description: This file contains the declaration of the Driver namespace, which provides functions for 
+    *  controlling the position and thrust of, and retrieviing info from, the LOX (Liquid Oxygen) and IPA (Isopropyl Alcohol) 
+    *  ODrive valves in the Tadpole rocket engine. 
 */
 
 #ifndef ODRIVE_H

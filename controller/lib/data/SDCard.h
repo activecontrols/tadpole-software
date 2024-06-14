@@ -1,6 +1,10 @@
-//
-// Created by Ishan Goel on 6/11/24.
-//
+/*
+    * SDCard.h
+    *
+    *  Created on: 2024-06-11 by Ishan Goel
+    *  Description: This file contains the declaration of the SDCard class, which provides functions for 
+    *  interacting with the SD card if one is loaded onto the Teensy.
+*/
 
 #ifndef TADPOLE_SOFTWARE_SDCARD_H
 #define TADPOLE_SOFTWARE_SDCARD_H
