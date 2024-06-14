@@ -4,15 +4,13 @@
 #include "Loader.h"
 #include "SDCard.h"
 
-#define ENABLE_ODRIVE_COMM true
-
-//void ping() {
-//    Router::info("pong");
-//}
+void ping() {
+   Router::info("pong");
+}
 
 void setup() {
     Router::init_comms();
-//    Router::add({ping, "ping"}); // example registration
+    Router::add({ping, "ping"}); // example registration
     if (!SDCard::begin()) {
         Router::logenabled = false;
         Router::info("SD card not found. Logging disabled.");
@@ -20,9 +18,7 @@ void setup() {
 
     Loader::begin(); // registers data loader functions with the router
 
-#if (ENABLE_ODRIVE_COMM)
     Driver::begin(); // initializes the odrives and functions to start curves
-#endif
 
     Router::run(); // nothing runs after this. router handles everything
 }

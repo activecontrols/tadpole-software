@@ -32,6 +32,8 @@
 #define MAX_ODRIVE_POS 1
 #define MIN_ODRIVE_POS -1
 
+#define ENABLE_ODRIVE_COMM true
+
 namespace Driver {
 
     void begin();

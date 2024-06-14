@@ -20,8 +20,10 @@
 
 namespace Driver {
 
+#if (ENABLE_ODRIVE_COMM)
     ODriveUART loxODrive(LOX_ODRIVE_SERIAL);
     ODriveUART fuelODrive(FUEL_ODRIVE_SERIAL);
+#endif
 
     namespace { // private
 
@@ -194,6 +196,7 @@ namespace Driver {
         Router::add({Driver::setPosCmd, "set_odrive_pos"});
         Router::add({Driver::setThrustCmd, "set_thrust"});
 
+#if (ENABLE_ODRIVE_COMM)
         LOX_ODRIVE_SERIAL.begin(LOX_ODRIVE_SERIAL_RATE);
         FUEL_ODRIVE_SERIAL.begin(FUEL_ODRIVE_SERIAL_RATE);
 
@@ -223,6 +226,7 @@ namespace Driver {
         }
 
         Router::info(getODriveInfo());
+#endif
 
     }
 
@@ -231,7 +235,9 @@ namespace Driver {
      * @param pos value to be sent to odrive (valid values are from -1 to 1).
      */
     void setIPAPos(float pos) {
+#if (ENABLE_ODRIVE_COMM)
         fuelODrive.setPosition(pos);
+#endif
     }
 
     /**
@@ -239,7 +245,9 @@ namespace Driver {
      * @param pos value to be sent to odrive (valid values are from -1 to 1).
      */
     void setLOXPos(float pos) {
+#if (ENABLE_ODRIVE_COMM)
         loxODrive.setPosition(pos);
+#endif
     }
 
     /**
@@ -323,8 +331,10 @@ namespace Driver {
      * Clears errors for both the LOX and IPA odrives.
      */
     void clearErrors() {
+#if (ENABLE_ODRIVE_COMM)
         loxODrive.clearErrors();
         fuelODrive.clearErrors();
+#endif
     }
 
     /**
@@ -332,9 +342,11 @@ namespace Driver {
      */
     void idenfityLOXODrive() {
         Router::info("Identifying LOX ODrive for 5 seconds...");
+#if (ENABLE_ODRIVE_COMM)
         loxODrive.setParameter("identify", true);
         delay(5000);
         loxODrive.setParameter("identify", false);
+#endif
         Router::info("Done");
     }
 
@@ -343,9 +355,11 @@ namespace Driver {
      */
     void idenfityFuelODrive() {
         Router::info("Identifying LOX ODrive for 5 seconds...");
+#if (ENABLE_ODRIVE_COMM)
         fuelODrive.setParameter("identify", true);
         delay(5000);
         fuelODrive.setParameter("identify", false);
+#endif
         Router::info("Done");
     }
 
@@ -354,6 +368,8 @@ namespace Driver {
      * lox_pos,ipa_pos,lox_vel,ipa_vel,lox_voltage,ipa_voltage,lox_current,ipa_current
      */
     std::string getODriveStatusCSV() {
+        std::stringstream ss;
+#if (ENABLE_ODRIVE_COMM)
         float loxThrottlePos = loxODrive.getPosition();
         float fuelThrottlePos = fuelODrive.getPosition();
 
@@ -366,12 +382,11 @@ namespace Driver {
         float loxCurrent = loxODrive.getParameterAsFloat("ibus");
         float fuelCurrent = fuelODrive.getParameterAsFloat("ibus");
 
-        std::stringstream ss;
         ss << loxThrottlePos << "," << fuelThrottlePos << ","
            << loxThrottleVel << "," << fuelThrottleVel << ","
            << loxVoltage << "," << fuelVoltage << ","
            << loxCurrent << "," << fuelCurrent;
-
+#endif
         return ss.str();
     }
 
@@ -380,6 +395,8 @@ namespace Driver {
      * they are misconfigured or require a reboot.
      */
     std::string getODriveInfo() {
+        std::stringstream ss;
+#if (ENABLE_ODRIVE_COMM)
         int loxHWVersionMajor = loxODrive.getParameterAsInt("hw_version_major");
         int loxHWVersionMinor = loxODrive.getParameterAsInt("hw_version_minor");
         int loxFWVersionMajor = loxODrive.getParameterAsInt("fw_version_major");
@@ -403,7 +420,7 @@ namespace Driver {
            << " | Fuel Firmware Version: " << fuelFWVersionMajor << "." << fuelFWVersionMinor
            << " | Fuel Misconfigured: " << fuelMisconfigured
            << " | Fuel Reboot Required: " << fuelRebootRequired << "\n";
-
+#endif
         return ss.str();
     }
 
