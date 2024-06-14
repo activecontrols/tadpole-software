@@ -42,7 +42,9 @@ namespace Driver {
             ss << "," << time << "," << phase << "," << thrust << "," << lox_pos << "," << ipa_pos << getODriveStatusCSV();
             std::string csvRow = ss.str();
             Router::info(csvRow);
-            odriveLogFile.println(csvRow.c_str());
+            if (Router::logenabled) {
+                odriveLogFile.println(csvRow.c_str());
+            }
         }
 
         /**
@@ -433,11 +435,12 @@ namespace Driver {
             return;
         }
 
-        odriveLogFile = createCurveLog();
+        if (Router::logenabled) {
+            odriveLogFile = createCurveLog();
 
-        if (!odriveLogFile) {
-            Router::info("Failed to create log file. Aborting.");
-            return;
+            if (!odriveLogFile) {
+                Router::info("Failed to create odrive log file.");
+            }
         }
 
         bool open = Loader::header.is_open;
@@ -456,8 +459,10 @@ namespace Driver {
                 break;
         }
 
-        odriveLogFile.flush();
-        odriveLogFile.close();
+        if (Router::logenabled) {
+            odriveLogFile.flush();
+            odriveLogFile.close();
+        }
 
         Router::info("Finished following curve!");
     }

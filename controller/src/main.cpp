@@ -13,7 +13,7 @@ void setup() {
     Router::add({ping, "ping"}); // example registration
     if (!SDCard::begin()) {
         Router::logenabled = false;
-        Router::info("SD card not found. Logging disabled.");
+        Router::info("SD card not found. SD logging disabled.");
     }
 
     Loader::begin(); // registers data loader functions with the router
