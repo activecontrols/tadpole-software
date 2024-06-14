@@ -428,7 +428,6 @@ namespace Driver {
         String fuelMisconfigured = fuelODrive.getParameterAsString("misconfigured");
         String fuelRebootRequired = fuelODrive.getParameterAsString("reboot_required");
 
-        stringstream ss = stringstream();
         ss << "LOX ODrive Hardware Version: " << loxHWVersionMajor << "." << loxHWVersionMinor
            << " | LOX Firmware Version: " << loxFWVersionMajor << "." << loxFWVersionMinor
            << " | LOX Misconfigured: " << loxMisconfigured
