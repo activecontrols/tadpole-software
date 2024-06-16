@@ -54,6 +54,12 @@ namespace Router {
         COMMS_SERIAL.readBytes(msg, len);
     }
 
+    String read(unsigned int len) {
+        //read until newline char or 200 characters (hopefully none of our funcs have names that long lol)
+        String s = COMMS_SERIAL.readStringUntil('\n', len); 
+        return s;
+    }
+
     void add(func f) {
         funcs.push_back(f);
     }
@@ -63,15 +69,23 @@ namespace Router {
         COMMS_SERIAL.setTimeout((unsigned long) -1); // wrap around to max long so we never time out
         add({setLog, "set_log"});
     }
+    elapsedMillis ledTime = 0;
+    bool ledOn = false;
 
     [[noreturn]] void run() { // attribute here enables dead-code warning & compiler optimization
+        digitalWrite(LED_BUILTIN, LOW); //led indication that software is waiting for command
         String s = "";
+        
         while (true) {
-            s = COMMS_SERIAL.readStringUntil(0,
-                                             200); // read until null terminator or 200 characters (hopefully none of our funcs have names that long lol)
+            s = read(200);
+            s.trim(); //remove leading/trailing whitespace or newline
+            Router::info(s);
             for (auto &f: funcs) {
                 if (s.equals(f.name)) {
+                    digitalWrite(LED_BUILTIN, HIGH); //led indication that command is running
                     f.f(); // call the function. it can decide to send, receive or whatever.
+                    digitalWrite(LED_BUILTIN, LOW);
+                    break;
                 }
             }
         }

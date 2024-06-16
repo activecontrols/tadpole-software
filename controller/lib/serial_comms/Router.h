@@ -41,6 +41,8 @@ namespace Router {
     // receive reads a message from the serial port into the supplied buffer.
     // the caller is responsible for freeing the memory of the message
     void receive(char msg[], unsigned int len);
+    //reads a message from the serial port into a string and returns it
+    String read(unsigned int len);
     // add registers a new function to the router
     void add(func f);
     // run starts monitoring the serial port for messages and calls the

@@ -9,7 +9,10 @@ void ping() {
 }
 
 void setup() {
+    digitalWrite(LED_BUILTIN, HIGH);
     Router::init_comms();
+    
+    Router::info("Controller started.");
     Router::add({ping, "ping"}); // example registration
     if (!SDCard::begin()) {
         Router::logenabled = false;
@@ -20,8 +23,8 @@ void setup() {
 
     Driver::begin(); // initializes the odrives and functions to start curves
 
-    Router::run(); // nothing runs after this. router handles everything
 }
 
-// code never reaches here because of Router::run()
-void loop() {}
+void loop() {
+    Router::run(); //loop only runs once, since there is an internal loop in Router::run()
+}

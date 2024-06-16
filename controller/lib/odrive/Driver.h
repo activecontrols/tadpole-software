@@ -29,13 +29,13 @@
                    "lox_voltage,ipa_voltage," \
                    "lox_current,ipa_current"
 
-#define POSITION_BUFFER_SIZE 50
+#define INT_BUFFER_SIZE 50
 #define MAX_THRUST 100
 #define MIN_TRHUST 0
 #define MAX_ODRIVE_POS 1
 #define MIN_ODRIVE_POS -1
 
-#define ENABLE_ODRIVE_COMM true
+#define ENABLE_ODRIVE_COMM false
 
 namespace Driver {
 

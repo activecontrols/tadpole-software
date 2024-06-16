@@ -271,16 +271,17 @@ namespace Driver {
      * Command for the Router lib to change the position of the IPA or LOX ODrive manually.
      */
     void setPosCmd() {
-        char odriveSel[1] = {'\0'};
-        Router::info("LOX or IPA? (Type l or i)");
-        Router::receive(odriveSel, 1);
 
-        char posString[POSITION_BUFFER_SIZE] = {'\0'};
+        Router::info("LOX or IPA? (Type l or i)");
+        String odriveSel = Router::read(3);
+        Router::info("Response: " + odriveSel);
+
         Router::info("Position?");
-        Router::receive(posString, POSITION_BUFFER_SIZE);
+        String posString = Router::read(INT_BUFFER_SIZE);
+        Router::info("Response: " + posString);
 
         float pos;
-        int result = std::sscanf(posString, "%f", &pos);
+        int result = std::sscanf(posString.c_str(), "%f", &pos);
         if (result != 1) {
             Router::info("Could not convert input to a float, not continuing");
             return;
@@ -302,32 +303,33 @@ namespace Driver {
                 Router::info("Invalid odrive specified");
                 break;
         }
+        Router::info("Position set");
     }
 
     /**
      * Command for the Router lib to change the thrust manually.
      */
     void setThrustCmd() {
-        char posString[POSITION_BUFFER_SIZE] = {'\0'};
-        Router::info("Thrust value?");
-        Router::receive(posString, POSITION_BUFFER_SIZE);
+        Router::info("Position?");
+        String thrustString = Router::read(INT_BUFFER_SIZE);
+        Router::info("Response: " + thrustString);
 
-        float pos;
-        int result = std::sscanf(posString, "%f", &pos);
+        float thrust;
+        int result = std::sscanf(thrustString.c_str(), "%f", &thrust);
         if (result != 1) {
             Router::info("Could not convert input to a float, not continuing");
             return;
         }
 
-        if (pos < MIN_TRHUST || pos > MAX_THRUST) {
+        if (thrust < MIN_TRHUST || thrust > MAX_THRUST) {
             Router::info("Thrust outside defined range in code, not continuing");
             return;
         }
 
-        auto odrivePos = setThrust(pos);
+        auto odrivePos = setThrust(thrust);
 
         stringstream ss;
-        ss << "LOX pos: " << odrivePos.first << " IPA pos: " << odrivePos.second;
+        ss << "Thrust set. LOX pos: " << odrivePos.first << " IPA pos: " << odrivePos.second;
 
         Router::info(ss.str());
     }
