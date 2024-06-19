@@ -192,6 +192,21 @@ namespace Driver {
             
 
         }
+
+#if (ENABLE_ODRIVE_COMM)
+        void setupODrive(ODriveUART &odrive) {
+            while (odrive.getState() == AXIS_STATE_UNDEFINED) {
+                delay(100);
+            }
+
+            Router::info("Setting odrive to closed loop control...");
+            while (odrive.getState() != AXIS_STATE_CLOSED_LOOP_CONTROL) {
+                odrive.clearErrors();
+                odrive.setState(AXIS_STATE_CLOSED_LOOP_CONTROL);
+                delay(10);
+            }
+        }
+#endif
     }
 
     void begin() {
@@ -211,30 +226,11 @@ namespace Driver {
         LOX_ODRIVE_SERIAL.begin(LOX_ODRIVE_SERIAL_RATE);
         FUEL_ODRIVE_SERIAL.begin(FUEL_ODRIVE_SERIAL_RATE);
 
-        while (loxODrive.getState() == AXIS_STATE_UNDEFINED) {
-            Router::info("Waiting to connect to lox odrive...");
-            delay(100);
-        }
+        Router::info("Connecting to lox odrive...");
+        setupODrive(loxODrive);
 
-        while (fuelODrive.getState() == AXIS_STATE_UNDEFINED) {
-            Router::info("Waiting to connect to fuel odrive...");
-            delay(100);
-        }
-
-        Router::info("Setting lox odrive to closed loop control...");
-        while (loxODrive.getState() != AXIS_STATE_CLOSED_LOOP_CONTROL) {
-            loxODrive.clearErrors();
-            loxODrive.setState(AXIS_STATE_CLOSED_LOOP_CONTROL);
-            delay(10);
-        }
-
-        Router::info("Setting fuel odrive to closed loop control...");
-        while (fuelODrive.getState() != AXIS_STATE_CLOSED_LOOP_CONTROL) {
-            fuelODrive.clearErrors();
-
-            fuelODrive.setState(AXIS_STATE_CLOSED_LOOP_CONTROL);
-            delay(10);
-        }
+        Router::info("Connecting to fuel odrive...");
+        setupODrive(fuelODrive);
 
         Router::info(getODriveInfo());
 #endif
