@@ -43,8 +43,12 @@ namespace Driver {
 
     void setIPAPos(float position);
     void setLOXPos(float position);
+    float getLOXCmdPos();
+    float getIPACmdPos();
+    inline void printLOXCmdPos() { Router::info(getLOXCmdPos()); }
+    inline void printIPACmdPos() { Router::info(getIPACmdPos()); }
     void setPosCmd();
-    std::pair<float, float> setThrust(float thrust);
+    void setThrust(float thrust);
     void setThrustCmd();
     void clearErrors();
 

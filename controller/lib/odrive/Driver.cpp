@@ -9,10 +9,9 @@
     */
 
 #include <sstream>
-#include <SDCard.h>
-#include <cmath>
-#include <tuple>
+#include <Arduino.h>
 
+#include "SDCard.h"
 #include "Driver.h"
 #include "ODriveUART.h"
 
@@ -29,6 +28,9 @@ namespace Driver {
     namespace { // private
 
         File odriveLogFile;
+
+        float loxPosCmd; //the last position command sent to the LOX odrive
+        float ipaPosCmd; //the last position command sent to the IPA odrive
 
         /**
          * Logs the telemetry data for a curve in CSV format.
@@ -148,9 +150,9 @@ namespace Driver {
                 while (timer / 1000.0 < lcs[i].time) {
                     float seconds = timer / 1000.0;
                     float thrust = lerp(lcs[i].thrust, lcs[i + 1].thrust, lcs[i].time, lcs[i + 1].time, seconds);
-                    auto odrive_pos = setThrust(thrust);
+                    setThrust(thrust);
                     if (timer - lastlog >= LOG_INTERVAL_MS) {
-                        logCurveTelemCSV(seconds, i, thrust, odrive_pos.first, odrive_pos.second);
+                        logCurveTelemCSV(seconds, i, thrust, loxPosCmd, ipaPosCmd);
                         lastlog = timer;
                     }
                     delay(COMMAND_INTERVAL_MS);
@@ -186,10 +188,10 @@ namespace Driver {
                         setIPAPos(ipa_pos);
                     } else {
                         thrust = amplitude * (sin(2 * M_PI * seconds / period) + 1.0) / 2.0;
-                        std::tie(lox_pos, ipa_pos) = setThrust(thrust);
+                        setThrust(thrust);
                     }
                     if (timer - lastlog >= LOG_INTERVAL_MS) {
-                        logCurveTelemCSV(seconds, i, thrust, lox_pos, ipa_pos);
+                        logCurveTelemCSV(seconds, i, thrust, loxPosCmd, ipaPosCmd);
                         lastlog = timer;
                     }
                 }
@@ -209,6 +211,8 @@ namespace Driver {
         Router::add({Driver::clearErrors, "clear_odrive_errors"});
         Router::add({Driver::printODriveInfo, "get_odrive_info"});
         Router::add({Driver::printODriveStatus, "get_odrive_status"});
+        Router::add({Driver::printLOXCmdPos, "get_lox_cmd_pos"});
+        Router::add({Driver::printIPACmdPos, "get_ipa_cmd_pos"});
 
         Router::add({Driver::setPosCmd, "set_odrive_pos"});
         Router::add({Driver::setThrustCmd, "set_thrust"});
@@ -255,6 +259,7 @@ namespace Driver {
 #if (ENABLE_ODRIVE_COMM)
         fuelODrive.setPosition(pos);
 #endif
+        ipaPosCmd = pos;
     }
 
     /**
@@ -265,6 +270,15 @@ namespace Driver {
 #if (ENABLE_ODRIVE_COMM)
         loxODrive.setPosition(pos);
 #endif
+        loxPosCmd = pos;
+    }
+
+    float getLOXCmdPos() {
+        return loxPosCmd;
+    }
+
+    float getIPACmdPos() {
+        return ipaPosCmd;
     }
 
     /**
@@ -326,10 +340,10 @@ namespace Driver {
             return;
         }
 
-        auto odrivePos = setThrust(thrust);
+        setThrust(thrust);
 
         stringstream ss;
-        ss << "Thrust set. LOX pos: " << odrivePos.first << " IPA pos: " << odrivePos.second;
+        ss << "Thrust set. LOX pos: " << loxPosCmd << " IPA pos: " << ipaPosCmd;
 
         Router::info(ss.str());
     }
@@ -338,12 +352,12 @@ namespace Driver {
      * Sets the thrust
      * Uses a closed loop control to set the angle positions of the odrives
      * using feedback from the pressue sensor. The function will set the odrive positions itself, and
-     * returns a tuple of (lox, fuel) throttle positions.
+     * modify currentLOXPos and currentIPAPos to what it set the odrive positions to.
      */
-    std::pair<float, float> setThrust(float thrust) {
+    void setThrust(float thrust) {
         // TODO: closed loop magic
-
-        return std::make_pair(0, 0); //(lox position, ipa position)
+        ipaPosCmd = 0.0;
+        loxPosCmd = 0.0;
     }
 
     /**
