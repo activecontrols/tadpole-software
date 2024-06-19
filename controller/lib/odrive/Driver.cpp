@@ -102,16 +102,6 @@ namespace Driver {
         }
 
         /**
-         * Saturates a value between the minimum and maximum position for the odrive.
-         * @param value The value to be saturated
-         */
-        void saturatePos(float &value) {
-            if (value < MIN_ODRIVE_POS || value > MAX_ODRIVE_POS) {
-                value = value < 0 ? MIN_ODRIVE_POS : MAX_ODRIVE_POS;
-            }
-        }
-
-        /**
          * Follows an open lerp curve by interpolating between LOX and IPA positions.
          */
         void followOpenLerpCurve() {
@@ -125,8 +115,8 @@ namespace Driver {
                     float seconds = timer / 1000.0;
                     float lox_pos = lerp(los[i].lox_angle, los[i + 1].lox_angle, los[i].time, los[i + 1].time, seconds);
                     float ipa_pos = lerp(los[i].ipa_angle, los[i + 1].ipa_angle, los[i].time, los[i + 1].time, seconds);
-                    saturatePos(lox_pos);
-                    saturatePos(ipa_pos);
+                    lox_pos = constrain(lox_pos, MIN_ODRIVE_POS, MAX_ODRIVE_POS);
+                    ipa_pos = constrain(ipa_pos, MIN_ODRIVE_POS, MAX_ODRIVE_POS);
                     setLOXPos(lox_pos);
                     setIPAPos(ipa_pos);
                     if (timer - lastlog > LOG_INTERVAL_MS) {
@@ -182,8 +172,8 @@ namespace Driver {
                     if (Loader::header.is_open) {
                         lox_pos = abs(amplitude * (sin(2 * M_PI * seconds / period) + 1.0) / 2.0);
                         ipa_pos = lox_pos / Loader::header.of_ratio;
-                        saturatePos(lox_pos);
-                        saturatePos(ipa_pos);
+                        lox_pos = constrain(lox_pos, MIN_ODRIVE_POS, MAX_ODRIVE_POS);
+                        ipa_pos = constrain(ipa_pos, MIN_ODRIVE_POS, MAX_ODRIVE_POS);
                         setLOXPos(lox_pos);
                         setIPAPos(ipa_pos);
                     } else {
