@@ -12,6 +12,7 @@
 
 #include <vector>
 #include <string>
+#include <functional>
 #include <Wire.h>
 #include <SD.h>
 
@@ -52,7 +53,7 @@ namespace Router {
 };
 
 struct func {
-    void (*f)();
+    std::function<void()> f;
     const char *name;
 };
 
