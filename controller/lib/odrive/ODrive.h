@@ -21,13 +21,17 @@ private:
     float posCmd;
 
     /*
-     * The last error the odrive encontered (cleared by clearErrors())
+     * The last error the odrive encontered 
+     * Modified only by checkErrors()
+     * Can be cleared by clearErrors()
      * If there is no last error, then the value will be 0
      */
     int activeError;
     
     /*
-     * The error code that made the odrive disarm (cleared by clearErrors())
+     * The error code that made the odrive disarm 
+     * Modified only by checkErrors()
+     * Can be cleared by clearErrors()
      * If there is no last error, then the value will be 0
      */
     int disarmReason;
@@ -40,9 +44,10 @@ public:
 
     int checkErrors();
 
+    void identify();
+
     int getActiveError() {return activeError;}
     int getDisarmReason() {return disarmReason;}
-
 
 };
 
