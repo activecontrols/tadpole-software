@@ -20,12 +20,10 @@
 
 namespace Driver {
 
-#if (ENABLE_ODRIVE_COMM)
-    ODrive loxODrive(LOX_ODRIVE_SERIAL);
-    ODrive fuelODrive(FUEL_ODRIVE_SERIAL);
-#endif
-
     namespace { // private
+
+        ODrive loxODrive(LOX_ODRIVE_SERIAL);
+        ODrive fuelODrive(FUEL_ODRIVE_SERIAL);
 
         File odriveLogFile;
 
