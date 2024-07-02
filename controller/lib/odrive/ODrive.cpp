@@ -57,7 +57,7 @@ int ODrive::checkErrors() {
 /**
  * Clears error codes on ODrive and sets disarmReason and activeError variable to 0
  */
-void ODrive::clearErrors() {
+void ODrive::clear() {
 #if (ENABLE_ODRIVE_COMM)
     ODriveUART::clearErrors();
 #endif

@@ -1,12 +1,12 @@
 /*
-    * Driver.cpp
-    *
-    *  Created on: 2024-06-10 by Vincent Palmerio
-    *  Maintained by Vincent Palmerio and Ishan Goel
-    *  Description: This file contains the implementation of the Driver namespace, which provides functions for controlling ODrive motors.
-    *               It includes functions for logging telemetry data, creating log files, and following different types of curves.
-    *               The curves supported are lerp (linear interpolation), sine, and chirp.
-    */
+ * Driver.cpp
+ *
+ *  Created on: 2024-06-10 by Vincent Palmerio
+ *  Maintained by Vincent Palmerio and Ishan Goel
+ *  Description: This file contains the implementation of the Driver namespace, which provides functions for controlling ODrive motors.
+ *               It includes functions for logging telemetry data, creating log files, and following different types of curves.
+ *               The curves supported are lerp (linear interpolation), sine, and chirp.
+ */
 
 #include <sstream>
 #include <Arduino.h>
@@ -23,7 +23,7 @@ namespace Driver {
     namespace { // private
 
         ODrive loxODrive(LOX_ODRIVE_SERIAL);
-        ODrive fuelODrive(FUEL_ODRIVE_SERIAL);
+        ODrive ipaODrive(IPA_ODRIVE_SERIAL);
 
         File odriveLogFile;
 
@@ -36,8 +36,8 @@ namespace Driver {
         void logCurveTelemCSV(float time, int phase, float thrust) {
             std::stringstream ss;
             ss << "," << time << "," << phase << "," << thrust << "," << loxODrive.getLastPosCmd() 
-               << "," << fuelODrive.getLastPosCmd() << "," << loxODrive.getTelemetryCSV() << ","
-               << fuelODrive.getTelemetryCSV();
+               << "," << ipaODrive.getLastPosCmd() << "," << loxODrive.getTelemetryCSV() << ","
+               << ipaODrive.getTelemetryCSV();
             std::string csvRow = ss.str();
             Router::info(csvRow);
             if (Router::logenabled) {
@@ -113,7 +113,7 @@ namespace Driver {
                     lox_pos = constrain(lox_pos, MIN_ODRIVE_POS, MAX_ODRIVE_POS);
                     ipa_pos = constrain(ipa_pos, MIN_ODRIVE_POS, MAX_ODRIVE_POS);
                     loxODrive.setPos(lox_pos);
-                    fuelODrive.setPos(ipa_pos);
+                    ipaODrive.setPos(ipa_pos);
                     if (timer - lastlog > LOG_INTERVAL_MS) {
                         logCurveTelemCSV(seconds, i, -1);
                         lastlog = timer;
@@ -170,7 +170,7 @@ namespace Driver {
                         lox_pos = constrain(lox_pos, MIN_ODRIVE_POS, MAX_ODRIVE_POS);
                         ipa_pos = constrain(ipa_pos, MIN_ODRIVE_POS, MAX_ODRIVE_POS);
                         loxODrive.setPos(lox_pos);
-                        fuelODrive.setPos(ipa_pos);
+                        ipaODrive.setPos(ipa_pos);
                     } else {
                         thrust = amplitude * (sin(2 * M_PI * seconds / period) + 1.0) / 2.0;
                         setThrust(thrust);
@@ -192,10 +192,7 @@ namespace Driver {
 
     void begin() {
         Router::add({Driver::followCurve, "follow_curve"});
-        Router::add({Driver::clearErrors, "clear_odrive_errors"});
         Router::add({Driver::printODriveInfo, "get_odrive_info"});
-
-        Router::add({Driver::setPosCmd, "set_odrive_pos"});
         Router::add({Driver::setThrustCmd, "set_thrust"});
 
         /*
@@ -208,7 +205,7 @@ namespace Driver {
          * For the function pointer itself, we pass in what is called a lambda. 
          * (Read up here: https://stackoverflow.com/questions/7627098/what-is-a-lambda-expression-and-when-should-i-use-one)
          * 
-         * The [&] captures all local variables by reference, so loxODrive and fuelODrive can be called
+         * The [&] captures all local variables by reference, so loxODrive and ipaODrive can be called
          * in the lambda.
          * 
          * () is the return type, which is void
@@ -218,29 +215,30 @@ namespace Driver {
          * Together, that makes `[&]() { loxODrive.clearErrors(); }`
          */
 
-        Router::add({[&]() {loxODrive.clearErrors(); }, "clear_odrive_errors"});
+        Router::add({[&]() {loxODrive.clear(); }, "clear_lox_odrive_errors"});
+        Router::add({[&]() {ipaODrive.clear(); }, "clear_ipa_odrive_errors"});
 
         Router::add({[&]() {loxODrive.setPosConsoleCmd(); }, "set_lox_odrive_pos"});
-        Router::add({[&]() {fuelODrive.setPosConsoleCmd(); }, "set_ipa_odrive_pos"});
+        Router::add({[&]() {ipaODrive.setPosConsoleCmd(); }, "set_ipa_odrive_pos"});
 
         Router::add({[&]() {loxODrive.printCmdPos(); }, "get_lox_cmd_pos"});
-        Router::add({[&]() {fuelODrive.printCmdPos(); }, "get_ipa_cmd_pos"});
+        Router::add({[&]() {ipaODrive.printCmdPos(); }, "get_ipa_cmd_pos"});
 
         Router::add({[&]() {loxODrive.identify(); }, "identify_lox_odrive"});
-        Router::add({[&]() {loxODrive.identify(); }, "identify_fuel_odrive"});
+        Router::add({[&]() {loxODrive.identify(); }, "identify_ipa_odrive"});
 
         Router::add({[&]() {loxODrive.printTelemetryCSV(); }, "get_lox_odrive_telem"});
-        Router::add({[&]() {fuelODrive.printTelemetryCSV(); }, "get_ipa_odrive_telem"});
+        Router::add({[&]() {ipaODrive.printTelemetryCSV(); }, "get_ipa_odrive_telem"});
 
 #if (ENABLE_ODRIVE_COMM)
         LOX_ODRIVE_SERIAL.begin(LOX_ODRIVE_SERIAL_RATE);
-        FUEL_ODRIVE_SERIAL.begin(FUEL_ODRIVE_SERIAL_RATE);
+        IPA_ODRIVE_SERIAL.begin(IPA_ODRIVE_SERIAL_RATE);
 
         Router::info("Connecting to lox odrive...");
         loxODrive.checkConnection();
 
-        Router::info("Connecting to fuel odrive...");
-        fuelODrive.checkConnection();
+        Router::info("Connecting to ipa odrive...");
+        ipaODrive.checkConnection();
 
         printODriveInfo();
 #endif
@@ -251,7 +249,7 @@ namespace Driver {
         Router::info("LOX ODrive: ");
         Router::info(loxODrive.getODriveInfo());
         Router::info("IPA ODrive: ");
-        Router::info(fuelODrive.getODriveInfo());
+        Router::info(ipaODrive.getODriveInfo());
     }
 
     /**
@@ -277,7 +275,7 @@ namespace Driver {
         setThrust(thrust);
 
         stringstream ss;
-        ss << "Thrust set. LOX pos: " << loxODrive.getLastPosCmd() << " IPA pos: " << fuelODrive.getLastPosCmd();
+        ss << "Thrust set. LOX pos: " << loxODrive.getLastPosCmd() << " IPA pos: " << ipaODrive.getLastPosCmd();
 
         Router::info(ss.str());
     }
@@ -291,16 +289,6 @@ namespace Driver {
     void setThrust(float thrust) {
         // TODO: closed loop magic
         
-    }
-
-    /**
-     * Clears errors for both the LOX and IPA odrives.
-     */
-    void clearErrors() {
-#if (ENABLE_ODRIVE_COMM)
-        loxODrive.clearErrors();
-        fuelODrive.clearErrors();
-#endif
     }
 
     /**

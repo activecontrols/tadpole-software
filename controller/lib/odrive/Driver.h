@@ -16,10 +16,10 @@
 #include <string>
 
 #define LOX_ODRIVE_SERIAL Serial1
-#define FUEL_ODRIVE_SERIAL Serial2
+#define IPA_ODRIVE_SERIAL Serial2
 
 #define LOX_ODRIVE_SERIAL_RATE 115200
-#define FUEL_ODRIVE_SERIAL_RATE 115200
+#define IPA_ODRIVE_SERIAL_RATE 115200
 
 #define LOG_HEADER "time,phase,thrust_cmd," \
                    "lox_pos_cmd,ipa_pos_cmd," \
@@ -33,10 +33,8 @@ namespace Driver {
 
     void begin();
 
-    void setPosCmd();
     void setThrust(float thrust);
     void setThrustCmd();
-    void clearErrors();
 
     void printODriveInfo();
     

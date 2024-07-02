@@ -57,7 +57,7 @@ public:
     void printCmdPos() { Router::info(getLastPosCmd()); }
 
     int checkErrors();
-    void clearErrors();
+    void clear();
 
     void identify();
 
