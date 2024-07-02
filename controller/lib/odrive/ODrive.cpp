@@ -64,9 +64,9 @@ int ODrive::checkErrors() {
             disarmReason = ODriveUART::getParameterAsInt("axis0.disarm_reason");
             return ODRIVE_ERROR_DISARMED;
         }
-        return ODRIVE_NO_ERROR;
+        return ODRIVE_ACTIVE_ERROR;
     }
-    return 0;
+    return ODRIVE_NO_ERROR;
 #endif
 }
 
