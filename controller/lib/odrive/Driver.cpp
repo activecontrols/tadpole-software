@@ -198,7 +198,31 @@ namespace Driver {
         Router::add({Driver::setPosCmd, "set_odrive_pos"});
         Router::add({Driver::setThrustCmd, "set_thrust"});
 
-        Router::add({[&]() {loxODrive.clearErrors(); }, "set_thrust"});
+        /*
+         * This syntax is slightly tricky. The add function only takes one argument: a func struct
+         * The func struct has two fields, a function pointer, and a string.
+         * Ie: `[&]() {loxODrive.clearErrors(); }` is the "function pointer" and "clear_odrive_errors"
+         * is the string. Both these fields are wrapped in curly brackes to create a func struct
+         * `{   [&]() {loxODrive.clearErrors(); }, "clear_odrive_errors"   }`
+         * 
+         * For the function pointer itself, we pass in what is called a lambda. 
+         * (Read up here: https://stackoverflow.com/questions/7627098/what-is-a-lambda-expression-and-when-should-i-use-one)
+         * 
+         * The [&] captures all local variables by reference, so loxODrive and fuelODrive can be called
+         * in the lambda.
+         * 
+         * () is the return type, which is void
+         * 
+         * {} inside the brackets, and code can be written, including loxODrive.clearErrors();
+         * 
+         * Together, that makes `[&]() { loxODrive.clearErrors(); }`
+         */
+
+        Router::add({[&]() {loxODrive.clearErrors(); }, "clear_odrive_errors"});
+
+        Router::add({[&]() {loxODrive.setPosConsoleCmd(); }, "set_lox_odrive_pos"});
+        Router::add({[&]() {fuelODrive.setPosConsoleCmd(); }, "set_ipa_odrive_pos"});
+
         Router::add({[&]() {loxODrive.printCmdPos(); }, "get_lox_cmd_pos"});
         Router::add({[&]() {fuelODrive.printCmdPos(); }, "get_ipa_cmd_pos"});
 
@@ -228,45 +252,6 @@ namespace Driver {
         Router::info(loxODrive.getODriveInfo());
         Router::info("IPA ODrive: ");
         Router::info(fuelODrive.getODriveInfo());
-    }
-
-    /**
-     * Command for the Router lib to change the position of the IPA or LOX ODrive manually.
-     */
-    void setPosCmd() {
-
-        Router::info("LOX or IPA? (Type l or i)");
-        String odriveSel = Router::read(3);
-        Router::info("Response: " + odriveSel);
-
-        Router::info("Position?");
-        String posString = Router::read(INT_BUFFER_SIZE);
-        Router::info("Response: " + posString);
-
-        float pos;
-        int result = std::sscanf(posString.c_str(), "%f", &pos);
-        if (result != 1) {
-            Router::info("Could not convert input to a float, not continuing");
-            return;
-        }
-
-        if (pos < MIN_ODRIVE_POS || pos > MAX_ODRIVE_POS) {
-            Router::info("Position outside defined range in code, not continuing");
-            return;
-        }
-
-        switch (odriveSel[0]) {
-            case 'l':
-                loxODrive.setPos(pos);
-                break;
-            case 'i':
-                fuelODrive.setPos(pos);
-                break;
-            default:
-                Router::info("Invalid odrive specified");
-                break;
-        }
-        Router::info("Position set");
     }
 
     /**

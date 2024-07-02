@@ -72,7 +72,7 @@ void ODrive::identify() {
     Router::info("Identifying LOX ODrive for 5 seconds...");
 #if (ENABLE_ODRIVE_COMM)
     ODriveUART::setParameter("identify", true);
-        delay(5000);
+    delay(5000);
     ODriveUART::setParameter("identify", false);
 #endif
     Router::info("Done");
@@ -116,4 +116,29 @@ std::string ODrive::getODriveInfo() {
     
 #endif
     return ss.str();
+}
+
+/**
+ * Command for the Router lib to change the position of the ODrive manually.
+ */
+void ODrive::setPosConsoleCmd() {
+
+    Router::info("Position?");
+    String posString = Router::read(INT_BUFFER_SIZE);
+    Router::info("Response: " + posString);
+
+    float pos = 0.0;
+    int result = std::sscanf(posString.c_str(), "%f", &pos);
+    if (result != 1) {
+        Router::info("Could not convert input to a float, not continuing");
+        return;
+    }
+
+    if (pos < MIN_ODRIVE_POS || pos > MAX_ODRIVE_POS) {
+        Router::info("Position outside defined range in code, not continuing");
+        return;
+    }
+
+    setPos(pos);
+    Router::info("Position set");
 }

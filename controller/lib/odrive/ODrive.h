@@ -6,12 +6,18 @@
 
 #include "ODriveUART.h"
 
-#define ENABLE_ODRIVE_COMM (true)
+#define ENABLE_ODRIVE_COMM (false)
 
 #define ODRIVE_ERROR (0)
 #define ODRIVE_ERROR_DISARMED (-1)
 
 #define ODRIVE_TELEM_HEADER "position,velocity,voltage,current"
+
+#define INT_BUFFER_SIZE 50
+#define MAX_THRUST 100
+#define MIN_TRHUST 0
+#define MAX_ODRIVE_POS 1
+#define MIN_ODRIVE_POS -1
 
 class ODrive : public ODriveUART {
 
@@ -46,6 +52,7 @@ public:
     void checkConnection();
 
     void setPos(float);
+    void setPosConsoleCmd();
     float getLastPosCmd() {return posCmd;}
     void printCmdPos() { Router::info(getLastPosCmd()); }
 

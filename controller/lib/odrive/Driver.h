@@ -28,12 +28,6 @@
                    "ipa_pos,ipa_vel," \
                    "ipa_voltage,ipa_current"
 
-#define INT_BUFFER_SIZE 50
-#define MAX_THRUST 100
-#define MIN_TRHUST 0
-#define MAX_ODRIVE_POS 1
-#define MIN_ODRIVE_POS -1
-
 
 namespace Driver {
 
@@ -43,7 +37,7 @@ namespace Driver {
     void setThrust(float thrust);
     void setThrustCmd();
     void clearErrors();
-    
+
     void printODriveInfo();
     
     void followCurve();
