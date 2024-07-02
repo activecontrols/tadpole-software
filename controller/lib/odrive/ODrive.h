@@ -2,6 +2,7 @@
 #define ODRIVE_H
 
 #include <Router.h>
+#include <string.h>
 
 #include "ODriveUART.h"
 
@@ -23,7 +24,7 @@ private:
     /*
      * The last error the odrive encontered 
      * Modified only by checkErrors()
-     * Can be cleared by clearErrors()
+     * Can be cleared by ODriveUART::clearErrors()
      * If there is no last error, then the value will be 0
      */
     int activeError;
@@ -31,7 +32,7 @@ private:
     /*
      * The error code that made the odrive disarm 
      * Modified only by checkErrors()
-     * Can be cleared by clearErrors()
+     * Can be cleared by ODriveUART::clearErrors()
      * If there is no last error, then the value will be 0
      */
     int disarmReason;
@@ -43,11 +44,15 @@ public:
     void printCmdPos() { Router::info(getLastPosCmd()); }
 
     int checkErrors();
+    void clearErrors();
 
     void identify();
 
     int getActiveError() {return activeError;}
     int getDisarmReason() {return disarmReason;}
+
+    std::string getODriveTelemetryCSV();
+    std::string getODriveInfo();
 
 };
 

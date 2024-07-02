@@ -1,3 +1,5 @@
+#include <sstream>
+
 #include "ODrive.h"
 
 /**
@@ -32,6 +34,15 @@ int ODrive::checkErrors() {
 }
 
 /**
+ * Clears error codes on ODrive and sets disarmReason and activeError variable to 0
+ */
+void ODrive::clearErrors() {
+    ODriveUART::clearErrors();
+    disarmReason = 0;
+    activeError = 0;
+}
+
+/**
  * Blinks the LED on the ODrive for 5 seconds.
  */
 void ODrive::identify() {
@@ -42,4 +53,44 @@ void ODrive::identify() {
     ODriveUART::setParameter("identify", false);
 #endif
     Router::info("Done");
+}
+
+/**
+ * Returns a CSV string containing the ODrive Telemetry information, in the following format:
+ * position,velocity,voltage,current
+ */
+std::string ODrive::getODriveTelemetryCSV() {
+    std::stringstream ss;
+#if (ENABLE_ODRIVE_COMM)
+    float position = ODriveUART::getPosition();
+
+    float velocity = ODriveUART::getVelocity();
+
+    float voltage = ODriveUART::getParameterAsFloat("vbus_voltage");
+
+    float current = ODriveUART::getParameterAsFloat("ibus");
+
+    ss << position << "," << velocity << ","
+        << voltage << "," << current << ",";
+
+#endif
+    return ss.str();
+}
+
+/**
+ * Returns a string containing the hardware and firmware major and minor versons of the ODrive
+ */
+std::string ODrive::getODriveInfo() {
+    std::stringstream ss;
+#if (ENABLE_ODRIVE_COMM)
+    int hwVersionMajor = ODriveUART::getParameterAsInt("hw_version_major");
+    int hwVersionMinor = ODriveUART::getParameterAsInt("hw_version_minor");
+    int fwVersionMajor = ODriveUART::getParameterAsInt("fw_version_major");
+    int fwVersionMinor = ODriveUART::getParameterAsInt("fw_version_minor");
+
+    ss << "ODrive Hardware Version: " << hwVersionMajor << "." << hwVersionMinor
+        << " | Firmware Version: " << fwVersionMajor << "." << fwVersionMinor << " |||";
+    
+#endif
+    return ss.str();
 }
