@@ -21,12 +21,12 @@
 #define LOX_ODRIVE_SERIAL_RATE 115200
 #define FUEL_ODRIVE_SERIAL_RATE 115200
 
-#define LOG_HEADER "time,phase,thrust_cmd" \
+#define LOG_HEADER "time,phase,thrust_cmd," \
                    "lox_pos_cmd,ipa_pos_cmd," \
-                   "lox_pos,ipa_pos," \
-                   "lox_vel,ipa_vel," \
-                   "lox_voltage,ipa_voltage," \
-                   "lox_current,ipa_current"
+                   "lox_pos,lox_vel," \
+                   "lox_voltage,lox_current," \
+                   "ipa_pos,ipa_vel," \
+                   "ipa_voltage,ipa_current"
 
 #define INT_BUFFER_SIZE 50
 #define MAX_THRUST 100
@@ -39,16 +39,11 @@ namespace Driver {
 
     void begin();
 
-    void setPosCmd(); //no need
-    void setThrust(float thrust); //no need
-    void setThrustCmd();// no need
-    void clearErrors(); //ported, needs new commands
-
-    std::string getODriveStatusCSV(); //ported, needs modification, or modify log function
-    inline void printODriveStatus() { //modify?? get rid of and add new commands?
-        Router::info(LOG_HEADER);
-        Router::info(getODriveStatusCSV()); 
-    }
+    void setPosCmd();
+    void setThrust(float thrust);
+    void setThrustCmd();
+    void clearErrors();
+    
     void printODriveInfo();
     
     void followCurve();

@@ -82,7 +82,7 @@ void ODrive::identify() {
  * Returns a CSV string containing the ODrive Telemetry information, in the following format:
  * position,velocity,voltage,current
  */
-std::string ODrive::getODriveTelemetryCSV() {
+std::string ODrive::getTelemetryCSV() {
     std::stringstream ss;
 #if (ENABLE_ODRIVE_COMM)
     float position = ODriveUART::getPosition();

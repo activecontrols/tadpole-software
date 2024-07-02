@@ -11,6 +11,8 @@
 #define ODRIVE_ERROR (0)
 #define ODRIVE_ERROR_DISARMED (-1)
 
+#define ODRIVE_TELEM_HEADER "position,velocity,voltage,current"
+
 class ODrive : public ODriveUART {
 
 private:
@@ -55,7 +57,11 @@ public:
     int getActiveError() {return activeError;}
     int getDisarmReason() {return disarmReason;}
 
-    std::string getODriveTelemetryCSV();
+    std::string getTelemetryCSV();
+    void printTelemetryCSV() {
+        Router::info(ODRIVE_TELEM_HEADER);
+        Router::info(getTelemetryCSV());
+    }
     std::string getODriveInfo();
     void printODriveInfo() { Router::info(getODriveInfo()); }
 

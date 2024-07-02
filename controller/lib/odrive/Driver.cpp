@@ -34,13 +34,12 @@ namespace Driver {
          * @param time The elapsed time in seconds.
          * @param phase The current phase of the curve.
          * @param thrust The thrust value (for closed lerp curves) or -1 (for other curve types).
-         * @param lox_pos The LOX position.
-         * @param ipa_pos The IPA position.
          */
         void logCurveTelemCSV(float time, int phase, float thrust) {
             std::stringstream ss;
             ss << "," << time << "," << phase << "," << thrust << "," << loxODrive.getLastPosCmd() 
-               << "," << fuelODrive.getLastPosCmd() << getODriveStatusCSV();
+               << "," << fuelODrive.getLastPosCmd() << loxODrive.getTelemetryCSV() 
+               << fuelODrive.getTelemetryCSV();
             std::string csvRow = ss.str();
             Router::info(csvRow);
             if (Router::logenabled) {
@@ -197,17 +196,19 @@ namespace Driver {
         Router::add({Driver::followCurve, "follow_curve"});
         Router::add({Driver::clearErrors, "clear_odrive_errors"});
         Router::add({Driver::printODriveInfo, "get_odrive_info"});
-        Router::add({Driver::printODriveStatus, "get_odrive_status"});
 
         Router::add({Driver::setPosCmd, "set_odrive_pos"});
         Router::add({Driver::setThrustCmd, "set_thrust"});
 
-        Router::add({[&]() {return loxODrive.clearErrors(); }, "set_thrust"});
-        Router::add({[&]() {return loxODrive.printCmdPos(); }, "get_lox_cmd_pos"});
-        Router::add({[&]() {return fuelODrive.printCmdPos(); }, "get_ipa_cmd_pos"});
+        Router::add({[&]() {loxODrive.clearErrors(); }, "set_thrust"});
+        Router::add({[&]() {loxODrive.printCmdPos(); }, "get_lox_cmd_pos"});
+        Router::add({[&]() {fuelODrive.printCmdPos(); }, "get_ipa_cmd_pos"});
 
-        Router::add({[&]() {return loxODrive.identify(); }, "identify_lox_odrive"});
-        Router::add({[&]() {return loxODrive.identify(); }, "identify_fuel_odrive"});
+        Router::add({[&]() {loxODrive.identify(); }, "identify_lox_odrive"});
+        Router::add({[&]() {loxODrive.identify(); }, "identify_fuel_odrive"});
+
+        Router::add({[&]() {loxODrive.printTelemetryCSV(); }, "get_lox_odrive_telem"});
+        Router::add({[&]() {fuelODrive.printTelemetryCSV(); }, "get_ipa_odrive_telem"});
 
 #if (ENABLE_ODRIVE_COMM)
         LOX_ODRIVE_SERIAL.begin(LOX_ODRIVE_SERIAL_RATE);
@@ -227,7 +228,7 @@ namespace Driver {
     void printODriveInfo() {
         Router::info("LOX ODrive: ");
         Router::info(loxODrive.getODriveInfo());
-        Router::info("IPA ODrive");
+        Router::info("IPA ODrive: ");
         Router::info(fuelODrive.getODriveInfo());
     }
 
@@ -318,34 +319,6 @@ namespace Driver {
         fuelODrive.clearErrors();
 #endif
     }
-
-    /**
-     * Returns a CSV string containing both the IPA and LOX ODrive Telemetry information, in the following format:
-     * lox_pos,ipa_pos,lox_vel,ipa_vel,lox_voltage,ipa_voltage,lox_current,ipa_current
-     */
-    std::string getODriveStatusCSV() {
-        std::stringstream ss;
-#if (ENABLE_ODRIVE_COMM)
-        float loxThrottlePos = loxODrive.getPosition();
-        float fuelThrottlePos = fuelODrive.getPosition();
-
-        float loxThrottleVel = loxODrive.getVelocity();
-        float fuelThrottleVel = fuelODrive.getVelocity();
-
-        float loxVoltage = loxODrive.getParameterAsFloat("vbus_voltage");
-        float fuelVoltage = fuelODrive.getParameterAsFloat("vbus_voltage");
-
-        float loxCurrent = loxODrive.getParameterAsFloat("ibus");
-        float fuelCurrent = fuelODrive.getParameterAsFloat("ibus");
-
-        ss << loxThrottlePos << "," << fuelThrottlePos << ","
-           << loxThrottleVel << "," << fuelThrottleVel << ","
-           << loxVoltage << "," << fuelVoltage << ","
-           << loxCurrent << "," << fuelCurrent;
-#endif
-        return ss.str();
-    }
-
 
     /**
      * Initiates curve following based on the curve header loaded in Loader.cpp.
