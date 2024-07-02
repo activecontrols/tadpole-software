@@ -15,18 +15,18 @@
 #include <Router.h>
 #include <string>
 
-#define LOX_ODRIVE_SERIAL Serial1
-#define IPA_ODRIVE_SERIAL Serial2
+#define LOX_ODRIVE_SERIAL (Serial1)
+#define IPA_ODRIVE_SERIAL (Serial2)
 
-#define LOX_ODRIVE_SERIAL_RATE 115200
-#define IPA_ODRIVE_SERIAL_RATE 115200
+#define LOX_ODRIVE_SERIAL_RATE (115200)
+#define IPA_ODRIVE_SERIAL_RATE (115200)
 
-#define LOG_HEADER "time,phase,thrust_cmd," \
+#define LOG_HEADER ("time,phase,thrust_cmd," \
                    "lox_pos_cmd,ipa_pos_cmd," \
                    "lox_pos,lox_vel," \
                    "lox_voltage,lox_current," \
                    "ipa_pos,ipa_vel," \
-                   "ipa_voltage,ipa_current"
+                   "ipa_voltage,ipa_current")
 
 
 namespace Driver {

@@ -236,9 +236,11 @@ namespace Driver {
 
         Router::info("Connecting to lox odrive...");
         loxODrive.checkConnection();
+        loxODrive.checkConfig();
 
         Router::info("Connecting to ipa odrive...");
         ipaODrive.checkConnection();
+        ipaODrive.checkConfig();
 
         printODriveInfo();
 #endif
@@ -299,6 +301,9 @@ namespace Driver {
             Router::info("No curve loaded.");
             return;
         }
+
+        //checkConfig() function provides its own error message console logging
+        if (loxODrive.checkConfig() || ipaODrive.checkConfig()) {return;}
 
         if (Router::logenabled) {
             odriveLogFile = createCurveLog();
