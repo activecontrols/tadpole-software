@@ -13,7 +13,7 @@
 
 #include "SDCard.h"
 #include "Driver.h"
-#include "ODriveUART.h"
+#include "ODrive.h"
 
 #define LOG_INTERVAL_MS 10
 #define COMMAND_INTERVAL_MS 1
@@ -21,16 +21,13 @@
 namespace Driver {
 
 #if (ENABLE_ODRIVE_COMM)
-    ODriveUART loxODrive(LOX_ODRIVE_SERIAL);
-    ODriveUART fuelODrive(FUEL_ODRIVE_SERIAL);
+    ODrive loxODrive(LOX_ODRIVE_SERIAL);
+    ODrive fuelODrive(FUEL_ODRIVE_SERIAL);
 #endif
 
     namespace { // private
 
         File odriveLogFile;
-
-        float loxPosCmd; //the last position command sent to the LOX odrive
-        float ipaPosCmd; //the last position command sent to the IPA odrive
 
         /**
          * Logs the telemetry data for a curve in CSV format.
@@ -40,9 +37,10 @@ namespace Driver {
          * @param lox_pos The LOX position.
          * @param ipa_pos The IPA position.
          */
-        void logCurveTelemCSV(float time, int phase, float thrust, float lox_pos, float ipa_pos) {
+        void logCurveTelemCSV(float time, int phase, float thrust) {
             std::stringstream ss;
-            ss << "," << time << "," << phase << "," << thrust << "," << lox_pos << "," << ipa_pos << getODriveStatusCSV();
+            ss << "," << time << "," << phase << "," << thrust << "," << loxODrive.getLastPosCmd() 
+               << "," << fuelODrive.getLastPosCmd() << getODriveStatusCSV();
             std::string csvRow = ss.str();
             Router::info(csvRow);
             if (Router::logenabled) {
@@ -117,10 +115,10 @@ namespace Driver {
                     float ipa_pos = lerp(los[i].ipa_angle, los[i + 1].ipa_angle, los[i].time, los[i + 1].time, seconds);
                     lox_pos = constrain(lox_pos, MIN_ODRIVE_POS, MAX_ODRIVE_POS);
                     ipa_pos = constrain(ipa_pos, MIN_ODRIVE_POS, MAX_ODRIVE_POS);
-                    setLOXPos(lox_pos);
-                    setIPAPos(ipa_pos);
+                    loxODrive.setPos(lox_pos);
+                    fuelODrive.setPos(ipa_pos);
                     if (timer - lastlog > LOG_INTERVAL_MS) {
-                        logCurveTelemCSV(seconds, i, -1, lox_pos, ipa_pos);
+                        logCurveTelemCSV(seconds, i, -1);
                         lastlog = timer;
                     }
                     delay(COMMAND_INTERVAL_MS);
@@ -142,7 +140,7 @@ namespace Driver {
                     float thrust = lerp(lcs[i].thrust, lcs[i + 1].thrust, lcs[i].time, lcs[i + 1].time, seconds);
                     setThrust(thrust);
                     if (timer - lastlog >= LOG_INTERVAL_MS) {
-                        logCurveTelemCSV(seconds, i, thrust, loxPosCmd, ipaPosCmd);
+                        logCurveTelemCSV(seconds, i, thrust);
                         lastlog = timer;
                     }
                     delay(COMMAND_INTERVAL_MS);
@@ -174,14 +172,14 @@ namespace Driver {
                         ipa_pos = lox_pos / Loader::header.of_ratio;
                         lox_pos = constrain(lox_pos, MIN_ODRIVE_POS, MAX_ODRIVE_POS);
                         ipa_pos = constrain(ipa_pos, MIN_ODRIVE_POS, MAX_ODRIVE_POS);
-                        setLOXPos(lox_pos);
-                        setIPAPos(ipa_pos);
+                        loxODrive.setPos(lox_pos);
+                        fuelODrive.setPos(ipa_pos);
                     } else {
                         thrust = amplitude * (sin(2 * M_PI * seconds / period) + 1.0) / 2.0;
                         setThrust(thrust);
                     }
                     if (timer - lastlog >= LOG_INTERVAL_MS) {
-                        logCurveTelemCSV(seconds, i, thrust, loxPosCmd, ipaPosCmd);
+                        logCurveTelemCSV(seconds, i, thrust);
                         lastlog = timer;
                     }
                 }
@@ -193,78 +191,44 @@ namespace Driver {
 
         }
 
-#if (ENABLE_ODRIVE_COMM)
-        void setupODrive(ODriveUART &odrive) {
-            while (odrive.getState() == AXIS_STATE_UNDEFINED) {
-                delay(100);
-            }
-
-            Router::info("Setting odrive to closed loop control...");
-            while (odrive.getState() != AXIS_STATE_CLOSED_LOOP_CONTROL) {
-                odrive.clearErrors();
-                odrive.setState(AXIS_STATE_CLOSED_LOOP_CONTROL);
-                delay(10);
-            }
-        }
-#endif
     }
 
     void begin() {
         Router::add({Driver::followCurve, "follow_curve"});
-        Router::add({Driver::idenfityLOXODrive, "identify_lox_odrive"});
-        Router::add({Driver::idenfityFuelODrive, "identify_fuel_odrive"});
         Router::add({Driver::clearErrors, "clear_odrive_errors"});
         Router::add({Driver::printODriveInfo, "get_odrive_info"});
         Router::add({Driver::printODriveStatus, "get_odrive_status"});
-        Router::add({Driver::printLOXCmdPos, "get_lox_cmd_pos"});
-        Router::add({Driver::printIPACmdPos, "get_ipa_cmd_pos"});
 
         Router::add({Driver::setPosCmd, "set_odrive_pos"});
         Router::add({Driver::setThrustCmd, "set_thrust"});
+
+        Router::add({[&]() {return loxODrive.clearErrors(); }, "set_thrust"});
+        Router::add({[&]() {return loxODrive.printCmdPos(); }, "get_lox_cmd_pos"});
+        Router::add({[&]() {return fuelODrive.printCmdPos(); }, "get_ipa_cmd_pos"});
+
+        Router::add({[&]() {return loxODrive.identify(); }, "identify_lox_odrive"});
+        Router::add({[&]() {return loxODrive.identify(); }, "identify_fuel_odrive"});
 
 #if (ENABLE_ODRIVE_COMM)
         LOX_ODRIVE_SERIAL.begin(LOX_ODRIVE_SERIAL_RATE);
         FUEL_ODRIVE_SERIAL.begin(FUEL_ODRIVE_SERIAL_RATE);
 
         Router::info("Connecting to lox odrive...");
-        setupODrive(loxODrive);
+        loxODrive.checkConnection();
 
         Router::info("Connecting to fuel odrive...");
-        setupODrive(fuelODrive);
+        fuelODrive.checkConnection();
 
-        Router::info(getODriveInfo());
+        printODriveInfo();
 #endif
 
     }
 
-    /**
-     * Set the position for the odrive controlling IPA flow.
-     * @param pos value to be sent to odrive (valid values are from -1 to 1).
-     */
-    void setIPAPos(float pos) {
-#if (ENABLE_ODRIVE_COMM)
-        fuelODrive.setPosition(pos);
-#endif
-        ipaPosCmd = pos;
-    }
-
-    /**
-     * Set the position for the odrive controlling LOX flow.
-     * @param pos value to be sent to odrive (valid values are from -1 to 1).
-     */
-    void setLOXPos(float pos) {
-#if (ENABLE_ODRIVE_COMM)
-        loxODrive.setPosition(pos);
-#endif
-        loxPosCmd = pos;
-    }
-
-    float getLOXCmdPos() {
-        return loxPosCmd;
-    }
-
-    float getIPACmdPos() {
-        return ipaPosCmd;
+    void printODriveInfo() {
+        Router::info("LOX ODrive: ");
+        Router::info(loxODrive.getODriveInfo());
+        Router::info("IPA ODrive");
+        Router::info(fuelODrive.getODriveInfo());
     }
 
     /**
@@ -294,10 +258,10 @@ namespace Driver {
 
         switch (odriveSel[0]) {
             case 'l':
-                setLOXPos(pos);
+                loxODrive.setPos(pos);
                 break;
             case 'i':
-                setIPAPos(pos);
+                fuelODrive.setPos(pos);
                 break;
             default:
                 Router::info("Invalid odrive specified");
@@ -329,7 +293,7 @@ namespace Driver {
         setThrust(thrust);
 
         stringstream ss;
-        ss << "Thrust set. LOX pos: " << loxPosCmd << " IPA pos: " << ipaPosCmd;
+        ss << "Thrust set. LOX pos: " << loxODrive.getLastPosCmd() << " IPA pos: " << fuelODrive.getLastPosCmd();
 
         Router::info(ss.str());
     }
@@ -342,8 +306,7 @@ namespace Driver {
      */
     void setThrust(float thrust) {
         // TODO: closed loop magic
-        ipaPosCmd = 0.0;
-        loxPosCmd = 0.0;
+        
     }
 
     /**
@@ -354,32 +317,6 @@ namespace Driver {
         loxODrive.clearErrors();
         fuelODrive.clearErrors();
 #endif
-    }
-
-    /**
-     * Blinks the LED on the LOX ODrive for 5 seconds.
-     */
-    void idenfityLOXODrive() {
-        Router::info("Identifying LOX ODrive for 5 seconds...");
-#if (ENABLE_ODRIVE_COMM)
-        loxODrive.setParameter("identify", true);
-        delay(5000);
-        loxODrive.setParameter("identify", false);
-#endif
-        Router::info("Done");
-    }
-
-    /**
-     * Blinks the LED on the IPA ODrive for 5 seconds.
-     */
-    void idenfityFuelODrive() {
-        Router::info("Identifying LOX ODrive for 5 seconds...");
-#if (ENABLE_ODRIVE_COMM)
-        fuelODrive.setParameter("identify", true);
-        delay(5000);
-        fuelODrive.setParameter("identify", false);
-#endif
-        Router::info("Done");
     }
 
     /**
@@ -409,38 +346,6 @@ namespace Driver {
         return ss.str();
     }
 
-    /**
-     * Returns a string containing the hardware and firmware major and minor versons of the IPA and LOX ODrives and whether
-     * they are misconfigured or require a reboot.
-     */
-    std::string getODriveInfo() {
-        std::stringstream ss;
-#if (ENABLE_ODRIVE_COMM)
-        int loxHWVersionMajor = loxODrive.getParameterAsInt("hw_version_major");
-        int loxHWVersionMinor = loxODrive.getParameterAsInt("hw_version_minor");
-        int loxFWVersionMajor = loxODrive.getParameterAsInt("fw_version_major");
-        int loxFWVersionMinor = loxODrive.getParameterAsInt("fw_version_minor");
-        String loxMisconfigured = loxODrive.getParameterAsString("misconfigured");
-        String loxRebootRequired = loxODrive.getParameterAsString("reboot_required");
-
-        int fuelHWVersionMajor = fuelODrive.getParameterAsInt("hw_version_major");
-        int fuelHWVersionMinor = fuelODrive.getParameterAsInt("hw_version_minor");
-        int fuelFWVersionMajor = fuelODrive.getParameterAsInt("fw_version_major");
-        int fuelFWVersionMinor = fuelODrive.getParameterAsInt("fw_version_minor");
-        String fuelMisconfigured = fuelODrive.getParameterAsString("misconfigured");
-        String fuelRebootRequired = fuelODrive.getParameterAsString("reboot_required");
-
-        ss << "LOX ODrive Hardware Version: " << loxHWVersionMajor << "." << loxHWVersionMinor
-           << " | LOX Firmware Version: " << loxFWVersionMajor << "." << loxFWVersionMinor
-           << " | LOX Misconfigured: " << loxMisconfigured
-           << " | LOX Reboot Required: " << loxRebootRequired << " ||| ";
-        ss << "Fuel ODrive Hardware Version: " << fuelHWVersionMajor << "." << fuelHWVersionMinor
-           << " | Fuel Firmware Version: " << fuelFWVersionMajor << "." << fuelFWVersionMinor
-           << " | Fuel Misconfigured: " << fuelMisconfigured
-           << " | Fuel Reboot Required: " << fuelRebootRequired << "\n";
-#endif
-        return ss.str();
-    }
 
     /**
      * Initiates curve following based on the curve header loaded in Loader.cpp.

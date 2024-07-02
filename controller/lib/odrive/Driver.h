@@ -8,10 +8,9 @@
     *  ODrive valves in the Tadpole rocket engine. 
 */
 
-#ifndef ODRIVE_H
-#define ODRIVE_H
+#ifndef DRIVER_H
+#define DRIVER_H
 
-#include <Wire.h>
 #include <Loader.h>
 #include <Router.h>
 #include <string>
@@ -35,31 +34,23 @@
 #define MAX_ODRIVE_POS 1
 #define MIN_ODRIVE_POS -1
 
-#define ENABLE_ODRIVE_COMM false
 
 namespace Driver {
 
     void begin();
 
-    void setIPAPos(float position);
-    void setLOXPos(float position);
-    float getLOXCmdPos();
-    float getIPACmdPos();
-    inline void printLOXCmdPos() { Router::info(getLOXCmdPos()); }
-    inline void printIPACmdPos() { Router::info(getIPACmdPos()); }
-    void setPosCmd();
-    void setThrust(float thrust);
-    void setThrustCmd();
-    void clearErrors();
+    void setPosCmd(); //no need
+    void setThrust(float thrust); //no need
+    void setThrustCmd();// no need
+    void clearErrors(); //ported, needs new commands
 
-    void idenfityLOXODrive(); // flashes LED on LOX ODrive
-    void idenfityFuelODrive(); // flashes LED on fuel ODrive
-
-    std::string getODriveStatusCSV();
-    std::string getODriveInfo();
-    inline void printODriveStatus() { Router::info(getODriveStatusCSV()); }
-    inline void printODriveInfo() { Router::info(getODriveInfo()); }
-
+    std::string getODriveStatusCSV(); //ported, needs modification, or modify log function
+    inline void printODriveStatus() { //modify?? get rid of and add new commands?
+        Router::info(LOG_HEADER);
+        Router::info(getODriveStatusCSV()); 
+    }
+    void printODriveInfo();
+    
     void followCurve();
     
 };

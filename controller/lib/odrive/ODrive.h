@@ -57,6 +57,7 @@ public:
 
     std::string getODriveTelemetryCSV();
     std::string getODriveInfo();
+    void printODriveInfo() { Router::info(getODriveInfo()); }
 
 };
 
