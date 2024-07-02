@@ -39,6 +39,8 @@ private:
 
 public:
 
+    void checkConnection();
+
     void setPos(float);
     float getLastPosCmd() {return posCmd;}
     void printCmdPos() { Router::info(getLastPosCmd()); }

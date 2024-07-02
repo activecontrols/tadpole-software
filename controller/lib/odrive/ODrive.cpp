@@ -3,6 +3,25 @@
 #include "ODrive.h"
 
 /**
+ * Checks if communication with ODrive is available by requesting the current state
+ * Runs in a while loop until the ODrive is connected 
+ */
+void ODrive::checkConnection() {
+#if (ENABLE_ODRIVE_COMM)
+    while (ODriveUART::getState() == AXIS_STATE_UNDEFINED) {
+        Router::info("No response from ODrive...");
+        delay(100);
+    }
+    Router::info("Setting odrive to closed loop control...");
+    while (ODriveUART::getState() != AXIS_STATE_CLOSED_LOOP_CONTROL) {
+        ODriveUART::clearErrors();
+        ODriveUART::setState(AXIS_STATE_CLOSED_LOOP_CONTROL);
+        delay(10);
+    }
+#endif
+}
+
+/**
  * Set the position for the odrive to control flow through valve.
  * @param pos value to be sent to odrive (valid values are from `MIN_ODRIVE_POS` to `MAX_ODRIVE_POS`).
  */
