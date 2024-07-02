@@ -2,6 +2,8 @@
 
 #include "ODrive.h"
 
+ODrive::ODrive(Stream &serial) : ODriveUART(serial) {}
+
 /**
  * Checks if communication with ODrive is available by requesting the current state
  * Runs in a while loop until the ODrive is connected 

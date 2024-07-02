@@ -39,6 +39,8 @@ private:
 
 public:
 
+    ODrive(Stream &serial);
+
     void checkConnection();
 
     void setPos(float);
