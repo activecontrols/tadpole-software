@@ -94,7 +94,7 @@ std::string ODrive::getTelemetryCSV() {
     float current = ODriveUART::getParameterAsFloat("ibus");
 
     ss << position << "," << velocity << ","
-        << voltage << "," << current << ",";
+        << voltage << "," << current;
 
 #endif
     return ss.str();

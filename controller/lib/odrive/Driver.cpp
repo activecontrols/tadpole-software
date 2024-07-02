@@ -38,7 +38,7 @@ namespace Driver {
         void logCurveTelemCSV(float time, int phase, float thrust) {
             std::stringstream ss;
             ss << "," << time << "," << phase << "," << thrust << "," << loxODrive.getLastPosCmd() 
-               << "," << fuelODrive.getLastPosCmd() << loxODrive.getTelemetryCSV() 
+               << "," << fuelODrive.getLastPosCmd() << "," << loxODrive.getTelemetryCSV() << ","
                << fuelODrive.getTelemetryCSV();
             std::string csvRow = ss.str();
             Router::info(csvRow);
