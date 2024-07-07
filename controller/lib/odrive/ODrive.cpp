@@ -28,6 +28,7 @@ void ODrive::checkConnection() {
  * are true, return an error
  */
 int ODrive::checkConfig() {
+#if (ENABLE_ODRIVE_COMM)
     bool misconfigured = ODriveUART::getParameterAsInt("misconfigured");
     Router::info("ERROR: ODRIVE IS MISCONFIGURED, WILL NOT ALLOW CURVE FOLLOWING");
     if (misconfigured) {return ODRIVE_MISCONFIGURED;}
@@ -35,7 +36,7 @@ int ODrive::checkConfig() {
     bool rebootRequired = ODriveUART::getParameterAsInt("reboot_required");
     Router::info("ERROR: ODRIVE NEEDS TO REBOOT, WILL NOT ALLOW CURVE FOLLOWING");
     if (rebootRequired) {return ODRIVE_REBOOT_REQUIRED;}
-
+#endif
     return ODRIVE_NO_ERROR;
 }
 
