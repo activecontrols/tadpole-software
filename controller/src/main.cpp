@@ -1,4 +1,12 @@
+#include <TeensyThreads.h>
 #include <Arduino.h>
+
+ThreadWrap(Serial1, SerialXtra1);
+#define Serial1 ThreadClone(SerialXtra1)
+
+ThreadWrap(Serial2, SerialXtra2);
+#define Serial2 ThreadClone(SerialXtra2)
+
 #include "Driver.h"
 #include "Router.h"
 #include "Loader.h"

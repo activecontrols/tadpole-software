@@ -3,6 +3,7 @@
 
 #include <Router.h>
 #include <string.h>
+#include <TeensyThreads.h>
 
 #include "ODriveUART.h"
 
@@ -48,6 +49,9 @@ private:
      */
     int disarmReason;
 
+    Stream &serial;
+    std::thread th1;
+
 public:
 
     ODrive(Stream &serial);
@@ -61,6 +65,9 @@ public:
     void printCmdPos() { Router::info(getLastPosCmd()); }
 
     int checkErrors();
+    int watchdogThread();
+    static int watchdogThreadFunc(Stream &serial);
+    int terminateWatchdogThread();
     void clear();
 
     void identify();

@@ -2,7 +2,7 @@
 
 #include "ODrive.h"
 
-ODrive::ODrive(Stream &serial) : ODriveUART(serial) {}
+ODrive::ODrive(Stream &serial) : ODriveUART(serial), serial(serial), th1(NULL) {}
 
 /**
  * Checks if communication with ODrive is available by requesting the current state
@@ -57,7 +57,7 @@ void ODrive::setPos(float pos) {
  */
 int ODrive::checkErrors() {
 #if (ENABLE_ODRIVE_COMM)
-    int activeError = ODriveUART::getParameterAsInt("axis0.active_errors");
+    activeError = ODriveUART::getParameterAsInt("axis0.active_errors");
     if (activeError != 0) {
         bool isArmed = ODriveUART::getParameterAsInt("axis0.is_armed");
         if (!isArmed) {
@@ -68,6 +68,32 @@ int ODrive::checkErrors() {
     }
     return ODRIVE_NO_ERROR;
 #endif
+}
+
+int ODrive::watchdogThread() {
+    
+    std::thread thread(watchdogThreadFunc, &serial);
+
+    this->th1 = thread;
+    
+    return 0;
+}
+
+int ODrive::watchdogThreadFunc(Stream &serial) {
+
+    while (true) {
+        
+    }
+
+    return 0;
+}
+
+int ODrive::terminateWatchdogThread() {
+    //set ODrive to IDLE state
+
+    this->th1.join();
+
+    return 0;
 }
 
 /**
