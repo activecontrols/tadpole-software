@@ -39,6 +39,7 @@ namespace Driver {
     void printODriveInfo();
     
     void followCurve();
+    bool watchdogThreadsEnded();
     
 };
 

@@ -170,7 +170,7 @@ String ODrive::readLine(Stream &serial, unsigned long timeout_ms) {
 void ODrive::terminateWatchdogThread() {
     ODriveUART::setState(AXIS_STATE_IDLE);
 
-    if (watchdogThread.joinable()) {
+    if (threadExecutionFinished && watchdogThread.joinable()) {
         this->watchdogThread.join();
     }
 }
