@@ -74,6 +74,8 @@ int ODrive::checkErrors() {
  * Starts the ODrive watchdog thread, and sets the thread handle to this->watchdogThread
  */
 void ODrive::startWatchdogThread() {
+    
+    threadExecutionFinished = false;
 
     this->watchdogThread = std::thread(watchdogThreadFunc, &serial);;
 }
@@ -90,14 +92,14 @@ void ODrive::startWatchdogThread() {
  * ( `AXIS_STATE_IDLE` ) and the thread completes execution.
  * 
  */
-int ODrive::watchdogThreadFunc(Stream &serial) {
+int ODrive::watchdogThreadFunc(Stream &serial, std::atomic<bool>& threadExecutionFinished) {
 
     while (true) {
 
         /*
          * Had to dig through the ODrive firmware to find the watchdog feed command, which was
          * quite annoying
-         * https://github.com/odriverobotics/ODrive/blob/6c3cefdeacce600ba4524f4adc5fd634c7bebd18/* * Firmware/communication/ascii_protocol.cpp#L123
+         * https://github.com/odriverobotics/ODrive/blob/6c3cefdeacce600ba4524f4adc5fd634c7bebd18 Firmware/communication/ascii_protocol.cpp#L123
          * `u` is the command for feeding the watchdog
          * `0` is the axis number (there is only one axis on our odrives, which has index `0`)
          *  
@@ -111,6 +113,7 @@ int ODrive::watchdogThreadFunc(Stream &serial) {
         int activeError = readLine(serial).toInt();
 
         if (activeError != 0) {
+            threadExecutionFinished = true;
             return ODRIVE_ACTIVE_ERROR;
         }
 
@@ -123,6 +126,7 @@ int ODrive::watchdogThreadFunc(Stream &serial) {
         int currentState = readLine(serial).toInt();
 
         if (currentState != AXIS_STATE_CLOSED_LOOP_CONTROL) {
+            threadExecutionFinished = true;
             return ODRIVE_BAD_STATE;
         }
     }
@@ -158,16 +162,17 @@ String ODrive::readLine(Stream &serial, unsigned long timeout_ms) {
     return str;
 }
 
-int ODrive::terminateWatchdogThread() {
-    ODriveUART::setState(AXIS_STATE_IDLE);
 
-    //check if thread is still running with atomic:
-    //https://stackoverflow.com/questions/9094422/how-to-check-if-a-stdthread-is-still-running
+/*
+ * Sets the ODrive control state to idle ( 'AXIS_STATE_IDLE` ) and waits for the watchdogThread
+ * to terminate
+ */
+void ODrive::terminateWatchdogThread() {
+    ODriveUART::setState(AXIS_STATE_IDLE);
 
     if (watchdogThread.joinable()) {
         this->watchdogThread.join();
     }
-    return 0;
 }
 
 /**

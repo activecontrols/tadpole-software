@@ -32,28 +32,44 @@ private:
 
     /*
      * The last position command sent to the odrive
-     * Modified only in setPos()
+     * Modified only in `setPos()`
      */
     float posCmd;
 
     /*
      * The last error the odrive encontered 
-     * Modified only by checkErrors()
-     * Can be cleared by ODriveUART::clearErrors()
-     * If there is no last error, then the value will be 0
+     * Modified only by `checkErrors()`
+     * Can be cleared by `ODriveUART::clearErrors()`
+     * If there is no last error, then the value will be `0`
      */
     int activeError;
     
     /*
      * The error code that made the odrive disarm 
-     * Modified only by checkErrors()
-     * Can be cleared by ODriveUART::clearErrors()
-     * If there is no last error, then the value will be 0
+     * Modified only by `checkErrors()`
+     * Can be cleared by `ODriveUART::clearErrors()`
+     * If there is no last error, then the value will be `0`
      */
     int disarmReason;
 
+    /*
+     * A reference to the serial port object used by the ODrive
+     */
     Stream &serial;
+
+    /* 
+     * Handler for the thread ( `watchdogThreadFunc` ) that feeds the ODrive watchdog and checks
+     * for active errors.
+     * Modified by `startWatchdogThread()` and `terminateWatchdogThread()`
+     */
     std::thread watchdogThread;
+
+    /* 
+     * An atomic used to determine if the watchdog thread has finished execution
+     * Based on the solution (third example) here: 
+     * https://stackoverflow.com/questions/9094422/how-to-check-if-a-stdthread-is-still-running
+     */
+    std::atomic<bool> threadExecutionFinished;
 
 public:
 
@@ -69,8 +85,9 @@ public:
 
     int checkErrors();
     void startWatchdogThread();
-    static int watchdogThreadFunc(Stream &serial);
-    int terminateWatchdogThread();
+    static int watchdogThreadFunc(Stream&, std::atomic<bool>&);
+    void terminateWatchdogThread();
+    bool checkThreadExecutionFinished() {return threadExecutionFinished; }
     static String readLine(Stream&, unsigned long timeout_ms = 10);
     void clear();
 
