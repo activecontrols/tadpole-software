@@ -31,6 +31,12 @@ class ODrive : public ODriveUART {
 private:
 
     /*
+     * Name assigned to the ODrive for more descriptive error codes and
+     * console printing. Can be either "LOX" or "IPA" with a null terminator
+     */
+    char name[4];
+
+    /*
      * The last position command sent to the odrive
      * Modified only in `setPos()`
      */
@@ -73,7 +79,7 @@ private:
 
 public:
 
-    ODrive(Stream &serial);
+    ODrive(Stream &serial, char[3]);
 
     void checkConnection();
     int checkConfig();
@@ -84,6 +90,7 @@ public:
     void printCmdPos() { Router::info(getLastPosCmd()); }
 
     int checkErrors();
+    void printErrors();
     void startWatchdogThread();
     static int watchdogThreadFunc(Stream&, std::atomic<bool>&);
     void terminateWatchdogThread();

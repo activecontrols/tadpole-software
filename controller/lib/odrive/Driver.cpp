@@ -22,8 +22,10 @@ namespace Driver {
 
     namespace { // private
 
-        ODrive loxODrive(LOX_ODRIVE_SERIAL);
-        ODrive ipaODrive(IPA_ODRIVE_SERIAL);
+        char loxName[4] = "LOX";
+        char ipaName[4] = "IPA";
+        ODrive loxODrive(LOX_ODRIVE_SERIAL, loxName);
+        ODrive ipaODrive(IPA_ODRIVE_SERIAL, ipaName);
 
         File odriveLogFile;
 
@@ -342,8 +344,8 @@ namespace Driver {
 
         if (watchdogThreadsEnded()) {
             Router::info("ERROR: Ended curve following early.");
-            loxODrive.checkErrors();
-            ipaODrive.checkErrors();
+            loxODrive.printErrors();
+            ipaODrive.printErrors();
         } else {
             Router::info("Finished following curve!");
         }

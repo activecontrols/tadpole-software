@@ -2,7 +2,14 @@
 
 #include "ODrive.h"
 
-ODrive::ODrive(Stream &serial) : ODriveUART(serial), serial(serial), watchdogThread(NULL) {}
+ODrive::ODrive(Stream &serial, char name[4]) : ODriveUART(serial), serial(serial), watchdogThread(NULL) {
+    
+    //crappy way of doing this, but it is three characters, so it is fine
+    this->name[0] = name[0];
+    this->name[1] = name[1];
+    this->name[2] = name[2];
+    this->name[3] = '\0';
+}
 
 /**
  * Checks if communication with ODrive is available by requesting the current state
@@ -28,15 +35,29 @@ void ODrive::checkConnection() {
  * are true, return an error
  */
 int ODrive::checkConfig() {
+#if (ENABLE_ODRIVE_COMM)
     bool misconfigured = ODriveUART::getParameterAsInt("misconfigured");
-    Router::info("ERROR: ODRIVE IS MISCONFIGURED, WILL NOT ALLOW CURVE FOLLOWING");
-    if (misconfigured) {return ODRIVE_MISCONFIGURED;}
+    
+    if (misconfigured) {
+        Router::info(
+            "ERROR: " + std::string(name, 3) + 
+            " ODRIVE IS MISCONFIGURED, WILL NOT ALLOW CURVE FOLLOWING"
+        );
+        return ODRIVE_MISCONFIGURED;
+    }
 
     bool rebootRequired = ODriveUART::getParameterAsInt("reboot_required");
-    Router::info("ERROR: ODRIVE NEEDS TO REBOOT, WILL NOT ALLOW CURVE FOLLOWING");
-    if (rebootRequired) {return ODRIVE_REBOOT_REQUIRED;}
+
+    if (rebootRequired) {
+        Router::info(
+            "ERROR: " + std::string(name, 3) + 
+            " ODRIVE NEEDS TO REBOOT, WILL NOT ALLOW CURVE FOLLOWING"
+        );
+        return ODRIVE_REBOOT_REQUIRED;
+    }
 
     return ODRIVE_NO_ERROR;
+#endif
 }
 
 /**
@@ -67,6 +88,14 @@ int ODrive::checkErrors() {
         return ODRIVE_ACTIVE_ERROR;
     }
     return ODRIVE_NO_ERROR;
+#endif
+}
+
+void ODrive::printErrors() {
+#if (ENABLE_ODRIVE_COMM)
+    checkErrors();
+    Router::info(std::string(name, 3) + " ODRIVE active error: " + std::to_string(activeError));
+    Router::info(std::string(name, 3) + " ODRIVE disarm reason: " + std::to_string(disarmReason));
 #endif
 }
 
