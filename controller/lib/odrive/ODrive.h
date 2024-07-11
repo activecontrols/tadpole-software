@@ -3,6 +3,7 @@
 
 #include <Router.h>
 #include <string.h>
+#include <atomic>
 #include <TeensyThreads.h>
 
 #include "ODriveUART.h"
@@ -14,6 +15,8 @@
 #define ODRIVE_ERROR_DISARMED (-2)
 #define ODRIVE_MISCONFIGURED (-3)
 #define ODRIVE_REBOOT_REQUIRED (-4)
+#define ODRIVE_BAD_STATE (-5)
+#define ODRIVE_THREAD_ENDED_PREMATURELY (-6)
 
 #define ODRIVE_TELEM_HEADER ("position,velocity,voltage,current")
 
@@ -50,7 +53,7 @@ private:
     int disarmReason;
 
     Stream &serial;
-    std::thread th1;
+    std::thread watchdogThread;
 
 public:
 
@@ -65,9 +68,10 @@ public:
     void printCmdPos() { Router::info(getLastPosCmd()); }
 
     int checkErrors();
-    int watchdogThread();
+    void startWatchdogThread();
     static int watchdogThreadFunc(Stream &serial);
     int terminateWatchdogThread();
+    static String readLine(Stream&, unsigned long timeout_ms = 10);
     void clear();
 
     void identify();

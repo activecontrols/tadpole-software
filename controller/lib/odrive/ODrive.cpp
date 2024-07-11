@@ -2,7 +2,7 @@
 
 #include "ODrive.h"
 
-ODrive::ODrive(Stream &serial) : ODriveUART(serial), serial(serial), th1(NULL) {}
+ODrive::ODrive(Stream &serial) : ODriveUART(serial), serial(serial), watchdogThread(NULL) {}
 
 /**
  * Checks if communication with ODrive is available by requesting the current state
@@ -70,29 +70,103 @@ int ODrive::checkErrors() {
 #endif
 }
 
-int ODrive::watchdogThread() {
-    
-    std::thread thread(watchdogThreadFunc, &serial);
+/*
+ * Starts the ODrive watchdog thread, and sets the thread handle to this->watchdogThread
+ */
+void ODrive::startWatchdogThread() {
 
-    this->th1 = thread;
-    
-    return 0;
+    this->watchdogThread = std::thread(watchdogThreadFunc, &serial);;
 }
 
+/*
+ * The function to be used for the watchdog thread. This function is an infinite loop that 
+ * feeds the watchdog, checks for active errors, and checks the control state of the ODrive.
+ * If there is an active error, or the control state of the ODrive is anything but in closed
+ * loop control ( `AXIS_STATE_CLOSE_LOOP_CONTROL` ), then the thread completes execution with an 
+ * error code. 
+ * 
+ * An incorrect control state, in normal conditions, should happen when the ODrives are
+ * done following the throttle curve, after which, the ODrive state is set to idle 
+ * ( `AXIS_STATE_IDLE` ) and the thread completes execution.
+ * 
+ */
 int ODrive::watchdogThreadFunc(Stream &serial) {
 
     while (true) {
+
+        /*
+         * Had to dig through the ODrive firmware to find the watchdog feed command, which was
+         * quite annoying
+         * https://github.com/odriverobotics/ODrive/blob/6c3cefdeacce600ba4524f4adc5fd634c7bebd18/* * Firmware/communication/ascii_protocol.cpp#L123
+         * `u` is the command for feeding the watchdog
+         * `0` is the axis number (there is only one axis on our odrives, which has index `0`)
+         *  
+         * commands must always have a newline character at the end, which serial.println adds
+         */
+        serial.println("u 0");
         
+        //check for active errors
+        //`r` is a command to read a variable
+        serial.println("r axis0.active_errors");
+        int activeError = readLine(serial).toInt();
+
+        if (activeError != 0) {
+            return ODRIVE_ACTIVE_ERROR;
+        }
+
+        /* 
+         * If ODrive is not in closed loop control, then end the thread. 
+         * This could happen because the teensy is done with throttle curve following 
+         * and switches the ODrive state, or because of some error
+         */
+        serial.println("r axis0.current_state");
+        int currentState = readLine(serial).toInt();
+
+        if (currentState != AXIS_STATE_CLOSED_LOOP_CONTROL) {
+            return ODRIVE_BAD_STATE;
+        }
     }
 
-    return 0;
+    /* 
+     * The thread should never reach this point. 
+     * It should exit gracefully when ODrive state is set to idle by the main thread
+     */
+    return ODRIVE_THREAD_ENDED_PREMATURELY;
+}
+
+/*
+ * Static function to read the result of a command from the ODrive. Call this function after
+ * sending a command to the ODrive.
+ * 
+ * This function was ported from ODriveUART.cpp (the official ODrive lib) and was modified to 
+ * be static to use in the thread function `watchdogThreadFunc`
+ */
+String ODrive::readLine(Stream &serial, unsigned long timeout_ms) {
+    String str = "";
+    unsigned long timeout_start = millis();
+    for (;;) {
+        while (!serial.available()) {
+            if (millis() - timeout_start >= timeout_ms) {
+                return str;
+            }
+        }
+        char c = serial.read();
+        if (c == '\n')
+            break;
+        str += c;
+    }
+    return str;
 }
 
 int ODrive::terminateWatchdogThread() {
-    //set ODrive to IDLE state
+    ODriveUART::setState(AXIS_STATE_IDLE);
 
-    this->th1.join();
+    //check if thread is still running with atomic:
+    //https://stackoverflow.com/questions/9094422/how-to-check-if-a-stdthread-is-still-running
 
+    if (watchdogThread.joinable()) {
+        this->watchdogThread.join();
+    }
     return 0;
 }
 
