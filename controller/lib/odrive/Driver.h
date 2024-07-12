@@ -11,12 +11,10 @@
 #ifndef DRIVER_H
 #define DRIVER_H
 
-#include <Loader.h>
-#include <Router.h>
 #include <string>
 
-#define LOX_ODRIVE_SERIAL (Serial1)
-#define IPA_ODRIVE_SERIAL (Serial2)
+#include "Loader.h"
+#include "Router.h"
 
 #define LOX_ODRIVE_SERIAL_RATE (115200)
 #define IPA_ODRIVE_SERIAL_RATE (115200)

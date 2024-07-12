@@ -10,10 +10,21 @@
 
 #include <sstream>
 #include <Arduino.h>
+#include <TeensyThreads.h>
 
 #include "SDCard.h"
 #include "Driver.h"
 #include "ODrive.h"
+
+
+ThreadWrap(Serial, SerialXtra1);
+#define Serial1 ThreadClone(SerialXtra1)
+
+ThreadWrap(Serial2, SerialXtra2);
+#define Serial2 ThreadClone(SerialXtra2)
+
+#define LOX_ODRIVE_SERIAL (Serial1)
+#define IPA_ODRIVE_SERIAL (Serial2)
 
 #define LOG_INTERVAL_MS 10
 #define COMMAND_INTERVAL_MS 1
@@ -234,6 +245,12 @@ namespace Driver {
 
         Router::add({[&]() {loxODrive.printTelemetryCSV(); }, "get_lox_odrive_telem"});
         Router::add({[&]() {ipaODrive.printTelemetryCSV(); }, "get_ipa_odrive_telem"});
+
+        Router::add({[&]() {loxODrive.startWatchdogThread(); }, "start_lox_watchdog_thread"});
+        Router::add({[&]() {ipaODrive.startWatchdogThread(); }, "start_ipa_watchdog_thread"});
+
+        Router::add({[&]() {loxODrive.terminateWatchdogThread(); }, "terminate_lox_watchdog_thread"});
+        Router::add({[&]() {ipaODrive.terminateWatchdogThread(); }, "terminate_ipa_watchdog_thread"});
 
 #if (ENABLE_ODRIVE_COMM)
         LOX_ODRIVE_SERIAL.begin(LOX_ODRIVE_SERIAL_RATE);

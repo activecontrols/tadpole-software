@@ -2,7 +2,7 @@
 
 #include "ODrive.h"
 
-ODrive::ODrive(Stream &serial, char name[4]) : ODriveUART(serial), serial(serial), watchdogThread(NULL) {
+ODrive::ODrive(Stream &serial, char name[4]) : ODriveUART(serial), serial(serial), watchdogThread(NULL),  threadArgs{serial, false} {
     
     //crappy way of doing this, but it is three characters, so it is fine
     this->name[0] = name[0];
@@ -55,9 +55,8 @@ int ODrive::checkConfig() {
         );
         return ODRIVE_REBOOT_REQUIRED;
     }
-
-    return ODRIVE_NO_ERROR;
 #endif
+    return ODRIVE_NO_ERROR;
 }
 
 /**
@@ -87,8 +86,8 @@ int ODrive::checkErrors() {
         }
         return ODRIVE_ACTIVE_ERROR;
     }
-    return ODRIVE_NO_ERROR;
 #endif
+    return ODRIVE_NO_ERROR;
 }
 
 void ODrive::printErrors() {
@@ -104,9 +103,17 @@ void ODrive::printErrors() {
  */
 void ODrive::startWatchdogThread() {
     
-    threadExecutionFinished = false;
+    threadArgs.threadExecutionFinished = false;
 
-    this->watchdogThread = std::thread(watchdogThreadFunc, &serial);;
+    /*
+     * The TeensyThreads library only allows functions with a void return type and a (void*) argument (or int)
+     * to run in a thread. If you try to use a different function signature, nothing will happen and the
+     * thread will not start, and the program will continue to run anyway.
+     */
+    this->watchdogThread = new std::thread(&ODrive::watchdogThreadFunc, (void*) &threadArgs);
+
+    this->watchdogThread->detach();
+
 }
 
 /*
@@ -120,11 +127,15 @@ void ODrive::startWatchdogThread() {
  * done following the throttle curve, after which, the ODrive state is set to idle 
  * ( `AXIS_STATE_IDLE` ) and the thread completes execution.
  * 
+ * NOTE: The TeensyThreads library only allows functions with a void return type and a (void*) argument (or int)
+ * to run in a thread. If you try to use a different function signature, nothing will happen and the
+ * thread will not start, and the program will continue to run anyway.
  */
-int ODrive::watchdogThreadFunc(Stream &serial, std::atomic<bool>& threadExecutionFinished) {
-
+void ODrive::watchdogThreadFunc(void *castedArgs) {
+    volatile struct ThreadArgs* args = static_cast<ThreadArgs*>(castedArgs);
+    
     while (true) {
-
+        
         /*
          * Had to dig through the ODrive firmware to find the watchdog feed command, which was
          * quite annoying
@@ -134,16 +145,18 @@ int ODrive::watchdogThreadFunc(Stream &serial, std::atomic<bool>& threadExecutio
          *  
          * commands must always have a newline character at the end, which serial.println adds
          */
-        serial.println("u 0");
+        args->serial.println("u 0");
         
-        //check for active errors
-        //`r` is a command to read a variable
-        serial.println("r axis0.active_errors");
-        int activeError = readLine(serial).toInt();
+        /* check for active errors
+         *`r` is a command to read a variable
+         */
+        args->serial.println("r axis0.active_errors");
+        
+        int activeError = readLine(args->serial).toInt();
 
         if (activeError != 0) {
-            threadExecutionFinished = true;
-            return ODRIVE_ACTIVE_ERROR;
+            args->threadExecutionFinished = true;
+            return;
         }
 
         /* 
@@ -151,20 +164,22 @@ int ODrive::watchdogThreadFunc(Stream &serial, std::atomic<bool>& threadExecutio
          * This could happen because the teensy is done with throttle curve following 
          * and switches the ODrive state, or because of some error
          */
-        serial.println("r axis0.current_state");
-        int currentState = readLine(serial).toInt();
+        Serial.println("r axis0.current_state");
+        
+        int currentState = readLine(args->serial).toInt();
 
         if (currentState != AXIS_STATE_CLOSED_LOOP_CONTROL) {
-            threadExecutionFinished = true;
-            return ODRIVE_BAD_STATE;
+            args->threadExecutionFinished = true;
+            return;
         }
     }
+    args->threadExecutionFinished = true;
 
     /* 
      * The thread should never reach this point. 
      * It should exit gracefully when ODrive state is set to idle by the main thread
      */
-    return ODRIVE_THREAD_ENDED_PREMATURELY;
+    return;
 }
 
 /*
@@ -198,10 +213,12 @@ String ODrive::readLine(Stream &serial, unsigned long timeout_ms) {
  */
 void ODrive::terminateWatchdogThread() {
     ODriveUART::setState(AXIS_STATE_IDLE);
-
-    if (threadExecutionFinished && watchdogThread.joinable()) {
-        this->watchdogThread.join();
+    
+    if (threadArgs.threadExecutionFinished && watchdogThread->joinable()) {
+        this->watchdogThread->join();
     }
+    free(watchdogThread);
+    watchdogThread = NULL;
 }
 
 /**

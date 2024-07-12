@@ -3,12 +3,11 @@
 
 #include <Router.h>
 #include <string.h>
-#include <atomic>
 #include <TeensyThreads.h>
 
 #include "ODriveUART.h"
 
-#define ENABLE_ODRIVE_COMM (true)
+#define ENABLE_ODRIVE_COMM (false)
 
 #define ODRIVE_NO_ERROR (0)
 #define ODRIVE_ACTIVE_ERROR (-1)
@@ -25,6 +24,20 @@
 #define MIN_TRHUST (0)
 #define MAX_ODRIVE_POS (1)
 #define MIN_ODRIVE_POS (-1)
+
+/*
+ * See comment above `threadArgs` variable in ODrive class 
+ */
+struct ThreadArgs {
+    Stream& serial;
+
+    /* 
+     * An bool to determine if the watchdog thread has finished execution
+     * Similar but not completely based on the solution (third example) here: 
+     * https://stackoverflow.com/questions/9094422/how-to-check-if-a-stdthread-is-still-running
+     */
+    volatile bool threadExecutionFinished;
+};
 
 class ODrive : public ODriveUART {
 
@@ -67,19 +80,21 @@ private:
      * Handler for the thread ( `watchdogThreadFunc` ) that feeds the ODrive watchdog and checks
      * for active errors.
      * Modified by `startWatchdogThread()` and `terminateWatchdogThread()`
+     * 
+     * NOTE: This type of thread object comes from TeensyThreads.h and won't have all of the 
+     * funtionality or compatibility that the standard std::thread object has in the C++ lib
      */
-    std::thread watchdogThread;
+    std::thread* watchdogThread;
 
-    /* 
-     * An atomic used to determine if the watchdog thread has finished execution
-     * Based on the solution (third example) here: 
-     * https://stackoverflow.com/questions/9094422/how-to-check-if-a-stdthread-is-still-running
+    /*
+     * The struct that holds the function arguments to be passed into a thread. This struct
+     * will be casted to a (void *) in startWatchdogThread 
      */
-    std::atomic<bool> threadExecutionFinished;
+    volatile struct ThreadArgs threadArgs;
 
 public:
 
-    ODrive(Stream &serial, char[3]);
+    ODrive(Stream &serial, char[4]);
 
     void checkConnection();
     int checkConfig();
@@ -92,9 +107,9 @@ public:
     int checkErrors();
     void printErrors();
     void startWatchdogThread();
-    static int watchdogThreadFunc(Stream&, std::atomic<bool>&);
+    static void watchdogThreadFunc(void *);
     void terminateWatchdogThread();
-    bool checkThreadExecutionFinished() {return threadExecutionFinished; }
+    bool checkThreadExecutionFinished() {return threadArgs.threadExecutionFinished; }
     static String readLine(Stream&, unsigned long timeout_ms = 10);
     void clear();
 
