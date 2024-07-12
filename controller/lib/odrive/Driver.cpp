@@ -165,7 +165,7 @@ namespace Driver {
                 while (timer / 1000.0 < period) {
                     float seconds = timer / 1000.0;
                     if (Loader::header.is_open) {
-                        lox_pos = abs(amplitude * (sin(2 * M_PI * seconds / period) + 1.0) / 2.0);
+                        lox_pos = amplitude * (sin(2 * M_PI * seconds / period) + 1.0) / 2.0;
                         ipa_pos = lox_pos / Loader::header.of_ratio;
                         lox_pos = constrain(lox_pos, MIN_ODRIVE_POS, MAX_ODRIVE_POS);
                         ipa_pos = constrain(ipa_pos, MIN_ODRIVE_POS, MAX_ODRIVE_POS);
