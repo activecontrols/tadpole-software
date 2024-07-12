@@ -112,6 +112,15 @@ void ODrive::startWatchdogThread() {
      */
     this->watchdogThread = new std::thread(&ODrive::watchdogThreadFunc, (void*) &threadArgs);
 
+    int threadID = this->watchdogThread->get_id();
+
+    /*
+     * The maximum time slice the watchdog thread can run on the CPU. This should be enough time
+     * for the thread to complete one iteration. Timing of how long it takes to retrieve ODrive information
+     * will be needed
+     */
+    threads.setTimeSlice(threadID, 20);
+
     this->watchdogThread->detach();
 
 }
@@ -172,6 +181,11 @@ void ODrive::watchdogThreadFunc(void *castedArgs) {
             args->threadExecutionFinished = true;
             return;
         }
+
+        /*
+         * Give back the remaining time on this thread to the next thread
+         */
+        threads.yield();
     }
     args->threadExecutionFinished = true;
 
