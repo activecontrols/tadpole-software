@@ -2,7 +2,6 @@
 #define ODRIVE_H
 
 #include <Router.h>
-#include <string.h>
 
 #include "ODriveUART.h"
 
@@ -68,12 +67,12 @@ public:
     int getActiveError() {return activeError;}
     int getDisarmReason() {return disarmReason;}
 
-    std::string getTelemetryCSV();
+    String getTelemetryCSV();
     void printTelemetryCSV() {
         Router::info(ODRIVE_TELEM_HEADER);
         Router::info(getTelemetryCSV());
     }
-    std::string getODriveInfo();
+    String getODriveInfo();
     void printODriveInfo() { Router::info(getODriveInfo()); }
 
 };

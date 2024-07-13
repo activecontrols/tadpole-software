@@ -1,6 +1,5 @@
-#include <sstream>
-
 #include "ODrive.h"
+#include "operators.h"
 
 ODrive::ODrive(Stream &serial) : ODriveUART(serial) {}
 
@@ -99,8 +98,27 @@ void ODrive::identify() {
  * Returns a CSV string containing the ODrive Telemetry information, in the following format:
  * position,velocity,voltage,current
  */
-std::string ODrive::getTelemetryCSV() {
-    std::stringstream ss;
+String ODrive::getTelemetryCSV() {
+
+    /* Used a byte calculator to estimate how much bytes the string needs. This is done
+     * to ensure there is no memory fragmentation when concatenating strings. 
+     * Caluclated using https://mothereff.in/byte-counter 
+     * Note: ints are given a arbitrary space of 8 character bytes in the string, just in case
+     * 
+     * position - int = 8 character bytes max (when converted to string)
+     * "," = 1 byte
+     * velocity - int = 8 character bytes max (when converted to string)
+     * "," = 1 byte
+     * voltage - int = 8 character bytes max (when converted to string)
+     * "," = 1 byte
+     * current - int = 8 character bytes max (when converted to string)
+     * 
+     * Adds up to 35 bytes, rounded up to 40 for leeway (40 is also on 8 byte boundary)
+    */
+
+    String csv;
+    csv.reserve(40);
+
 #if (ENABLE_ODRIVE_COMM)
     float position = ODriveUART::getPosition();
 
@@ -110,29 +128,49 @@ std::string ODrive::getTelemetryCSV() {
 
     float current = ODriveUART::getParameterAsFloat("ibus");
 
-    ss << position << "," << velocity << ","
+    csv << position << "," << velocity << ","
         << voltage << "," << current;
 
 #endif
-    return ss.str();
+    return csv;
 }
 
 /**
  * Returns a string containing the hardware and firmware major and minor versons of the ODrive
  */
-std::string ODrive::getODriveInfo() {
-    std::stringstream ss;
+String ODrive::getODriveInfo() {
+    String info;
+
+    /* Used a byte calculator to estimate how much bytes the string needs. This is done
+     * to ensure there is no memory fragmentation when concatenating strings. 
+     * Caluclated using https://mothereff.in/byte-counter 
+     * Note: ints are given a arbitrary space of 5 character bytes in the string, just in case
+     * 
+     * "ODrive Hardware Version: " = 25 bytes
+     * hwVersionMajor - int = 5 character bytes max (when converted to string)
+     * "." = 1 byte
+     * hwVersionMinor -  int = 5 character bytes max (when converted to string)
+     * " | Firmware Version: " = 21 bytes
+     * fwVersionMajor - int = 5 character bytes max (when converted to string)
+     * "." = 1 byte
+     * fwVersionMinor - int = 5 character bytes max (when converted to string)
+     * " |||" = 4 bytes
+     * 
+     * Adds up to 72 bytes, rounded up to 80 for leeway (80 is also on 8 byte boundary)
+    */
+
+    info.reserve(80);
 #if (ENABLE_ODRIVE_COMM)
     int hwVersionMajor = ODriveUART::getParameterAsInt("hw_version_major");
     int hwVersionMinor = ODriveUART::getParameterAsInt("hw_version_minor");
     int fwVersionMajor = ODriveUART::getParameterAsInt("fw_version_major");
     int fwVersionMinor = ODriveUART::getParameterAsInt("fw_version_minor");
 
-    ss << "ODrive Hardware Version: " << hwVersionMajor << "." << hwVersionMinor
+    info << "ODrive Hardware Version: " << hwVersionMajor << "." << hwVersionMinor
         << " | Firmware Version: " << fwVersionMajor << "." << fwVersionMinor << " |||";
     
 #endif
-    return ss.str();
+    return info;
 }
 
 /**
