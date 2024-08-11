@@ -95,8 +95,8 @@ void ODrive::identify() {
 }
 
 /**
- * Returns a CSV string containing the ODrive Telemetry information, in the following format:
- * position,velocity,voltage,current
+ * Returns a CSV string (max 40 characters) containing the ODrive Telemetry information, in the following 
+ * format: position,velocity,voltage,current
  */
 String ODrive::getTelemetryCSV() {
 
@@ -105,13 +105,13 @@ String ODrive::getTelemetryCSV() {
      * Caluclated using https://mothereff.in/byte-counter 
      * Note: ints are given a arbitrary space of 8 character bytes in the string, just in case
      * 
-     * position - int = 8 character bytes max (when converted to string)
+     * position - float = 8 character bytes max (when converted to string)
      * "," = 1 byte
-     * velocity - int = 8 character bytes max (when converted to string)
+     * velocity - float = 8 character bytes max (when converted to string)
      * "," = 1 byte
-     * voltage - int = 8 character bytes max (when converted to string)
+     * voltage - float = 8 character bytes max (when converted to string)
      * "," = 1 byte
-     * current - int = 8 character bytes max (when converted to string)
+     * current - float = 8 character bytes max (when converted to string)
      * 
      * Adds up to 35 bytes, rounded up to 40 for leeway (40 is also on 8 byte boundary)
     */
@@ -128,15 +128,16 @@ String ODrive::getTelemetryCSV() {
 
     float current = ODriveUART::getParameterAsFloat("ibus");
 
-    csv << position << "," << velocity << ","
-        << voltage << "," << current;
-
+    csv << String(position, 8) << "," << String(velocity, 8) << ","
+        << String(voltage, 8) << "," << String(current, 8);
+    
 #endif
     return csv;
 }
 
 /**
- * Returns a string containing the hardware and firmware major and minor versons of the ODrive
+ * Returns a string (max 80 characters) containing the hardware and firmware major and 
+ * minor versons of the ODrive
  */
 String ODrive::getODriveInfo() {
     String info;

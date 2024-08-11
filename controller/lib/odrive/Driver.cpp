@@ -34,6 +34,25 @@ namespace Driver {
          * @param thrust The thrust value (for closed lerp curves) or -1 (for other curve types).
          */
         void logCurveTelemCSV(float time, int phase, float thrust) {
+
+            /* Used a byte calculator to estimate how much bytes the string needs. This is done
+             * to ensure there is no memory fragmentation when concatenating strings. 
+             * Caluclated using https://mothereff.in/byte-counter 
+             * Note: ints are given a arbitrary space of 5 character bytes in the string, just in case
+             * 
+             * time - int = 5 character bytes max (when converted to string)
+             * "," = 1 byte
+             * phase - int = 5 character bytes max (when converted to string)
+             * "," = 1 byte
+             * thrust - int = 5 character bytes max (when converted to string)
+             * "," = 1 byte
+             * loxODrive.getLastPosCmd() - float = 
+             * fwVersionMinor - int = 5 character bytes max (when converted to string)
+             * " |||" = 4 bytes
+             * 
+             * Adds up to 72 bytes, rounded up to 80 for leeway (80 is also on 8 byte boundary)
+             */
+
             std::stringstream ss;
             ss << "," << time << "," << phase << "," << thrust << "," << loxODrive.getLastPosCmd() 
                << "," << ipaODrive.getLastPosCmd() << "," << loxODrive.getTelemetryCSV() << ","

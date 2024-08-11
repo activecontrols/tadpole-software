@@ -13,7 +13,6 @@
 
 #include <Loader.h>
 #include <Router.h>
-#include <string>
 
 #define LOX_ODRIVE_SERIAL (Serial1)
 #define IPA_ODRIVE_SERIAL (Serial2)
