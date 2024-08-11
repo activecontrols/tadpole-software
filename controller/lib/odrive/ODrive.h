@@ -47,6 +47,11 @@ private:
      */
     int disarmReason;
 
+    float lastKnownPos;
+    float lastKnownVel;
+    float lastKnownVoltage;
+    float lastKnownCurrent;
+
 public:
 
     ODrive(Stream &serial);

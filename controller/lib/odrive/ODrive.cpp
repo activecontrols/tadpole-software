@@ -1,5 +1,6 @@
 #include "ODrive.h"
 #include "operators.h"
+#include "CString.h"
 
 ODrive::ODrive(Stream &serial) : ODriveUART(serial) {}
 
@@ -120,16 +121,16 @@ String ODrive::getTelemetryCSV() {
     csv.reserve(40);
 
 #if (ENABLE_ODRIVE_COMM)
-    float position = ODriveUART::getPosition();
+    lastKnownPos = ODriveUART::getPosition();
 
-    float velocity = ODriveUART::getVelocity();
+    lastKnownVel = ODriveUART::getVelocity();
 
-    float voltage = ODriveUART::getParameterAsFloat("vbus_voltage");
+    lastKnownVoltage = ODriveUART::getParameterAsFloat("vbus_voltage");
 
-    float current = ODriveUART::getParameterAsFloat("ibus");
+    lastKnownCurrent = ODriveUART::getParameterAsFloat("ibus");
 
-    csv << String(position, 8) << "," << String(velocity, 8) << ","
-        << String(voltage, 8) << "," << String(current, 8);
+    csv << String(lastKnownPos, 8) << "," << String(lastKnownVel, 8) << ","
+        << String(lastKnownVel, 8) << "," << String(lastKnownCurrent, 8);
     
 #endif
     return csv;
