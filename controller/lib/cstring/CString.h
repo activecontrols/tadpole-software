@@ -68,6 +68,10 @@ public:
         str[end - start + 1] = '\0';
     }
 
+    bool equals(const char *src) {
+        return strcmp(str, src) == 0;
+    }
+
     void print() const {
         Serial.println(str);
     }
@@ -135,6 +139,10 @@ public:
 
         memmove(str, start, end - start + 1);
         str[end - start + 1] = '\0';
+    }
+
+    bool equals(const char *src) {
+        return strcmp(str, src) == 0;
     }
 
     void print() const {
