@@ -52,6 +52,22 @@ public:
         return *this;
     }
 
+    //trims leading and trialing whitespace and new lines
+    void trim() {
+        char* start = str;
+        while (isspace((unsigned char)*start) || (*start == '\n')) {
+            ++start;
+        }
+
+        char* end = start + strlen(start) - 1;
+        while ((end > start) && (isspace((unsigned char)*end) || (*end == '\n'))) {
+            --end;
+        }
+
+        memmove(str, start, end - start + 1);
+        str[end - start + 1] = '\0';
+    }
+
     void print() const {
         Serial.println(str);
     }
@@ -103,6 +119,22 @@ public:
         size_t written = snprintf(end, availableSpace + 1, "%.*g", precision, value);
         leftover = written > availableSpace ? written - availableSpace : 0;
         return *this;
+    }
+
+    //trims leading and trialing whitespace and new lines
+    void trim() {
+        char* start = str;
+        while (isspace((unsigned char)*start) || (*start == '\n')) {
+            ++start;
+        }
+
+        char* end = start + strlen(start) - 1;
+        while ((end > start) && (isspace((unsigned char)*end) || (*end == '\n'))) {
+            --end;
+        }
+
+        memmove(str, start, end - start + 1);
+        str[end - start + 1] = '\0';
     }
 
     void print() const {
