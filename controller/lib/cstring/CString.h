@@ -52,7 +52,7 @@ public:
         return *this;
     }
 
-    //trims leading and trialing whitespace and new lines
+    //trims leading and trialing whitespace and new lines, and null terminates the end of the trimmed string
     void trim() {
         char* start = str;
         while (isspace((unsigned char)*start) || (*start == '\n')) {
