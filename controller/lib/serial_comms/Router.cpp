@@ -15,8 +15,8 @@ namespace Router {
         bool logopen = false;
 
         void setLog() {
-            receive(logfilename, 50);
-            logfilename[49] = 0; // just in case
+            receive(logfilename, 49);
+            logfilename[49] = '\0';
         }
     }
 
