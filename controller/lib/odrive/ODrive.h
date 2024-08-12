@@ -7,7 +7,7 @@
 
 #include "ODriveUART.h"
 
-#define ENABLE_ODRIVE_COMM (false)
+#define ENABLE_ODRIVE_COMM (true)
 
 #define ODRIVE_NO_ERROR (0)
 #define ODRIVE_ACTIVE_ERROR (-1)
@@ -62,6 +62,24 @@ private:
      * If there is no last error, then the value will be `0`
      */
     int activeError;
+
+    /*
+     * A flag that determines whether the ODrive is armed or not
+     * Modified by terminateWatchdogThread() and checkErrors()
+     */
+    bool isArmed;
+
+    /*
+     * A flag that determines whether the ODrive is misconfigured or not
+     * Modified by checkConfig()
+     */
+    bool misconfigured;
+
+    /*
+     * A flag that determines whether the ODrive needs to be rebooted
+     * Modified by checkConfig()
+     */
+    bool rebootRequired;
     
     /*
      * The error code that made the odrive disarm 
@@ -82,15 +100,39 @@ private:
      * Modified by `startWatchdogThread()` and `terminateWatchdogThread()`
      * 
      * NOTE: This type of thread object comes from TeensyThreads.h and won't have all of the 
-     * funtionality or compatibility that the standard std::thread object has in the C++ lib
+     * funtionality or compatibility that the standard `std::thread` object has in the C++ lib
      */
     std::thread* watchdogThread;
 
     /*
      * The struct that holds the function arguments to be passed into a thread. This struct
-     * will be casted to a (void *) in startWatchdogThread 
+     * will be casted to a (void *) in `startWatchdogThread()`
      */
     volatile struct ThreadArgs threadArgs;
+
+    /*
+     * The thread ID of the watchdog thread
+     * Modified by `startWatchdogThread()`
+     */
+    int threadID;
+
+    /*
+     * The last known position, velocity, voltage, and current of the ODrive
+     * Modified by `getTelemetryCSV()`
+     */
+    float position;
+    float velocity;
+    float voltage;
+    float current;
+
+    /*
+     * The major and minor version of the hardware and firmware of the ODrive
+     * Modified by `getODriveInfo()`
+     */
+    int hwVersionMajor;
+    int hwVersionMinor;
+    int fwVersionMajor;
+    int fwVersionMinor;
 
 public:
 

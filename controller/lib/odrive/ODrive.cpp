@@ -2,7 +2,8 @@
 
 #include "ODrive.h"
 
-ODrive::ODrive(Stream &serial, char name[4]) : ODriveUART(serial), serial(serial), watchdogThread(NULL),  threadArgs{serial, false} {
+ODrive::ODrive(Stream &serial, char name[4]) : 
+    ODriveUART(serial), serial(serial), watchdogThread(NULL),  threadArgs{serial, false} {
     
     //crappy way of doing this, but it is three characters, so it is fine
     this->name[0] = name[0];
@@ -36,8 +37,9 @@ void ODrive::checkConnection() {
  */
 int ODrive::checkConfig() {
 #if (ENABLE_ODRIVE_COMM)
-    bool misconfigured = ODriveUART::getParameterAsInt("misconfigured");
-    
+    misconfigured = ODriveUART::getParameterAsInt("misconfigured");
+    rebootRequired = ODriveUART::getParameterAsInt("reboot_required");
+
     if (misconfigured) {
         Router::info(
             "ERROR: " + std::string(name, 3) + 
@@ -45,9 +47,7 @@ int ODrive::checkConfig() {
         );
         return ODRIVE_MISCONFIGURED;
     }
-
-    bool rebootRequired = ODriveUART::getParameterAsInt("reboot_required");
-
+    
     if (rebootRequired) {
         Router::info(
             "ERROR: " + std::string(name, 3) + 
@@ -79,7 +79,7 @@ int ODrive::checkErrors() {
 #if (ENABLE_ODRIVE_COMM)
     activeError = ODriveUART::getParameterAsInt("axis0.active_errors");
     if (activeError != 0) {
-        bool isArmed = ODriveUART::getParameterAsInt("axis0.is_armed");
+        isArmed = ODriveUART::getParameterAsInt("axis0.is_armed");
         if (!isArmed) {
             disarmReason = ODriveUART::getParameterAsInt("axis0.disarm_reason");
             return ODRIVE_ERROR_DISARMED;
@@ -112,7 +112,7 @@ void ODrive::startWatchdogThread() {
      */
     this->watchdogThread = new std::thread(&ODrive::watchdogThreadFunc, (void*) &threadArgs);
 
-    int threadID = this->watchdogThread->get_id();
+    threadID = this->watchdogThread->get_id();
 
     /*
      * The maximum time slice the watchdog thread can run on the CPU. This should be enough time
@@ -143,6 +143,9 @@ void ODrive::startWatchdogThread() {
 void ODrive::watchdogThreadFunc(void *castedArgs) {
     volatile struct ThreadArgs* args = static_cast<ThreadArgs*>(castedArgs);
     
+    int activeError = 0;
+    int currentState = 0;
+
     while (true) {
         
         /*
@@ -161,7 +164,7 @@ void ODrive::watchdogThreadFunc(void *castedArgs) {
          */
         args->serial.println("r axis0.active_errors");
         
-        int activeError = readLine(args->serial).toInt();
+        activeError = readLine(args->serial).toInt();
 
         if (activeError != 0) {
             args->threadExecutionFinished = true;
@@ -175,7 +178,7 @@ void ODrive::watchdogThreadFunc(void *castedArgs) {
          */
         Serial.println("r axis0.current_state");
         
-        int currentState = readLine(args->serial).toInt();
+        currentState = readLine(args->serial).toInt();
 
         if (currentState != AXIS_STATE_CLOSED_LOOP_CONTROL) {
             args->threadExecutionFinished = true;
@@ -233,6 +236,8 @@ void ODrive::terminateWatchdogThread() {
     }
     free(watchdogThread);
     watchdogThread = NULL;
+
+    isArmed = ODriveUART::getParameterAsInt("axis0.is_armed");
 }
 
 /**
@@ -266,13 +271,13 @@ void ODrive::identify() {
 std::string ODrive::getTelemetryCSV() {
     std::stringstream ss;
 #if (ENABLE_ODRIVE_COMM)
-    float position = ODriveUART::getPosition();
+    position = ODriveUART::getPosition();
 
-    float velocity = ODriveUART::getVelocity();
+    velocity = ODriveUART::getVelocity();
 
-    float voltage = ODriveUART::getParameterAsFloat("vbus_voltage");
+    voltage = ODriveUART::getParameterAsFloat("vbus_voltage");
 
-    float current = ODriveUART::getParameterAsFloat("ibus");
+    current = ODriveUART::getParameterAsFloat("ibus");
 
     ss << position << "," << velocity << ","
         << voltage << "," << current;
@@ -287,10 +292,10 @@ std::string ODrive::getTelemetryCSV() {
 std::string ODrive::getODriveInfo() {
     std::stringstream ss;
 #if (ENABLE_ODRIVE_COMM)
-    int hwVersionMajor = ODriveUART::getParameterAsInt("hw_version_major");
-    int hwVersionMinor = ODriveUART::getParameterAsInt("hw_version_minor");
-    int fwVersionMajor = ODriveUART::getParameterAsInt("fw_version_major");
-    int fwVersionMinor = ODriveUART::getParameterAsInt("fw_version_minor");
+    hwVersionMajor = ODriveUART::getParameterAsInt("hw_version_major");
+    hwVersionMinor = ODriveUART::getParameterAsInt("hw_version_minor");
+    fwVersionMajor = ODriveUART::getParameterAsInt("fw_version_major");
+    fwVersionMinor = ODriveUART::getParameterAsInt("fw_version_minor");
 
     ss << "ODrive Hardware Version: " << hwVersionMajor << "." << hwVersionMinor
         << " | Firmware Version: " << fwVersionMajor << "." << fwVersionMinor << " |||";
