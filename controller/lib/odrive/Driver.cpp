@@ -8,14 +8,13 @@
  *               The curves supported are lerp (linear interpolation), sine, and chirp.
  */
 
-#include <sstream>
 #include <Arduino.h>
 #include <TeensyThreads.h>
 
 #include "SDCard.h"
 #include "Driver.h"
 #include "ODrive.h"
-
+#include "CString.h"
 
 ThreadWrap(Serial, SerialXtra1);
 #define Serial1 ThreadClone(SerialXtra1)
@@ -40,6 +39,10 @@ namespace Driver {
 
         File odriveLogFile;
 
+        CString<80> curveTelemCSV;
+        CString<50> curveFileName;
+        CString<100> printBuffer;
+
         /**
          * Logs the telemetry data for a curve in CSV format.
          * @param time The elapsed time in seconds.
@@ -47,14 +50,13 @@ namespace Driver {
          * @param thrust The thrust value (for closed lerp curves) or -1 (for other curve types).
          */
         void logCurveTelemCSV(float time, int phase, float thrust) {
-            std::stringstream ss;
-            ss << "," << time << "," << phase << "," << thrust << "," << loxODrive.getLastPosCmd() 
+            curveTelemCSV.clear();
+            curveTelemCSV << "," << time << "," << phase << "," << thrust << "," << loxODrive.getLastPosCmd() 
                << "," << ipaODrive.getLastPosCmd() << "," << loxODrive.getTelemetryCSV() << ","
                << ipaODrive.getTelemetryCSV();
-            std::string csvRow = ss.str();
-            Router::info(csvRow);
+            curveTelemCSV.print();
             if (Router::logenabled) {
-                odriveLogFile.println(csvRow.c_str());
+                odriveLogFile.println(curveTelemCSV.str);
             }
         }
 
@@ -63,26 +65,24 @@ namespace Driver {
          * @return The created log file.
          */
         File createCurveLog() {
-            std::stringstream ssfilename;
-            ssfilename << Loader::header.curve_label;
+            curveFileName << Loader::header.curve_label;
 
             switch (Loader::header.ctype) {
                 case curve_type::lerp:
-                    ssfilename << (Loader::header.is_open ? "_lerp_open" : "_lerp_closed");
+                    curveFileName << (Loader::header.is_open ? "_lerp_open" : "_lerp_closed");
                     break;
                 case curve_type::sine:
-                    ssfilename << (Loader::header.is_open ? "_sine_open" : "_sine_closed");
+                    curveFileName << (Loader::header.is_open ? "_sine_open" : "_sine_closed");
                     break;
                 case curve_type::chirp:
-                    ssfilename << (Loader::header.is_open ? "_chirp_open" : "_chirp_closed");
+                    curveFileName << (Loader::header.is_open ? "_chirp_open" : "_chirp_closed");
                     break;
                 default:
                     break;
             }
-            ssfilename << ".csv";
+            curveFileName << ".csv";
 
-            std::string filename = ssfilename.str();
-            File odriveLogFile = SDCard::open(filename.c_str(), FILE_WRITE);
+            File odriveLogFile = SDCard::open(curveFileName.str, FILE_WRITE);
 
             if (!odriveLogFile) { // Failed to create a log file
                 return odriveLogFile;
@@ -298,10 +298,10 @@ namespace Driver {
 
         setThrust(thrust);
 
-        stringstream ss;
-        ss << "Thrust set. LOX pos: " << loxODrive.getLastPosCmd() << " IPA pos: " << ipaODrive.getLastPosCmd();
+        printBuffer.clear();
+        printBuffer << "Thrust set. LOX pos: " << loxODrive.getLastPosCmd() << " IPA pos: " << ipaODrive.getLastPosCmd();
 
-        Router::info(ss.str());
+        Router::info(printBuffer.str);
     }
 
     /*
