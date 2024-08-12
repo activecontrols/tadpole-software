@@ -1,5 +1,3 @@
-#include <sstream>
-
 #include "ODrive.h"
 
 ODrive::ODrive(Stream &serial, char name[4]) : 
@@ -268,8 +266,9 @@ void ODrive::identify() {
  * Returns a CSV string containing the ODrive Telemetry information, in the following format:
  * position,velocity,voltage,current
  */
-std::string ODrive::getTelemetryCSV() {
-    std::stringstream ss;
+char* ODrive::getTelemetryCSV() {
+    telemetryCSV.clear();
+
 #if (ENABLE_ODRIVE_COMM)
     position = ODriveUART::getPosition();
 
@@ -279,29 +278,30 @@ std::string ODrive::getTelemetryCSV() {
 
     current = ODriveUART::getParameterAsFloat("ibus");
 
-    ss << position << "," << velocity << ","
+    telemetryCSV << position << "," << velocity << ","
         << voltage << "," << current;
-
 #endif
-    return ss.str();
+
+    return telemetryCSV.str;
 }
 
 /**
  * Returns a string containing the hardware and firmware major and minor versons of the ODrive
  */
-std::string ODrive::getODriveInfo() {
-    std::stringstream ss;
+char* ODrive::getODriveInfo() {
+    odriveInfo.clear();
+
 #if (ENABLE_ODRIVE_COMM)
     hwVersionMajor = ODriveUART::getParameterAsInt("hw_version_major");
     hwVersionMinor = ODriveUART::getParameterAsInt("hw_version_minor");
     fwVersionMajor = ODriveUART::getParameterAsInt("fw_version_major");
     fwVersionMinor = ODriveUART::getParameterAsInt("fw_version_minor");
 
-    ss << "ODrive Hardware Version: " << hwVersionMajor << "." << hwVersionMinor
+    odriveInfo << "ODrive Hardware Version: " << hwVersionMajor << "." << hwVersionMinor
         << " | Firmware Version: " << fwVersionMajor << "." << fwVersionMinor << " |||";
-    
 #endif
-    return ss.str();
+
+    return odriveInfo.str;
 }
 
 /**

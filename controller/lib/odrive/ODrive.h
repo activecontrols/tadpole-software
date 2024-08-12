@@ -1,10 +1,10 @@
 #ifndef ODRIVE_H
 #define ODRIVE_H
 
-#include <Router.h>
-#include <string.h>
 #include <TeensyThreads.h>
 
+#include "Router.h"
+#include "CString.h"
 #include "ODriveUART.h"
 
 #define ENABLE_ODRIVE_COMM (true)
@@ -48,6 +48,10 @@ private:
      * console printing. Can be either "LOX" or "IPA" with a null terminator
      */
     char name[4];
+
+    CString<40> telemetryCSV;
+
+    CString<80> odriveInfo;
 
     /*
      * The last position command sent to the odrive
@@ -160,13 +164,13 @@ public:
     int getActiveError() {return activeError;}
     int getDisarmReason() {return disarmReason;}
 
-    std::string getTelemetryCSV();
+    char* getTelemetryCSV();
     void printTelemetryCSV() {
         Router::info(ODRIVE_TELEM_HEADER);
-        Router::info(getTelemetryCSV());
+        telemetryCSV.print();
     }
-    std::string getODriveInfo();
-    void printODriveInfo() { Router::info(getODriveInfo()); }
+    char* getODriveInfo();
+    void printODriveInfo() { odriveInfo.print(); }
 
 };
 
