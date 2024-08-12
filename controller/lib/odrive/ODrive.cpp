@@ -1,5 +1,7 @@
 #include "ODrive.h"
 
+#include <string>
+
 ODrive::ODrive(Stream &serial, char name[4]) : 
     ODriveUART(serial), serial(serial), watchdogThread(NULL),  threadArgs{serial, false} {
     
