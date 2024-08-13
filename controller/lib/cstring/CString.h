@@ -19,7 +19,6 @@ namespace cstring {
         Serial.println(str);
     }
 
-    //Overload the << operator to concatenate a char *
     int append(char* str, size_t bufferLen, const char* src);
 
     int append(char* str, size_t bufferLen, double value, int precision);
