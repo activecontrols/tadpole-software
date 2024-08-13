@@ -8,10 +8,29 @@
  *
  * Created on: 2024-08-10 by Vincent Palmerio
  * Maintained by Vincent Palmerio
- * Description: This file defines the CString and CStringPtr classes. Its goal is to make it super easy to concatenate strings and doubles
- * with char arrays. This is much better than using Arduino's String class, which is known to cause 
+ * Description: This file defines the CString and CStringPtr classes, as well as the cstring 
+ * namespace for helper functions. Its goal is to make it super easy to concatenate strings and
+ * doubles with char arrays. This is much better than using Arduino's String class, which is known to cause 
  * heap fragmentation after extended use. 
  */
+
+namespace cstring {
+    inline void print(const char* str) {
+        Serial.println(str);
+    }
+
+    //Overload the << operator to concatenate a char *
+    int append(char* str, size_t bufferLen, const char* src);
+
+    int append(char* str, size_t bufferLen, double value, int precision);
+
+    void trim(char* str);
+
+    inline bool equals(const char *str1, const char *str2) {
+        return strcmp(str1, str2) == 0;
+    }
+
+}
 
 template <size_t N>
 class CString {
@@ -36,44 +55,27 @@ public:
 
     //Overload the << operator to concatenate a char *
     CString& operator<<(const char* src) {
-        size_t availableSpace = N - strlen(str) - 1;
-        size_t srcLen = strlen(src);
-        strncat(str, src, availableSpace);
-        leftover = srcLen > availableSpace ? srcLen - availableSpace : 0;
+        leftover = cstring::append(str, N, src);
         return *this;
     }
 
     //Overload the << operator to concatenate a double with specific precision (given by `precision` attribute)
     CString& operator<<(double value) {
-        size_t availableSpace = N - strlen(str) - 1;
-        char* end = str + strlen(str);
-        size_t written = snprintf(end, availableSpace + 1, "%.*g", precision, value);
-        leftover = written > availableSpace ? written - availableSpace : 0;
+        leftover = cstring::append(str, N, value, precision);
         return *this;
     }
 
     //trims leading and trialing whitespace and new lines, and null terminates the end of the trimmed string
     void trim() {
-        char* start = str;
-        while (isspace((unsigned char)*start) || (*start == '\n')) {
-            ++start;
-        }
-
-        char* end = start + strlen(start) - 1;
-        while ((end > start) && (isspace((unsigned char)*end) || (*end == '\n'))) {
-            --end;
-        }
-
-        memmove(str, start, end - start + 1);
-        str[end - start + 1] = '\0';
+        cstring::trim(str);
     }
 
     bool equals(const char *src) {
-        return strcmp(str, src) == 0;
+        return cstring::equals(str, src);
     }
 
     void print() const {
-        Serial.println(str);
+        cstring::print(str);
     }
 };
 
@@ -109,45 +111,29 @@ public:
 
     //Overload the << operator to concatenate another C-string
     CStringPtr& operator<<(const char* src) {
-        size_t availableSpace = size - strlen(str) - 1;
-        size_t srcLen = strlen(src);
-        strncat(str, src, availableSpace);
-        leftover = srcLen > availableSpace ? srcLen - availableSpace : 0;
+        leftover = cstring::append(str, size, src);
         return *this;
     }
 
     //Overload the << operator to concatenate a double with specific precision (precision changed by `setPrecision()`)
     CStringPtr& operator<<(double value)  {
-        size_t availableSpace = size - strlen(str) - 1;
-        char* end = str + strlen(str);
-        size_t written = snprintf(end, availableSpace + 1, "%.*g", precision, value);
-        leftover = written > availableSpace ? written - availableSpace : 0;
+        leftover = cstring::append(str, size, value, precision);
         return *this;
     }
 
     //trims leading and trialing whitespace and new lines
     void trim() {
-        char* start = str;
-        while (isspace((unsigned char)*start) || (*start == '\n')) {
-            ++start;
-        }
-
-        char* end = start + strlen(start) - 1;
-        while ((end > start) && (isspace((unsigned char)*end) || (*end == '\n'))) {
-            --end;
-        }
-
-        memmove(str, start, end - start + 1);
-        str[end - start + 1] = '\0';
+        cstring::trim(str);
     }
 
     bool equals(const char *src) {
-        return strcmp(str, src) == 0;
+        return cstring::equals(str, src);
     }
 
     void print() const {
-        Serial.println(str);
+        cstring::print(str);
     }
 };
+
 
 #endif //CSTRING_H
