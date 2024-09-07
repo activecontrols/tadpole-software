@@ -25,6 +25,8 @@ void setup() {
   Router::add({ping, "ping"}); // example registration
   Router::add({help, "help"});
 
+#ifdef ONLY_TEENSY_PRIMARY
+  Router::info("Compiled for TEENSY PRIMARY");
   Safety::begin();          // prints safety info
   SPI_Demux::begin();       // initializes the SPI backplane
   Loader::begin();          // registers data loader functions with the router
@@ -34,6 +36,12 @@ void setup() {
   TC::begin();              // initializes the TC Boards
   CurveFollower::begin();   // creates curve following commands
   ZucrowInterface::report_angles_for_five_seconds();
+#endif
+
+#ifdef ONLY_TEENSY_SECONDARY
+  Router::info("Compiled for TEENSY SECONDARY");
+  TadpoleGimbal::begin();
+#endif
 }
 
 void loop() {
