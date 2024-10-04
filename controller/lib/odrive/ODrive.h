@@ -5,7 +5,7 @@
 
 #include "Router.h"
 #include "CString.h"
-#include "ODriveUART.h"
+#include "ODriveCAN.h"
 
 #define ENABLE_ODRIVE_COMM (true)
 
@@ -25,21 +25,7 @@
 #define MAX_ODRIVE_POS (1)
 #define MIN_ODRIVE_POS (-1)
 
-/*
- * See comment above `threadArgs` variable in ODrive class 
- */
-struct ThreadArgs {
-    Stream& serial;
-
-    /* 
-     * An bool to determine if the watchdog thread has finished execution
-     * Similar but not completely based on the solution (third example) here: 
-     * https://stackoverflow.com/questions/9094422/how-to-check-if-a-stdthread-is-still-running
-     */
-    volatile bool threadExecutionFinished;
-};
-
-class ODrive : public ODriveUART {
+class ODrive : public ODriveCAN {
 
 private:
 
@@ -68,12 +54,6 @@ private:
     int activeError;
 
     /*
-     * A flag that determines whether the ODrive is armed or not
-     * Modified by terminateWatchdogThread() and checkErrors()
-     */
-    bool isArmed;
-
-    /*
      * A flag that determines whether the ODrive is misconfigured or not
      * Modified by checkConfig()
      */
@@ -92,33 +72,6 @@ private:
      * If there is no last error, then the value will be `0`
      */
     int disarmReason;
-
-    /*
-     * A reference to the serial port object used by the ODrive
-     */
-    Stream &serial;
-
-    /* 
-     * Handler for the thread ( `watchdogThreadFunc` ) that feeds the ODrive watchdog and checks
-     * for active errors.
-     * Modified by `startWatchdogThread()` and `terminateWatchdogThread()`
-     * 
-     * NOTE: This type of thread object comes from TeensyThreads.h and won't have all of the 
-     * funtionality or compatibility that the standard `std::thread` object has in the C++ lib
-     */
-    std::thread* watchdogThread;
-
-    /*
-     * The struct that holds the function arguments to be passed into a thread. This struct
-     * will be casted to a (void *) in `startWatchdogThread()`
-     */
-    volatile struct ThreadArgs threadArgs;
-
-    /*
-     * The thread ID of the watchdog thread
-     * Modified by `startWatchdogThread()`
-     */
-    int threadID;
 
     /*
      * The last known position, velocity, voltage, and current of the ODrive
@@ -140,7 +93,7 @@ private:
 
 public:
 
-    ODrive(Stream &serial, char[4]);
+    ODrive(char[4]);
 
     void checkConnection();
     int checkConfig();
@@ -152,11 +105,6 @@ public:
 
     int checkErrors();
     void printErrors();
-    void startWatchdogThread();
-    static void watchdogThreadFunc(void *);
-    void terminateWatchdogThread();
-    bool checkThreadExecutionFinished() {return threadArgs.threadExecutionFinished; }
-    static String readLine(Stream&, unsigned long timeout_ms = 10);
     void clear();
 
     void identify();

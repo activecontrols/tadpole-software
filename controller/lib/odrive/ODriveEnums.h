@@ -1,6 +1,3 @@
-// Author: ODrive Robotics Inc.
-// License: MIT
-// Documentation: https://docs.oODriveobotics.com/v/latest/guides/arduino-uart-guide.html
 
 #ifndef ODriveEnums_h
 #define ODriveEnums_h
@@ -167,7 +164,7 @@ enum ODriveSpiEncoderMode {
 };
 
 // ODrive.Rs485EncoderMode
-enum OODrives485EncoderMode {
+enum ODriveRs485EncoderMode {
     RS485_ENCODER_MODE_DISABLED              = 0,
     RS485_ENCODER_MODE_AMT21_POLLING         = 1,
     RS485_ENCODER_MODE_AMT21_EVENT_DRIVEN    = 2,
