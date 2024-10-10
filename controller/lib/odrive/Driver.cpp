@@ -34,8 +34,8 @@ namespace Driver {
 
         char loxName[4] = "LOX";
         char ipaName[4] = "IPA";
-        ODrive loxODrive(loxName);
-        ODrive ipaODrive(ipaName);
+        ODrive loxODrive(LOX_ODRIVE_SERIAL, loxName);
+        ODrive ipaODrive(IPA_ODRIVE_SERIAL, ipaName);
 
         File odriveLogFile;
 
@@ -148,7 +148,7 @@ namespace Driver {
             for (int i = 0; i < Loader::header.lerp.num_points-1; i++) {
                 while (timer / 1000.0 < lcs[i].time) {
                     float seconds = timer / 1000.0;
-                    // if (watchdogThreadsEnded()) { return; }
+                    if (watchdogThreadsEnded()) { return; }
                     float thrust = lerp(lcs[i].thrust, lcs[i + 1].thrust, lcs[i].time, lcs[i + 1].time, seconds);
                     setThrust(thrust);
                     if (timer - lastlog >= LOG_INTERVAL_MS) {
@@ -179,7 +179,7 @@ namespace Driver {
             for (int i = 0; i < num_cycles; i++) {
                 while (timer / 1000.0 < period) {
                     float seconds = timer / 1000.0;
-                    // if (watchdogThreadsEnded()) { return; }
+                    if (watchdogThreadsEnded()) { return; }
                     if (Loader::header.is_open) {
                         lox_pos = abs(amplitude * (sin(2 * M_PI * seconds / period) + 1.0) / 2.0);
                         ipa_pos = lox_pos / Loader::header.of_ratio;
@@ -246,11 +246,11 @@ namespace Driver {
         Router::add({[&]() {loxODrive.printTelemetryCSV(); }, "get_lox_odrive_telem"});
         Router::add({[&]() {ipaODrive.printTelemetryCSV(); }, "get_ipa_odrive_telem"});
 
-        // Router::add({[&]() {loxODrive.startWatchdogThread(); }, "start_lox_watchdog_thread"});
-        // Router::add({[&]() {ipaODrive.startWatchdogThread(); }, "start_ipa_watchdog_thread"});
+        Router::add({[&]() {loxODrive.startWatchdogThread(); }, "start_lox_watchdog_thread"});
+        Router::add({[&]() {ipaODrive.startWatchdogThread(); }, "start_ipa_watchdog_thread"});
 
-        // Router::add({[&]() {loxODrive.terminateWatchdogThread(); }, "terminate_lox_watchdog_thread"});
-        // Router::add({[&]() {ipaODrive.terminateWatchdogThread(); }, "terminate_ipa_watchdog_thread"});
+        Router::add({[&]() {loxODrive.terminateWatchdogThread(); }, "terminate_lox_watchdog_thread"});
+        Router::add({[&]() {ipaODrive.terminateWatchdogThread(); }, "terminate_ipa_watchdog_thread"});
 
 #if (ENABLE_ODRIVE_COMM)
         LOX_ODRIVE_SERIAL.begin(LOX_ODRIVE_SERIAL_RATE);
@@ -337,8 +337,8 @@ namespace Driver {
 
         bool open = Loader::header.is_open;
 
-        // loxODrive.startWatchdogThread();
-        // ipaODrive.startWatchdogThread();
+        loxODrive.startWatchdogThread();
+        ipaODrive.startWatchdogThread();
 
         switch (Loader::header.ctype) {
             case curve_type::lerp:
@@ -359,25 +359,25 @@ namespace Driver {
             odriveLogFile.close();
         }
 
-        // if (watchdogThreadsEnded()) {
-        //     Router::info("ERROR: Ended curve following early.");
-        //     loxODrive.printErrors();
-        //     ipaODrive.printErrors();
-        // } else {
-        //     Router::info("Finished following curve!");
-        // }
+        if (watchdogThreadsEnded()) {
+            Router::info("ERROR: Ended curve following early.");
+            loxODrive.printErrors();
+            ipaODrive.printErrors();
+        } else {
+            Router::info("Finished following curve!");
+        }
         
-        // loxODrive.terminateWatchdogThread();
-        // ipaODrive.terminateWatchdogThread();
+        loxODrive.terminateWatchdogThread();
+        ipaODrive.terminateWatchdogThread();
     }
 
     /*
      * Checks if either the ipa odrive or lox odrive watchdog threads ended early
      */
-    // bool watchdogThreadsEnded() {
-    //     if (loxODrive.checkThreadExecutionFinished() || ipaODrive.checkThreadExecutionFinished()) {
-    //         return true; 
-    //     }
-    //     return false;          
-    // }
+    bool watchdogThreadsEnded() {
+        if (loxODrive.checkThreadExecutionFinished() || ipaODrive.checkThreadExecutionFinished()) {
+            return true; 
+        }
+        return false;          
+    }
 }
