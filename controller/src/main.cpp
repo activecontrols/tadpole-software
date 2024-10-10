@@ -9,6 +9,10 @@
 #include "Loader.h"
 #endif
 
+#ifdef ONLY_TEENSY_SECONDARY
+#include "TadpoleGimbal.hpp"
+#endif
+
 void ping() {
   Router::info("pong");
 }
@@ -37,9 +41,10 @@ void setup() {
   Loader::begin(); // registers data loader functions with the router
   Driver::begin(); // initializes the odrives and functions to start curves
 #endif
+
 #ifdef ONLY_TEENSY_SECONDARY
   Router::info("Compiled for TEENSY SECONDARY");
-  // actuator code here
+  TadpoleGimbal::begin();
 #endif
 }
 
