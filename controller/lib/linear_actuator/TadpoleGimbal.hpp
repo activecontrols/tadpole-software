@@ -11,6 +11,7 @@
 #define TADPOLE_GIMBAL_H
 
 #include <UltramotionActuator.hpp>
+#include <GimbalKinematics.hpp>
 #include <FlexCAN_T4.h>
 #include "Router.h"
 #define INT_BUFFER_SIZE (50) // for router
@@ -28,6 +29,7 @@ namespace TadpoleGimbal {
 void begin();
 void set_primary_length();
 void set_secondary_length();
+void move_to_angles();
 void handle_can_msg(const CAN_message_t &msg);
 
 }; // namespace TadpoleGimbal

@@ -13,6 +13,7 @@ void begin() {
 
   Router::add({TadpoleGimbal::set_primary_length, "set_primary_length"});
   Router::add({TadpoleGimbal::set_secondary_length, "set_secondary_length"});
+  Router::add({TadpoleGimbal::move_to_angles, "move_to_angles"});
 }
 
 void set_primary_length() {
@@ -43,6 +44,39 @@ void set_secondary_length() {
   }
 
   gimbalCAN.write(prep_CAN_msg(SECONDARY_CAN_ID, length));
+}
+
+void move_to_angles() {
+  Router::info("Primary Angle?");
+  String angleSTR = Router::read(INT_BUFFER_SIZE);
+  Router::info("Response: " + angleSTR);
+
+  float primary_angle;
+  int result = std::sscanf(angleSTR.c_str(), "%f", &primary_angle);
+  if (result != 1) {
+    Router::info("Could not convert input to an float, not continuing");
+    return;
+  }
+
+  Router::info("Secondary Angle?");
+  angleSTR = Router::read(INT_BUFFER_SIZE);
+  Router::info("Response: " + angleSTR);
+
+  float secondary_angle;
+  int result = std::sscanf(angleSTR.c_str(), "%f", &secondary_angle);
+  if (result != 1) {
+    Router::info("Could not convert input to an float, not continuing");
+    return;
+  }
+
+  float primary_length;
+  float secondary_length;
+  calc_actuator_lengths(primary_angle, secondary_angle, &primary_length, &secondary_length);
+
+  // TODO - convert length to actuator units
+
+  gimbalCAN.write(prep_CAN_msg(PRIMARY_CAN_ID, primary_length));
+  gimbalCAN.write(prep_CAN_msg(SECONDARY_CAN_ID, secondary_length));
 }
 
 // TODO - deal with status messages across different acutators
