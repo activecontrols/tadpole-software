@@ -2,61 +2,88 @@
 
 #include <string>
 
-ODrive::ODrive(Stream &serial, char name[4]) : 
-    ODriveUART(serial), serial(serial), watchdogThread(NULL),  threadArgs{serial, false} {
-    
-    //crappy way of doing this, but it is three characters, so it is fine
-    this->name[0] = name[0];
-    this->name[1] = name[1];
-    this->name[2] = name[2];
-    this->name[3] = '\0';
+// Called for every message that arrives on the CAN bus // TODO - send on recieve to multiple devices
+void onCanMessage(const CanMsg &msg) {
+  for (auto odrive : odrives) {
+    onReceive(msg, *odrive);
+  }
+}
+
+ODrive::ODrive(uint32_t can_id, char name[4]) : ODriveCAN(wrap_can_intf(can_intf), can_id) {
+  can_intf.begin();
+  can_intf.setBaudRate(CAN_BAUDRATE);
+  can_intf.setMaxMB(16);
+  can_intf.enableFIFO();
+  can_intf.enableFIFOInterrupt();
+  can_intf.onReceive(onCanMessage);
+
+  ODriveCAN::onFeedback(ODrive::onFeedback, &this->odrive_status);
+  ODriveCAN::onStatus(ODrive::onHeartbeat, &this->odrive_status);
+
+  // crappy way of doing this, but it is three characters, so it is fine
+  this->name[0] = name[0];
+  this->name[1] = name[1];
+  this->name[2] = name[2];
+  this->name[3] = '\0';
+}
+
+// Called every time a Heartbeat message arrives from the ODrive
+void ODrive::onHeartbeat(Heartbeat_msg_t &msg, void *user_data) {
+  ODriveUserData *odrv_user_data = static_cast<ODriveUserData *>(user_data);
+  odrv_user_data->last_heartbeat = msg;
+  odrv_user_data->received_heartbeat = true;
+}
+
+// Called every time a feedback message arrives from the ODrive
+void ODrive::onFeedback(Get_Encoder_Estimates_msg_t &msg, void *user_data) {
+  ODriveUserData *odrv_user_data = static_cast<ODriveUserData *>(user_data);
+  odrv_user_data->last_feedback = msg;
+  odrv_user_data->received_feedback = true;
 }
 
 /**
  * Checks if communication with ODrive is available by requesting the current state
- * Runs in a while loop until the ODrive is connected 
+ * Runs in a while loop until the ODrive is connected
  */
 void ODrive::checkConnection() {
 #if (ENABLE_ODRIVE_COMM)
-    while (ODriveUART::getState() == AXIS_STATE_UNDEFINED) {
-        Router::info("No response from ODrive...");
-        delay(100);
-    }
-    Router::info("Setting odrive to closed loop control...");
-    while (ODriveUART::getState() != AXIS_STATE_CLOSED_LOOP_CONTROL) {
-        ODriveUART::clearErrors();
-        ODriveUART::setState(AXIS_STATE_CLOSED_LOOP_CONTROL);
-        delay(10);
-    }
+  while (this->odrive_status.last_heartbeat.Axis_State == AXIS_STATE_UNDEFINED) {
+    Router::info("No response from ODrive...");
+    delay(100);
+  }
+  Router::info("Setting odrive to closed loop control...");
+  while (this->odrive_status.last_heartbeat.Axis_State != AXIS_STATE_CLOSED_LOOP_CONTROL) {
+    ODriveCAN::clearErrors();
+    ODriveCAN::setState(AXIS_STATE_CLOSED_LOOP_CONTROL);
+    delay(10);
+  }
 #endif
 }
 
 /**
- * Checks the `misconfigured` and `reboot_required` flags (from the ODrive API), and if either 
+ * Checks the `misconfigured` and `reboot_required` flags (from the ODrive API), and if either
  * are true, return an error
  */
 int ODrive::checkConfig() {
 #if (ENABLE_ODRIVE_COMM)
-    misconfigured = ODriveUART::getParameterAsInt("misconfigured");
-    rebootRequired = ODriveUART::getParameterAsInt("reboot_required");
+  misconfigured = ODriveUART::getParameterAsInt("misconfigured");
+  rebootRequired = ODriveUART::getParameterAsInt("reboot_required");
 
-    if (misconfigured) {
-        Router::info(
-            "ERROR: " + std::string(name, 3) + 
-            " ODRIVE IS MISCONFIGURED, WILL NOT ALLOW CURVE FOLLOWING"
-        );
-        return ODRIVE_MISCONFIGURED;
-    }
-    
-    if (rebootRequired) {
-        Router::info(
-            "ERROR: " + std::string(name, 3) + 
-            " ODRIVE NEEDS TO REBOOT, WILL NOT ALLOW CURVE FOLLOWING"
-        );
-        return ODRIVE_REBOOT_REQUIRED;
-    }
+  if (misconfigured) {
+    Router::info(
+        "ERROR: " + std::string(name, 3) +
+        " ODRIVE IS MISCONFIGURED, WILL NOT ALLOW CURVE FOLLOWING");
+    return ODRIVE_MISCONFIGURED;
+  }
+
+  if (rebootRequired) {
+    Router::info(
+        "ERROR: " + std::string(name, 3) +
+        " ODRIVE NEEDS TO REBOOT, WILL NOT ALLOW CURVE FOLLOWING");
+    return ODRIVE_REBOOT_REQUIRED;
+  }
 #endif
-    return ODRIVE_NO_ERROR;
+  return ODRIVE_NO_ERROR;
 }
 
 /**
@@ -65,36 +92,36 @@ int ODrive::checkConfig() {
  */
 void ODrive::setPos(float pos) {
 #if (ENABLE_ODRIVE_COMM)
-    ODriveUART::setPosition(pos);
+  ODriveCAN::setPosition(pos);
 #endif
-    posCmd = pos;
+  posCmd = pos;
 }
 
 /**
  * Checks if there are active errors on the ODrive, if so, store the error in activeError and
- * determine if the ODrive is still armed. If the ODrive is disarmed, store the disarm reason 
+ * determine if the ODrive is still armed. If the ODrive is disarmed, store the disarm reason
  * and return `ODRIVE_ERROR_DISARMED`. If it is still armed, return `ODRIVE_ERROR`.
  */
 int ODrive::checkErrors() {
 #if (ENABLE_ODRIVE_COMM)
-    activeError = ODriveUART::getParameterAsInt("axis0.active_errors");
-    if (activeError != 0) {
-        isArmed = ODriveUART::getParameterAsInt("axis0.is_armed");
-        if (!isArmed) {
-            disarmReason = ODriveUART::getParameterAsInt("axis0.disarm_reason");
-            return ODRIVE_ERROR_DISARMED;
-        }
-        return ODRIVE_ACTIVE_ERROR;
+  activeError = ODriveUART::getParameterAsInt("axis0.active_errors");
+  if (activeError != 0) {
+    isArmed = ODriveUART::getParameterAsInt("axis0.is_armed");
+    if (!isArmed) {
+      disarmReason = ODriveUART::getParameterAsInt("axis0.disarm_reason");
+      return ODRIVE_ERROR_DISARMED;
     }
+    return ODRIVE_ACTIVE_ERROR;
+  }
 #endif
-    return ODRIVE_NO_ERROR;
+  return ODRIVE_NO_ERROR;
 }
 
 void ODrive::printErrors() {
 #if (ENABLE_ODRIVE_COMM)
-    checkErrors();
-    Router::info(std::string(name, 3) + " ODRIVE active error: " + std::to_string(activeError));
-    Router::info(std::string(name, 3) + " ODRIVE disarm reason: " + std::to_string(disarmReason));
+  checkErrors();
+  Router::info(std::string(name, 3) + " ODRIVE active error: " + std::to_string(activeError));
+  Router::info(std::string(name, 3) + " ODRIVE disarm reason: " + std::to_string(disarmReason));
 #endif
 }
 
@@ -102,142 +129,140 @@ void ODrive::printErrors() {
  * Starts the ODrive watchdog thread, and sets the thread handle to this->watchdogThread
  */
 void ODrive::startWatchdogThread() {
-    
-    threadArgs.threadExecutionFinished = false;
 
-    /*
-     * The TeensyThreads library only allows functions with a void return type and a (void*) argument (or int)
-     * to run in a thread. If you try to use a different function signature, nothing will happen and the
-     * thread will not start, and the program will continue to run anyway.
-     */
-    this->watchdogThread = new std::thread(&ODrive::watchdogThreadFunc, (void*) &threadArgs);
+  threadArgs.threadExecutionFinished = false;
 
-    threadID = this->watchdogThread->get_id();
+  /*
+   * The TeensyThreads library only allows functions with a void return type and a (void*) argument (or int)
+   * to run in a thread. If you try to use a different function signature, nothing will happen and the
+   * thread will not start, and the program will continue to run anyway.
+   */
+  this->watchdogThread = new std::thread(&ODrive::watchdogThreadFunc, (void *)&threadArgs);
 
-    /*
-     * The maximum time slice the watchdog thread can run on the CPU. This should be enough time
-     * for the thread to complete one iteration. Timing of how long it takes to retrieve ODrive information
-     * will be needed
-     */
-    threads.setTimeSlice(threadID, 20);
+  threadID = this->watchdogThread->get_id();
 
-    this->watchdogThread->detach();
+  /*
+   * The maximum time slice the watchdog thread can run on the CPU. This should be enough time
+   * for the thread to complete one iteration. Timing of how long it takes to retrieve ODrive information
+   * will be needed
+   */
+  threads.setTimeSlice(threadID, 20);
 
+  this->watchdogThread->detach();
 }
 
 /*
- * The function to be used for the watchdog thread. This function is an infinite loop that 
+ * The function to be used for the watchdog thread. This function is an infinite loop that
  * feeds the watchdog, checks for active errors, and checks the control state of the ODrive.
  * If there is an active error, or the control state of the ODrive is anything but in closed
- * loop control ( `AXIS_STATE_CLOSE_LOOP_CONTROL` ), then the thread completes execution with an 
- * error code. 
- * 
+ * loop control ( `AXIS_STATE_CLOSE_LOOP_CONTROL` ), then the thread completes execution with an
+ * error code.
+ *
  * An incorrect control state, in normal conditions, should happen when the ODrives are
- * done following the throttle curve, after which, the ODrive state is set to idle 
+ * done following the throttle curve, after which, the ODrive state is set to idle
  * ( `AXIS_STATE_IDLE` ) and the thread completes execution.
- * 
+ *
  * NOTE: The TeensyThreads library only allows functions with a void return type and a (void*) argument (or int)
  * to run in a thread. If you try to use a different function signature, nothing will happen and the
  * thread will not start, and the program will continue to run anyway.
  */
 void ODrive::watchdogThreadFunc(void *castedArgs) {
-    volatile struct ThreadArgs* args = static_cast<ThreadArgs*>(castedArgs);
-    
-    int activeError = 0;
-    int currentState = 0;
+  volatile struct ThreadArgs *args = static_cast<ThreadArgs *>(castedArgs);
 
-    while (true) {
-        
-        /*
-         * Had to dig through the ODrive firmware to find the watchdog feed command, which was
-         * quite annoying
-         * https://github.com/odriverobotics/ODrive/blob/6c3cefdeacce600ba4524f4adc5fd634c7bebd18 Firmware/communication/ascii_protocol.cpp#L123
-         * `u` is the command for feeding the watchdog
-         * `0` is the axis number (there is only one axis on our odrives, which has index `0`)
-         *  
-         * commands must always have a newline character at the end, which serial.println adds
-         */
-        args->serial.println("u 0");
-        
-        /* check for active errors
-         *`r` is a command to read a variable
-         */
-        args->serial.println("r axis0.active_errors");
-        
-        activeError = readLine(args->serial).toInt();
+  int activeError = 0;
+  int currentState = 0;
 
-        if (activeError != 0) {
-            args->threadExecutionFinished = true;
-            return;
-        }
+  while (true) {
 
-        /* 
-         * If ODrive is not in closed loop control, then end the thread. 
-         * This could happen because the teensy is done with throttle curve following 
-         * and switches the ODrive state, or because of some error
-         */
-        Serial.println("r axis0.current_state");
-        
-        currentState = readLine(args->serial).toInt();
-
-        if (currentState != AXIS_STATE_CLOSED_LOOP_CONTROL) {
-            args->threadExecutionFinished = true;
-            return;
-        }
-
-        /*
-         * Give back the remaining time on this thread to the next thread
-         */
-        threads.yield();
-    }
-    args->threadExecutionFinished = true;
-
-    /* 
-     * The thread should never reach this point. 
-     * It should exit gracefully when ODrive state is set to idle by the main thread
+    /*
+     * Had to dig through the ODrive firmware to find the watchdog feed command, which was
+     * quite annoying
+     * https://github.com/odriverobotics/ODrive/blob/6c3cefdeacce600ba4524f4adc5fd634c7bebd18 Firmware/communication/ascii_protocol.cpp#L123
+     * `u` is the command for feeding the watchdog
+     * `0` is the axis number (there is only one axis on our odrives, which has index `0`)
+     *
+     * commands must always have a newline character at the end, which serial.println adds
      */
-    return;
+    args->serial.println("u 0");
+
+    /* check for active errors
+     *`r` is a command to read a variable
+     */
+    args->serial.println("r axis0.active_errors");
+
+    activeError = readLine(args->serial).toInt();
+
+    if (activeError != 0) {
+      args->threadExecutionFinished = true;
+      return;
+    }
+
+    /*
+     * If ODrive is not in closed loop control, then end the thread.
+     * This could happen because the teensy is done with throttle curve following
+     * and switches the ODrive state, or because of some error
+     */
+    Serial.println("r axis0.current_state");
+
+    currentState = readLine(args->serial).toInt();
+
+    if (currentState != AXIS_STATE_CLOSED_LOOP_CONTROL) {
+      args->threadExecutionFinished = true;
+      return;
+    }
+
+    /*
+     * Give back the remaining time on this thread to the next thread
+     */
+    threads.yield();
+  }
+  args->threadExecutionFinished = true;
+
+  /*
+   * The thread should never reach this point.
+   * It should exit gracefully when ODrive state is set to idle by the main thread
+   */
+  return;
 }
 
 /*
  * Static function to read the result of a command from the ODrive. Call this function after
  * sending a command to the ODrive.
- * 
- * This function was ported from ODriveUART.cpp (the official ODrive lib) and was modified to 
+ *
+ * This function was ported from ODriveUART.cpp (the official ODrive lib) and was modified to
  * be static to use in the thread function `watchdogThreadFunc`
  */
 String ODrive::readLine(Stream &serial, unsigned long timeout_ms) {
-    String str = "";
-    unsigned long timeout_start = millis();
-    for (;;) {
-        while (!serial.available()) {
-            if (millis() - timeout_start >= timeout_ms) {
-                return str;
-            }
-        }
-        char c = serial.read();
-        if (c == '\n')
-            break;
-        str += c;
+  String str = "";
+  unsigned long timeout_start = millis();
+  for (;;) {
+    while (!serial.available()) {
+      if (millis() - timeout_start >= timeout_ms) {
+        return str;
+      }
     }
-    return str;
+    char c = serial.read();
+    if (c == '\n')
+      break;
+    str += c;
+  }
+  return str;
 }
-
 
 /*
  * Sets the ODrive control state to idle ( 'AXIS_STATE_IDLE` ) and waits for the watchdogThread
  * to terminate
  */
 void ODrive::terminateWatchdogThread() {
-    ODriveUART::setState(AXIS_STATE_IDLE);
-    
-    if (threadArgs.threadExecutionFinished && watchdogThread->joinable()) {
-        this->watchdogThread->join();
-    }
-    free(watchdogThread);
-    watchdogThread = NULL;
+  ODriveCAN::setState(AXIS_STATE_IDLE);
 
-    isArmed = ODriveUART::getParameterAsInt("axis0.is_armed");
+  if (threadArgs.threadExecutionFinished && watchdogThread->joinable()) {
+    this->watchdogThread->join();
+  }
+  free(watchdogThread);
+  watchdogThread = NULL;
+
+  isArmed = ODriveUART::getParameterAsInt("axis0.is_armed");
 }
 
 /**
@@ -245,65 +270,69 @@ void ODrive::terminateWatchdogThread() {
  */
 void ODrive::clear() {
 #if (ENABLE_ODRIVE_COMM)
-    ODriveUART::clearErrors();
+  ODriveCAN::clearErrors();
 #endif
-    disarmReason = 0;
-    activeError = 0;
+  disarmReason = 0;
+  activeError = 0;
 }
 
 /**
  * Blinks the LED on the ODrive for 5 seconds.
  */
 void ODrive::identify() {
-    Router::info("Identifying LOX ODrive for 5 seconds...");
+  Router::info("Identifying LOX ODrive for 5 seconds...");
 #if (ENABLE_ODRIVE_COMM)
-    ODriveUART::setParameter("identify", true);
-    delay(5000);
-    ODriveUART::setParameter("identify", false);
+  ODriveUART::setParameter("identify", true);
+  delay(5000);
+  ODriveUART::setParameter("identify", false);
 #endif
-    Router::info("Done");
+  Router::info("Done");
 }
 
 /**
  * Returns a CSV string containing the ODrive Telemetry information, in the following format:
  * position,velocity,voltage,current
  */
-char* ODrive::getTelemetryCSV() {
-    telemetryCSV.clear();
+char *ODrive::getTelemetryCSV() {
+  telemetryCSV.clear();
 
 #if (ENABLE_ODRIVE_COMM)
-    position = ODriveUART::getPosition();
+  Get_Encoder_Estimates_msg_t enc_msg;
+  ODriveCAN::getFeedback(enc_msg);
+  position = enc_msg.Pos_Estimate;
+  velocity = enc_msg.Vel_Estimate;
 
-    velocity = ODriveUART::getVelocity();
+  Get_Bus_Voltage_Current_msg_t vc_msg;
+  ODriveCAN::getBusVI(vc_msg);
+  voltage = vc_msg.Bus_Voltage;
+  current = vc_msg.Bus_Current;
 
-    voltage = ODriveUART::getParameterAsFloat("vbus_voltage");
-
-    current = ODriveUART::getParameterAsFloat("ibus");
-
-    telemetryCSV << position << "," << velocity << ","
-        << voltage << "," << current;
+  telemetryCSV << position << "," << velocity << ","
+               << voltage << "," << current;
 #endif
 
-    return telemetryCSV.str;
+  return telemetryCSV.str;
 }
 
 /**
  * Returns a string containing the hardware and firmware major and minor versons of the ODrive
  */
-char* ODrive::getODriveInfo() {
-    odriveInfo.clear();
+char *ODrive::getODriveInfo() {
+  odriveInfo.clear();
 
 #if (ENABLE_ODRIVE_COMM)
-    hwVersionMajor = ODriveUART::getParameterAsInt("hw_version_major");
-    hwVersionMinor = ODriveUART::getParameterAsInt("hw_version_minor");
-    fwVersionMajor = ODriveUART::getParameterAsInt("fw_version_major");
-    fwVersionMinor = ODriveUART::getParameterAsInt("fw_version_minor");
+  Get_Version_msg_t msg;
+  ODriveCAN::getVersion(msg);
+  hwVersionMajor = msg.Hw_Version_Major;
+  hwVersionMinor = msg.Hw_Version_Minor;
+  fwVersionMajor = msg.Fw_Version_Major;
+  fwVersionMinor = msg.Fw_Version_Minor;
 
-    odriveInfo << "ODrive Hardware Version: " << hwVersionMajor << "." << hwVersionMinor
-        << " | Firmware Version: " << fwVersionMajor << "." << fwVersionMinor << " |||";
+  odriveInfo << "ODrive Hardware Version: " << hwVersionMajor << "." << hwVersionMinor
+             << " | Firmware Version: " << fwVersionMajor << "." << fwVersionMinor << " |||";
 #endif
 
-    return odriveInfo.str;
+  return odriveInfo.str;
 }
 
 /**
@@ -311,22 +340,22 @@ char* ODrive::getODriveInfo() {
  */
 void ODrive::setPosConsoleCmd() {
 
-    Router::info("Position?");
-    String posString = Router::read(INT_BUFFER_SIZE);
-    Router::info("Response: " + posString);
+  Router::info("Position?");
+  String posString = Router::read(INT_BUFFER_SIZE);
+  Router::info("Response: " + posString);
 
-    float pos = 0.0;
-    int result = std::sscanf(posString.c_str(), "%f", &pos);
-    if (result != 1) {
-        Router::info("Could not convert input to a float, not continuing");
-        return;
-    }
+  float pos = 0.0;
+  int result = std::sscanf(posString.c_str(), "%f", &pos);
+  if (result != 1) {
+    Router::info("Could not convert input to a float, not continuing");
+    return;
+  }
 
-    if (pos < MIN_ODRIVE_POS || pos > MAX_ODRIVE_POS) {
-        Router::info("Position outside defined range in code, not continuing");
-        return;
-    }
+  if (pos < MIN_ODRIVE_POS || pos > MAX_ODRIVE_POS) {
+    Router::info("Position outside defined range in code, not continuing");
+    return;
+  }
 
-    setPos(pos);
-    Router::info("Position set");
+  setPos(pos);
+  Router::info("Position set");
 }
