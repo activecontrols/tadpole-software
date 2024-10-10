@@ -42,7 +42,7 @@ void set_secondary_length() {
     return;
   }
 
-  gimbalCAN.write(prep_CAN_msg(PRIMARY_CAN_ID, length));
+  gimbalCAN.write(prep_CAN_msg(SECONDARY_CAN_ID, length));
 }
 
 // TODO - deal with status messages across different acutators
