@@ -10,6 +10,10 @@
 #include "Loader.h"
 #include "Safety.h"
 
+#ifdef ONLY_TEENSY_SECONDARY
+#include "TadpoleGimbal.hpp"
+#endif
+
 void ping() {
   Router::info("pong");
 }
