@@ -10,8 +10,7 @@
 #include <FlexCAN_T4.h>
 #include "ODriveFlexCAN.hpp"
 #define CAN_BAUDRATE 250000
-struct ODriveStatus;                                // hack to prevent teensy compile error
-FlexCAN_T4<CAN1, RX_SIZE_256, TX_SIZE_16> can_intf; // can interface
+struct ODriveStatus; // hack to prevent teensy compile error
 
 struct ODriveUserData {
   Heartbeat_msg_t last_heartbeat;
@@ -37,6 +36,24 @@ struct ODriveUserData {
 #define MIN_TRHUST (0)
 #define MAX_ODRIVE_POS (1)
 #define MIN_ODRIVE_POS (-1)
+
+/*
+ * See comment above `threadArgs` variable in ODrive class
+ */
+struct ThreadArgs {
+  /*
+   * An bool to determine if the watchdog thread has finished execution
+   * Similar but not completely based on the solution (third example) here:
+   * https://stackoverflow.com/questions/9094422/how-to-check-if-a-stdthread-is-still-running
+   */
+  volatile bool threadExecutionFinished;
+
+  ODriveUserData odrive_status;
+};
+
+void onHeartbeatCB(Heartbeat_msg_t &msg, void *user_data);
+void onFeedbackCB(Get_Encoder_Estimates_msg_t &msg, void *user_data);
+void setup_can(_MB_ptr handler);
 
 class ODrive : public ODriveCAN {
 
@@ -133,8 +150,6 @@ private:
 
   // stores data sent back from the odrive - modified by onHeartbeat() and onFeedback()
   ODriveUserData odrive_status;
-  void onHeartbeat(Heartbeat_msg_t &msg, void *user_data);
-  void onFeedback(Get_Encoder_Estimates_msg_t &msg, void *user_data);
 
 public:
   ODrive(uint32_t, char[4]);
@@ -150,7 +165,7 @@ public:
   int checkErrors();
   void printErrors();
   void startWatchdogThread();
-  static void watchdogThreadFunc(void *);
+  void watchdogThreadFunc(void *);
   void terminateWatchdogThread();
   bool checkThreadExecutionFinished() { return threadArgs.threadExecutionFinished; }
   static String readLine(Stream &, unsigned long timeout_ms = 10);

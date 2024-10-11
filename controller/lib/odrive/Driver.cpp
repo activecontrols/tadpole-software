@@ -206,7 +206,14 @@ namespace Driver {
 
     }
 
+    void onCanMessage(const CanMsg &msg) {
+      onReceive(msg, loxODrive);
+      onReceive(msg, ipaODrive);
+    }
+
     void begin() {
+        setup_can(onCanMessage);
+      
         Router::add({Driver::followCurve, "follow_curve"});
         Router::add({Driver::printODriveInfo, "get_odrive_info"});
         Router::add({Driver::setThrustCmd, "set_thrust"});

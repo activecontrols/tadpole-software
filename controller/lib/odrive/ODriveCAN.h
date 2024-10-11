@@ -42,7 +42,7 @@ public:
      * This function returns immediately and does not check if the ODrive
      * received the CAN message.
      */
-    bool clearErrors();
+    bool clearErrors(bool identify = false);
     
     /**
      * @brief Tells the ODrive to change its axis state.
