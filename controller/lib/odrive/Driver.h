@@ -13,6 +13,7 @@
 
 #include "Loader.h"
 #include "Router.h"
+#include "valve_controller.hpp"
 
 #define LOX_ODRIVE_SERIAL_RATE (115200)
 #define IPA_ODRIVE_SERIAL_RATE (115200)

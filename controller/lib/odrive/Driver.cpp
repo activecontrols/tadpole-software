@@ -210,6 +210,7 @@ namespace Driver {
         Router::add({Driver::followCurve, "follow_curve"});
         Router::add({Driver::printODriveInfo, "get_odrive_info"});
         Router::add({Driver::setThrustCmd, "set_thrust"});
+        Router::add({Driver::setThrustCmd_OPEN_LOOP, "set_thrust_open_loop"});
 
         /*
          * This syntax is slightly tricky. The add function only takes one argument: a func struct
@@ -313,6 +314,45 @@ namespace Driver {
     void setThrust(float thrust) {
         // TODO: closed loop magic
         
+    }
+
+    /**
+     * Command for the Router lib to change the thrust manually.
+     */
+    void setThrustCmd_OPEN_LOOP() {
+        Router::info("Position?");
+        String thrustString = Router::read(INT_BUFFER_SIZE);
+        Router::info("Response: " + thrustString);
+
+        float thrust;
+        int result = std::sscanf(thrustString.c_str(), "%f", &thrust);
+        if (result != 1) {
+            Router::info("Could not convert input to a float, not continuing");
+            return;
+        }
+
+        if (thrust < MIN_TRHUST || thrust > MAX_THRUST) {
+            Router::info("Thrust outside defined range in code, not continuing");
+            return;
+        }
+
+        setThrustOpenLoop(thrust);
+
+        printBuffer.clear();
+        printBuffer << "Thrust set using open loop. LOX pos: " << loxODrive.getLastPosCmd() << " IPA pos: " << ipaODrive.getLastPosCmd();
+
+        Router::info(printBuffer.str);
+    }
+
+    /*
+     * Sets the thrust using open loop control
+     */
+    void setThrustOpenLoop(float thrust) {
+        float angle_ox;
+        float angle_fuel;
+        open_loop_thrust_control(thrust, &angle_ox, &angle_fuel);
+        loxODrive.setPos(angle_ox); // TODO - convert to the correct unit
+        ipaODrive.setPos(angle_fuel);
     }
 
     /**
