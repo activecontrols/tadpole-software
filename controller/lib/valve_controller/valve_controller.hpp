@@ -1,6 +1,9 @@
 #ifndef VALVE_CONTROLLER_H
 #define VALVE_CONTROLLER_H
 
+#include <math.h>
+#define DEGREES_TO_RAD M_PI / 180 // usage 90 * DEGREES_TO_RAD
+
 /*
  * valve_controller.hpp
  *
