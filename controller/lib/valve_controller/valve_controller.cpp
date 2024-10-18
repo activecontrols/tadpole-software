@@ -60,7 +60,6 @@ float clamped_table_interplolation(float v, float table[2][INTERPOLATION_TABLE_L
   }
   return table[1][table_length - 1]; // if starting value is above max, return max
 }
-#pragma endregion
 
 // find CF in terms of thrust using linear interpolation
 float cf(float thrust) {
@@ -94,10 +93,17 @@ float cavitating_venturi(float mass_flow, fluid cvFluid) {
   return pow(mass_flow / cvFluid.cav_vent_throat_area / cvFluid.cav_vent_cd, 2) / 2 / GRAVITY_IN_S / cvFluid.density + cvFluid.vapour_pressure;
 }
 
+float flow_rate(float mass_flow, fluid cvFluid) {
+  return mass_flow / cvFluid.density * 0.25974; // TODO - fix this awkward gal to min conversion
+}
+
 // convert mass_flow into valve cv
 // OUTPUT: cv (unitless)
-float sub_critical_cv(float mass_flow, float downstream_pressure, fluid cvFluid) {
-  return mass_flow / sqrt((cvFluid.upstream_pressure - downstream_pressure) * cvFluid.specific_gravity);
+// INPUT: flow_rate (gals / min)
+// INPUT: downstream pressure (psi)
+// INPUT: fluid data
+float sub_critical_cv(float flow_rate, float downstream_pressure, fluid cvFluid) {
+  return flow_rate * sqrt(cvFluid.specific_gravity / (cvFluid.upstream_pressure - downstream_pressure));
 }
 
 // convert cv into valve angle
@@ -111,6 +117,6 @@ void open_loop_thrust_control(float thrust, float *angle_ox, float *angle_fuel) 
   float mass_flow_ox;
   float mass_flow_fuel;
   mass_balance(mass_flow_rate(chamber_pressure(thrust)), &mass_flow_ox, &mass_flow_fuel);
-  *angle_ox = valve_angle(sub_critical_cv(mass_flow_ox, cavitating_venturi(mass_flow_ox, ox), ox));
-  *angle_fuel = valve_angle(sub_critical_cv(mass_flow_fuel, cavitating_venturi(mass_flow_fuel, ipa), ipa));
+  *angle_ox = valve_angle(sub_critical_cv(flow_rate(mass_flow_ox, ox), cavitating_venturi(mass_flow_ox, ox), ox));
+  *angle_fuel = valve_angle(sub_critical_cv(flow_rate(mass_flow_fuel, ipa), cavitating_venturi(mass_flow_fuel, ipa), ipa));
 }

@@ -31,7 +31,9 @@ namespace Driver {
     void begin();
 
     void setThrust(float thrust);
+    void setThrustOpenLoop(float thrust);
     void setThrustCmd();
+    void setThrustCmd_OPEN_LOOP();
 
     void printODriveInfo();
     
