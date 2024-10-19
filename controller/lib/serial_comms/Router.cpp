@@ -90,15 +90,28 @@ namespace Router {
         while (true) {
             readCommand();
             
-            commandBuffer.print();
+            // commandBuffer.print(); // not needed with echo
+
+            bool cmd_found = false;
             for (auto &f: funcs) {
                 if (commandBuffer.equals(f.name)) {
                     digitalWrite(LED_BUILTIN, HIGH); //led indication that command is running
                     f.f(); // call the function. it can decide to send, receive or whatever.
                     digitalWrite(LED_BUILTIN, LOW);
+                    cmd_found = true;
                     break;
                 }
             }
+            if (!cmd_found) {
+                info("Command not found.");
+            }
         }
+    }
+
+    void print_all_cmds() {
+      info("All commands: ");
+      for (auto &f : funcs) {
+        info(f.name);
+      }
     }
 }

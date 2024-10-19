@@ -50,6 +50,7 @@ namespace Router {
     // appropriate function when a message is received. this function never
     // returns.
     [[noreturn]] extern void run();
+    void print_all_cmds();
 };
 
 struct func {

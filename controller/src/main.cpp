@@ -10,6 +10,10 @@ void ping() {
    Router::info("pong");
 }
 
+void help() {
+    Router::print_all_cmds();
+}
+
 void setup() {
     digitalWrite(LED_BUILTIN, HIGH);
     Router::init_comms();
@@ -24,6 +28,7 @@ void setup() {
     threads.setDefaultTimeSlice(20); 
 
     Router::add({ping, "ping"}); // example registration
+    Router::add({help, "help"});
     if (!SDCard::begin()) {
         Router::logenabled = false;
         Router::info("SD card not found. SD logging disabled.");
