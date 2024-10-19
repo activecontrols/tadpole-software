@@ -37,8 +37,8 @@ void ODrive::checkConnection() {
  */
 int ODrive::checkConfig() {
 #if (ENABLE_ODRIVE_COMM)
-    misconfigured = ODriveUART::getParameterAsInt("misconfigured");
-    rebootRequired = ODriveUART::getParameterAsInt("reboot_required");
+    misconfigured = false; // ODriveUART::getParameterAsInt("misconfigured"); // TODO - deal with this later
+    rebootRequired = false; // ODriveUART::getParameterAsInt("reboot_required");
 
     if (misconfigured) {
         Router::info(
