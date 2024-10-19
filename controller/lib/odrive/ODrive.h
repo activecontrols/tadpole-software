@@ -20,8 +20,8 @@
 #define ODRIVE_TELEM_HEADER ("position,velocity,voltage,current")
 
 #define INT_BUFFER_SIZE (50)
-#define MAX_THRUST (100)
-#define MIN_TRHUST (0)
+#define MAX_THRUST (600)
+#define MIN_THRUST (0)
 #define MAX_ODRIVE_POS (1)
 #define MIN_ODRIVE_POS (-1)
 
