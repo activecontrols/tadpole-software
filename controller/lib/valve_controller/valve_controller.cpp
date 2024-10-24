@@ -1,4 +1,6 @@
 #include <valve_controller.hpp>
+#include <Router.h>
+#include "CString.h"
 
 // TODO - efficiency coeff?
 // TODO - update fluid constants based on temperature
@@ -8,13 +10,13 @@
 #define GRAVITY_FT_S 32.1740             // Gravity in (ft / s^2)
 #define GRAVITY_IN_S (GRAVITY_FT_S * 12) // Gravity in (in / s^2)
 
-#define cav_vent_ox_AREA_OF_THROAT 0.00989 // in^2
+#define cav_vent_ox_AREA_OF_THROAT 0.00989 // in^2 #-200 deg C
 #define cav_vent_ox_CD 0.975               // unitless
 #define fluid_ox_VAPOUR_PRESSURE 14.2      // psi
 #define fluid_ox_DENSITY 0.04146           // lb/in^3
 #define fluid_ox_UPSTREAM_PRESSURE 820     // psi
 
-#define cav_vent_ipa_AREA_OF_THROAT 0.00989 // in^2
+#define cav_vent_ipa_AREA_OF_THROAT 0.00989 // in^2 #room temp
 #define cav_vent_ipa_CD 0.975               // unitless
 #define fluid_ipa_VAPOUR_PRESSURE 0.638     // psi
 #define fluid_ipa_DENSITY 0.02836           // lb/in^3
@@ -128,4 +130,58 @@ void open_loop_thrust_control(float thrust, float *angle_ox, float *angle_fuel) 
   mass_balance(mass_flow_rate(chamber_pressure(thrust)), &mass_flow_ox, &mass_flow_fuel);
   *angle_ox = valve_angle(sub_critical_cv(mass_flow_ox, cavitating_venturi(mass_flow_ox, ox), ox));
   *angle_fuel = valve_angle(sub_critical_cv(mass_flow_fuel, cavitating_venturi(mass_flow_fuel, ipa), ipa));
+}
+
+void update_float_value(float *value, const char *prompt) {
+  Router::info(prompt);
+  String data_str = Router::read(50); // int buffer size
+  Router::info("Response: " + data_str);
+  float new_value;
+  int result = std::sscanf(data_str.c_str(), "%f", &new_value);
+  if (result != 1) {
+    Router::info("Could not convert input to a float, not continuing");
+    return;
+  }
+  *value = new_value;
+}
+
+// updates ox pressure (in psi)
+void set_ox_pressure(float pressure) { // TODO - replace these with "lambda" functions
+  update_float_value(&ox.upstream_pressure, "Ox Pressure (psi): ");
+}
+
+// updates ipa pressure (in psi)
+void set_ipa_pressure(float pressure) {
+  update_float_value(&ipa.upstream_pressure, "IPA Pressure (psi): ");
+}
+
+// updates ox temperature (in K)
+void set_ox_temperature(float temperature) { // TODO - lookup table updates vapour pressure
+}
+
+// updates ipa temperature (in K)
+void set_ipa_temperature(float temperature) { // TODO - lookup table updates vapour pressure
+}
+
+CString<200> fluid_info;
+void print_fluid_info() {
+  Router::info("OX Info:");
+  fluid_info.clear();
+  fluid_info << "CV Throat Area (in^2): " << ox.cav_vent_throat_area << "\n"
+             << "CV CD (unitless): " << ox.cav_vent_cd << "\n"
+             << "Vapour Pressure (psi): " << ox.vapour_pressure << "\n"
+             << "Density (lb / in^3): " << ox.density << "\n"
+             << "Upstream Pressure (psi): " << ox.upstream_pressure << "\n";
+  Router::info(fluid_info.str);
+  Router::info("\n");
+
+  Router::info("IPA Info:");
+  fluid_info.clear();
+  fluid_info << "CV Throat Area (in^2): " << ipa.cav_vent_throat_area << "\n"
+             << "CV CD (unitless): " << ipa.cav_vent_cd << "\n"
+             << "Vapour Pressure (psi): " << ipa.vapour_pressure << "\n"
+             << "Density (lb / in^3): " << ipa.density << "\n"
+             << "Upstream Pressure (psi): " << ipa.upstream_pressure << "\n";
+  Router::info(fluid_info.str);
+  Router::info("\n");
 }
