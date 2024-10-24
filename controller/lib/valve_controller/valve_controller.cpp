@@ -27,10 +27,13 @@
 
 #define INTERPOLATION_TABLE_LENGTH 20 // max length of all tables - set to enable passing tables to functions
 #define VALVE_ANGLE_TABLE_LEN 11
+// CV (assume unitless) to angle (degrees)
 float valve_angle_table[2][INTERPOLATION_TABLE_LENGTH] = {
     {0.000, 0.070, 0.161, 0.378, 0.670, 1.000, 1.450, 2.050, 2.780, 3.710, 4.960},
     {0, 9, 18, 27, 36, 45, 54, 63, 72, 81, 90}};
+
 #define CF_THRUST_TABLE_LEN 2
+// thrust (lbf) to cf (unitless)
 float cf_thrust_table[2][INTERPOLATION_TABLE_LENGTH] = {
     {220, 550},
     {1.12, 1.3}};
@@ -112,7 +115,7 @@ float sub_critical_cv(float mass_flow, float downstream_pressure, fluid cvFluid)
 }
 
 // Lookup the valve angle using linear interpolation
-// INPUT: valve flow coefficient
+// INPUT: valve flow coefficient (assume this is unitless)
 // OUTPUT: valve angle (degrees)
 float valve_angle(float cv) {
   return clamped_table_interplolation(cv, valve_angle_table, VALVE_ANGLE_TABLE_LEN);
