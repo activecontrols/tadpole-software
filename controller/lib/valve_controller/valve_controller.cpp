@@ -3,7 +3,7 @@
 #include "CString.h"
 
 // TODO - efficiency coeff?
-// TODO - update fluid constants based on temperature
+// TODO - update fluid constants based on temperature and pressure
 #define tadpole_AREA_OF_THROAT 1.69      // in^2
 #define tadpole_C_STAR 4998.0654         // ft / s
 #define tadpole_MASS_FLOW_RATIO 1.2      // #ox = 1.2 * fuel
@@ -12,14 +12,14 @@
 
 #define cav_vent_ox_AREA_OF_THROAT 0.00989 // in^2 #-200 deg C
 #define cav_vent_ox_CD 0.975               // unitless
-#define fluid_ox_VAPOUR_PRESSURE 14.2      // psi
-#define fluid_ox_DENSITY 0.04146           // lb/in^3
+#define fluid_ox_VAPOUR_PRESSURE 14.2      // psi // TODO - depends on temperature
+#define fluid_ox_DENSITY 0.04146           // lb/in^3 // TODO - vary based on *temperature* or pressure
 #define fluid_ox_UPSTREAM_PRESSURE 820     // psi
 
 #define cav_vent_ipa_AREA_OF_THROAT 0.00989 // in^2 #room temp
 #define cav_vent_ipa_CD 0.975               // unitless
-#define fluid_ipa_VAPOUR_PRESSURE 0.638     // psi
-#define fluid_ipa_DENSITY 0.02836           // lb/in^3
+#define fluid_ipa_VAPOUR_PRESSURE 0.638     // psi // TODO - depends on temperature
+#define fluid_ipa_DENSITY 0.02836           // lb/in^3 // TODO - assume constant
 #define fluid_ipa_UPSTREAM_PRESSURE 820     // psi
 
 #define IN3_TO_GAL 0.004329       // convert cubic inches to gallons
