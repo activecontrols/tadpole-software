@@ -5,7 +5,6 @@
 // #include "CString.h"
 
 // TODO - efficiency coeff?
-// TODO - update fluid constants based on temperature and pressure
 #define tadpole_AREA_OF_THROAT 1.69      // in^2
 #define tadpole_C_STAR 4998.0654         // ft / s
 #define tadpole_MASS_FLOW_RATIO 1.2      // #ox = 1.2 * fuel
@@ -14,14 +13,12 @@
 
 #define cav_vent_ox_AREA_OF_THROAT 0.00989 // in^2 #-200 deg C
 #define cav_vent_ox_CD 0.975               // unitless
-#define fluid_ox_VAPOUR_PRESSURE 14.2      // psi // TODO - depends on temperature
-#define fluid_ox_DENSITY 0.04146           // lb/in^3 // TODO - vary based on *temperature* or pressure
+#define fluid_ox_DEFAULT_TEMPERATURE 90    // Kelvin
 #define fluid_ox_UPSTREAM_PRESSURE 820     // psi
 
 #define cav_vent_ipa_AREA_OF_THROAT 0.00989 // in^2 #room temp
 #define cav_vent_ipa_CD 0.975               // unitless
-#define fluid_ipa_VAPOUR_PRESSURE 0.638     // psi // TODO - depends on temperature
-#define fluid_ipa_DENSITY 0.02836           // lb/in^3 // TODO - assume constant
+#define fluid_ipa_DEFAULT_TEMPERATURE 280   // Kelvin
 #define fluid_ipa_UPSTREAM_PRESSURE 820     // psi
 
 #define IN3_TO_GAL 0.004329       // convert cubic inches to gallons
@@ -29,7 +26,7 @@
 #define LB_TO_TON 0.000453592     // convert lb to metric tons
 #define PER_IN3_TO_PER_M3 61023.7 // convert per in^3 to per m^3
 
-#define INTERPOLATION_TABLE_LENGTH 20 // max length of all tables - set to enable passing tables to functions
+#define INTERPOLATION_TABLE_LENGTH 30 // max length of all tables - set to enable passing tables to functions
 #define VALVE_ANGLE_TABLE_LEN 11
 // CV (assume unitless) to angle (degrees)
 float valve_angle_table[2][INTERPOLATION_TABLE_LENGTH] = {
@@ -42,20 +39,21 @@ float cf_thrust_table[2][INTERPOLATION_TABLE_LENGTH] = {
     {220, 550},
     {1.12, 1.3}};
 
-struct cav_vent {
-  float cav_vent_throat_area;
-  float cav_vent_cd;
-};
+#define OX_DENSITY_TABLE_LEN 20
+// temperature (K) to density (lb/in^3)
+float ox_density_table[2][INTERPOLATION_TABLE_LENGTH] = {
+    {55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 105, 110, 115, 120, 125, 130, 135, 140, 145, 150},
+    {0.04709027778, 0.04631539352, 0.04550925926, 0.0446880787, 0.04385474537, 0.04300810185, 0.04214525463, 0.04126099537, 0.04035127315, 0.03941087963, 0.03843229167, 0.03740856481, 0.03632986111, 0.03518287037, 0.03394965278, 0.03260416667, 0.03110532407, 0.02938020833, 0.0272806713, 0.02440335648}};
 
-struct fluid {
-  float vapour_pressure;
-  float density;
-};
+#define OX_PRESSURE_TABLE_LEN 20
+// temperature (K) to vapour pressure (psi)
+float ox_pressure_table[2][INTERPOLATION_TABLE_LENGTH] = {
+    {55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 105, 110, 115, 120, 125, 130, 135, 140, 145, 150},
+    {0.0259, 0.10527, 0.33866, 0.90826, 2.1099, 4.369, 8.2426, 14.41, 23.653, 36.84, 54.901, 78.814, 109.59, 148.27, 195.93, 253.68, 322.72, 404.33, 500.05, 611.86}};
 
+sensor_data default_sensor_data{fluid_ox_UPSTREAM_PRESSURE, fluid_ipa_UPSTREAM_PRESSURE, fluid_ox_DEFAULT_TEMPERATURE, fluid_ipa_DEFAULT_TEMPERATURE, fluid_ox_DEFAULT_TEMPERATURE, fluid_ipa_DEFAULT_TEMPERATURE};
 cav_vent ox_cv{cav_vent_ox_AREA_OF_THROAT, cav_vent_ox_CD};
 cav_vent ipa_cv{cav_vent_ipa_AREA_OF_THROAT, cav_vent_ipa_CD};
-fluid ox{fluid_ox_VAPOUR_PRESSURE, fluid_ox_DENSITY};
-fluid ipa{fluid_ipa_VAPOUR_PRESSURE, fluid_ipa_DENSITY};
 
 // maps v from (min_in, max_in) to (min_out, max_out)
 float linear_interpolation(float v, float min_in, float max_in, float min_out, float max_out) {
@@ -76,6 +74,22 @@ float clamped_table_interplolation(float v, float table[2][INTERPOLATION_TABLE_L
     }
   }
   return table[1][table_length - 1]; // if starting value is above max, return max
+}
+
+// get oxygen properties using temperature in Kelvin
+fluid ox_from_temperature(float temperature) {
+  fluid ox_data;
+  ox_data.density = clamped_table_interplolation(temperature, ox_density_table, OX_DENSITY_TABLE_LEN);
+  ox_data.vapour_pressure = clamped_table_interplolation(temperature, ox_pressure_table, OX_PRESSURE_TABLE_LEN);
+  return ox_data;
+}
+
+// get ipa properties using temperature in Kelvin
+fluid ipa_from_temperature(float temperature) {
+  fluid ipa_data;
+  ipa_data.density = 0.02836;       // lb/in^3 // TODO - assume constant
+  ipa_data.vapour_pressure = 0.638; // psi // TODO - depends on temperature
+  return ipa_data;
 }
 
 // The thrust coefficient (Cf) varies based on thrust
@@ -130,20 +144,20 @@ float valve_angle(float cv) {
 }
 
 // get valve angles (degrees) given thrust
-void open_loop_thrust_control(float thrust, float ox_tank_pressure, float ipa_tank_pressure, float *angle_ox, float *angle_fuel) {
+void open_loop_thrust_control(float thrust, sensor_data current_sensor_data, float *angle_ox, float *angle_fuel) {
   float mass_flow_ox;
   float mass_flow_fuel;
   mass_balance(mass_flow_rate(chamber_pressure(thrust)), &mass_flow_ox, &mass_flow_fuel);
 
-  float ox_valve_downstream_pressure_goal = cavitating_venturi(mass_flow_ox, ox_cv, ox);
-  float ipa_valve_downstream_pressure_goal = cavitating_venturi(mass_flow_fuel, ipa_cv, ipa);
+  float ox_valve_downstream_pressure_goal = cavitating_venturi(mass_flow_ox, ox_cv, ox_from_temperature(current_sensor_data.ox_cv_temperature));
+  float ipa_valve_downstream_pressure_goal = cavitating_venturi(mass_flow_fuel, ipa_cv, ipa_from_temperature(current_sensor_data.ipa_cv_temperature));
 
-  *angle_ox = valve_angle(sub_critical_cv(mass_flow_ox, ox_tank_pressure, ox_valve_downstream_pressure_goal, ox));
-  *angle_fuel = valve_angle(sub_critical_cv(mass_flow_fuel, ipa_tank_pressure, ipa_valve_downstream_pressure_goal, ipa));
+  *angle_ox = valve_angle(sub_critical_cv(mass_flow_ox, current_sensor_data.ox_tank_pressure, ox_valve_downstream_pressure_goal, ox_from_temperature(current_sensor_data.ox_valve_temperature)));
+  *angle_fuel = valve_angle(sub_critical_cv(mass_flow_fuel, current_sensor_data.ipa_tank_pressure, ipa_valve_downstream_pressure_goal, ipa_from_temperature(current_sensor_data.ipa_valve_temperature)));
 }
 
 void open_loop_thrust_control_defaults(float thrust, float *angle_ox, float *angle_fuel) {
-  open_loop_thrust_control(thrust, fluid_ox_UPSTREAM_PRESSURE, fluid_ipa_UPSTREAM_PRESSURE, angle_ox, angle_fuel);
+  open_loop_thrust_control(thrust, default_sensor_data, angle_ox, angle_fuel);
 }
 
 // void update_float_value(float *value, const char *prompt) {
