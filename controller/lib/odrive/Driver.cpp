@@ -350,7 +350,7 @@ namespace Driver {
     void setThrustOpenLoop(float thrust) {
         float angle_ox;
         float angle_fuel;
-        open_loop_thrust_control(thrust, &angle_ox, &angle_fuel);
+        open_loop_thrust_control_defaults(thrust, &angle_ox, &angle_fuel);
         loxODrive.setPos(angle_ox / 360);
         // ipaODrive.setPos(angle_fuel / 360);
     }

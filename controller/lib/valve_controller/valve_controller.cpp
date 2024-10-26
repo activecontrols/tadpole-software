@@ -130,7 +130,7 @@ float valve_angle(float cv) {
 }
 
 // get valve angles (degrees) given thrust
-void open_loop_thrust_control(float thrust, float *angle_ox, float *angle_fuel) {
+void open_loop_thrust_control(float thrust, float ox_tank_pressure, float ipa_tank_pressure, float *angle_ox, float *angle_fuel) {
   float mass_flow_ox;
   float mass_flow_fuel;
   mass_balance(mass_flow_rate(chamber_pressure(thrust)), &mass_flow_ox, &mass_flow_fuel);
@@ -138,8 +138,12 @@ void open_loop_thrust_control(float thrust, float *angle_ox, float *angle_fuel) 
   float ox_valve_downstream_pressure_goal = cavitating_venturi(mass_flow_ox, ox_cv, ox);
   float ipa_valve_downstream_pressure_goal = cavitating_venturi(mass_flow_fuel, ipa_cv, ipa);
 
-  *angle_ox = valve_angle(sub_critical_cv(mass_flow_ox, fluid_ox_UPSTREAM_PRESSURE, ox_valve_downstream_pressure_goal, ox));
-  *angle_fuel = valve_angle(sub_critical_cv(mass_flow_fuel, fluid_ipa_UPSTREAM_PRESSURE, ipa_valve_downstream_pressure_goal, ipa));
+  *angle_ox = valve_angle(sub_critical_cv(mass_flow_ox, ox_tank_pressure, ox_valve_downstream_pressure_goal, ox));
+  *angle_fuel = valve_angle(sub_critical_cv(mass_flow_fuel, ipa_tank_pressure, ipa_valve_downstream_pressure_goal, ipa));
+}
+
+void open_loop_thrust_control_defaults(float thrust, float *angle_ox, float *angle_fuel) {
+  open_loop_thrust_control(thrust, fluid_ox_UPSTREAM_PRESSURE, fluid_ipa_UPSTREAM_PRESSURE, angle_ox, angle_fuel);
 }
 
 // void update_float_value(float *value, const char *prompt) {

@@ -8,5 +8,6 @@
  *  Description: Code for open loop valve control
  */
 
-void open_loop_thrust_control(float thrust, float *angle_ox, float *angle_fuel);
+void open_loop_thrust_control(float thrust, float ox_tank_pressure, float ipa_tank_pressure, float *angle_ox, float *angle_fuel);
+void open_loop_thrust_control_defaults(float thrust, float *angle_ox, float *angle_fuel);
 #endif
