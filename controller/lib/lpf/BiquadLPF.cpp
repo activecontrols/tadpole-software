@@ -25,7 +25,7 @@ void biquadLPFInit(BiquadLPF* filter, float cutoffFreq, float sampleFreq)
 	filter->a2 /= a0;
 }
 
-// returns float of filtered input
+// returns filtered input
 float biquadLPFApply(BiquadLPF* filter, float x_n)
 {
     float y_n = 0;
