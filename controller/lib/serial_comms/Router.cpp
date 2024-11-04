@@ -1,12 +1,19 @@
 //
 // Created by Ishan Goel on 6/9/24.
+// Maintained by Ishan Goel and Vincent Palmerio
 //
 
 #include "Router.h"
-#include <SDCard.h>
+
+#include "SDCard.h"
+#include "CString.h"
+
+#define COMMAND_BUFFER_SIZE (200)
 
 namespace Router {
     bool logenabled = true;
+
+    CString<COMMAND_BUFFER_SIZE> commandBuffer;
 
     namespace {
         vector<func> funcs;
@@ -15,8 +22,15 @@ namespace Router {
         bool logopen = false;
 
         void setLog() {
-            receive(logfilename, 50);
-            logfilename[49] = 0; // just in case
+            receive(logfilename, 49);
+            logfilename[49] = '\0';
+        }
+
+        void readCommand() {
+            //read until newline char or 200 characters (hopefully none of our funcs have names that long lol)
+            COMMS_SERIAL.readBytesUntil('\n', commandBuffer.str, COMMAND_BUFFER_SIZE - 1);
+            commandBuffer.str[COMMAND_BUFFER_SIZE - 1] = '\0'; //null terminate
+            commandBuffer.trim(); //remove leading/trailing whitespace or newline
         }
     }
 
@@ -55,8 +69,8 @@ namespace Router {
     }
 
     String read(unsigned int len) {
-        //read until newline char or 200 characters (hopefully none of our funcs have names that long lol)
         String s = COMMS_SERIAL.readStringUntil('\n', len); 
+        s.trim(); //remove leading/trailing whitespace or newline
         return s;
     }
 
@@ -69,25 +83,35 @@ namespace Router {
         COMMS_SERIAL.setTimeout((unsigned long) -1); // wrap around to max long so we never time out
         add({setLog, "set_log"});
     }
-    elapsedMillis ledTime = 0;
-    bool ledOn = false;
 
     [[noreturn]] void run() { // attribute here enables dead-code warning & compiler optimization
         digitalWrite(LED_BUILTIN, LOW); //led indication that software is waiting for command
-        String s = "";
         
         while (true) {
-            s = read(200);
-            s.trim(); //remove leading/trailing whitespace or newline
-            Router::info(s);
+            readCommand();
+            
+            // commandBuffer.print(); // not needed with echo
+
+            bool cmd_found = false;
             for (auto &f: funcs) {
-                if (s.equals(f.name)) {
+                if (commandBuffer.equals(f.name)) {
                     digitalWrite(LED_BUILTIN, HIGH); //led indication that command is running
                     f.f(); // call the function. it can decide to send, receive or whatever.
                     digitalWrite(LED_BUILTIN, LOW);
+                    cmd_found = true;
                     break;
                 }
             }
+            if (!cmd_found) {
+                info("Command not found.");
+            }
         }
+    }
+
+    void print_all_cmds() {
+      info("All commands: ");
+      for (auto &f : funcs) {
+        info(f.name);
+      }
     }
 }

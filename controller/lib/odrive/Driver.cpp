@@ -8,12 +8,22 @@
  *               The curves supported are lerp (linear interpolation), sine, and chirp.
  */
 
-#include <sstream>
 #include <Arduino.h>
+#include <TeensyThreads.h>
 
 #include "SDCard.h"
 #include "Driver.h"
 #include "ODrive.h"
+#include "CString.h"
+
+ThreadWrap(Serial1, SerialXtra1);
+#define Serial1 ThreadClone(SerialXtra1)
+
+ThreadWrap(Serial2, SerialXtra2);
+#define Serial2 ThreadClone(SerialXtra2)
+
+#define LOX_ODRIVE_SERIAL (Serial1)
+#define IPA_ODRIVE_SERIAL (Serial2)
 
 #define LOG_INTERVAL_MS 10
 #define COMMAND_INTERVAL_MS 1
@@ -22,10 +32,16 @@ namespace Driver {
 
     namespace { // private
 
-        ODrive loxODrive(LOX_ODRIVE_SERIAL);
-        ODrive ipaODrive(IPA_ODRIVE_SERIAL);
+        char loxName[4] = "LOX";
+        char ipaName[4] = "IPA";
+        ODrive loxODrive(LOX_ODRIVE_SERIAL, loxName);
+        // ODrive ipaODrive(IPA_ODRIVE_SERIAL, ipaName);
 
         File odriveLogFile;
+
+        CString<80> curveTelemCSV;
+        CString<50> curveFileName;
+        CString<100> printBuffer;
 
         /**
          * Logs the telemetry data for a curve in CSV format.
@@ -34,33 +50,13 @@ namespace Driver {
          * @param thrust The thrust value (for closed lerp curves) or -1 (for other curve types).
          */
         void logCurveTelemCSV(float time, int phase, float thrust) {
-
-            /* Used a byte calculator to estimate how much bytes the string needs. This is done
-             * to ensure there is no memory fragmentation when concatenating strings. 
-             * Caluclated using https://mothereff.in/byte-counter 
-             * Note: ints are given a arbitrary space of 5 character bytes in the string, just in case
-             * 
-             * time - int = 5 character bytes max (when converted to string)
-             * "," = 1 byte
-             * phase - int = 5 character bytes max (when converted to string)
-             * "," = 1 byte
-             * thrust - int = 5 character bytes max (when converted to string)
-             * "," = 1 byte
-             * loxODrive.getLastPosCmd() - float = 
-             * fwVersionMinor - int = 5 character bytes max (when converted to string)
-             * " |||" = 4 bytes
-             * 
-             * Adds up to 72 bytes, rounded up to 80 for leeway (80 is also on 8 byte boundary)
-             */
-
-            std::stringstream ss;
-            ss << "," << time << "," << phase << "," << thrust << "," << loxODrive.getLastPosCmd() 
-               << "," << ipaODrive.getLastPosCmd() << "," << loxODrive.getTelemetryCSV() << ","
-               << ipaODrive.getTelemetryCSV();
-            std::string csvRow = ss.str();
-            Router::info(csvRow);
+            curveTelemCSV.clear();
+            curveTelemCSV << "," << time << "," << phase << "," << thrust << "," << loxODrive.getLastPosCmd() 
+               << "," << "nope" << "," << loxODrive.getTelemetryCSV() << ","
+               << "nope";
+            curveTelemCSV.print();
             if (Router::logenabled) {
-                odriveLogFile.println(csvRow.c_str());
+                odriveLogFile.println(curveTelemCSV.str);
             }
         }
 
@@ -69,26 +65,24 @@ namespace Driver {
          * @return The created log file.
          */
         File createCurveLog() {
-            std::stringstream ssfilename;
-            ssfilename << Loader::header.curve_label;
+            curveFileName << Loader::header.curve_label;
 
             switch (Loader::header.ctype) {
                 case curve_type::lerp:
-                    ssfilename << (Loader::header.is_open ? "_lerp_open" : "_lerp_closed");
+                    curveFileName << (Loader::header.is_open ? "_lerp_open" : "_lerp_closed");
                     break;
                 case curve_type::sine:
-                    ssfilename << (Loader::header.is_open ? "_sine_open" : "_sine_closed");
+                    curveFileName << (Loader::header.is_open ? "_sine_open" : "_sine_closed");
                     break;
                 case curve_type::chirp:
-                    ssfilename << (Loader::header.is_open ? "_chirp_open" : "_chirp_closed");
+                    curveFileName << (Loader::header.is_open ? "_chirp_open" : "_chirp_closed");
                     break;
                 default:
                     break;
             }
-            ssfilename << ".csv";
+            curveFileName << ".csv";
 
-            std::string filename = ssfilename.str();
-            File odriveLogFile = SDCard::open(filename.c_str(), FILE_WRITE);
+            File odriveLogFile = SDCard::open(curveFileName.str, FILE_WRITE);
 
             if (!odriveLogFile) { // Failed to create a log file
                 return odriveLogFile;
@@ -127,12 +121,13 @@ namespace Driver {
             for (int i = 0; i < Loader::header.lerp.num_points - 1; i++) {
                 while (timer / 1000.0 < los[i].time) {
                     float seconds = timer / 1000.0;
+                    if (watchdogThreadsEnded()) { return; }
                     float lox_pos = lerp(los[i].lox_angle, los[i + 1].lox_angle, los[i].time, los[i + 1].time, seconds);
                     float ipa_pos = lerp(los[i].ipa_angle, los[i + 1].ipa_angle, los[i].time, los[i + 1].time, seconds);
                     lox_pos = constrain(lox_pos, MIN_ODRIVE_POS, MAX_ODRIVE_POS);
                     ipa_pos = constrain(ipa_pos, MIN_ODRIVE_POS, MAX_ODRIVE_POS);
                     loxODrive.setPos(lox_pos);
-                    ipaODrive.setPos(ipa_pos);
+                    // ipaODrive.setPos(ipa_pos);
                     if (timer - lastlog > LOG_INTERVAL_MS) {
                         logCurveTelemCSV(seconds, i, -1);
                         lastlog = timer;
@@ -153,6 +148,7 @@ namespace Driver {
             for (int i = 0; i < Loader::header.lerp.num_points-1; i++) {
                 while (timer / 1000.0 < lcs[i].time) {
                     float seconds = timer / 1000.0;
+                    if (watchdogThreadsEnded()) { return; }
                     float thrust = lerp(lcs[i].thrust, lcs[i + 1].thrust, lcs[i].time, lcs[i + 1].time, seconds);
                     setThrust(thrust);
                     if (timer - lastlog >= LOG_INTERVAL_MS) {
@@ -183,13 +179,14 @@ namespace Driver {
             for (int i = 0; i < num_cycles; i++) {
                 while (timer / 1000.0 < period) {
                     float seconds = timer / 1000.0;
+                    if (watchdogThreadsEnded()) { return; }
                     if (Loader::header.is_open) {
                         lox_pos = amplitude * (sin(2 * M_PI * seconds / period) + 1.0) / 2.0;
                         ipa_pos = lox_pos / Loader::header.of_ratio;
                         lox_pos = constrain(lox_pos, MIN_ODRIVE_POS, MAX_ODRIVE_POS);
                         ipa_pos = constrain(ipa_pos, MIN_ODRIVE_POS, MAX_ODRIVE_POS);
                         loxODrive.setPos(lox_pos);
-                        ipaODrive.setPos(ipa_pos);
+                        // ipaODrive.setPos(ipa_pos);
                     } else {
                         thrust = amplitude * (sin(2 * M_PI * seconds / period) + 1.0) / 2.0;
                         setThrust(thrust);
@@ -212,7 +209,8 @@ namespace Driver {
     void begin() {
         Router::add({Driver::followCurve, "follow_curve"});
         Router::add({Driver::printODriveInfo, "get_odrive_info"});
-        Router::add({Driver::setThrustCmd, "set_thrust"});
+        // Router::add({Driver::setThrustCmd, "set_thrust"});
+        Router::add({Driver::setThrustCmd_OPEN_LOOP, "set_thrust_open_loop"});
 
         /*
          * This syntax is slightly tricky. The add function only takes one argument: a func struct
@@ -235,19 +233,25 @@ namespace Driver {
          */
 
         Router::add({[&]() {loxODrive.clear(); }, "clear_lox_odrive_errors"});
-        Router::add({[&]() {ipaODrive.clear(); }, "clear_ipa_odrive_errors"});
+        // Router::add({[&]() {ipaODrive.clear(); }, "clear_ipa_odrive_errors"});
 
         Router::add({[&]() {loxODrive.setPosConsoleCmd(); }, "set_lox_odrive_pos"});
-        Router::add({[&]() {ipaODrive.setPosConsoleCmd(); }, "set_ipa_odrive_pos"});
+        // Router::add({[&]() {ipaODrive.setPosConsoleCmd(); }, "set_ipa_odrive_pos"});
 
         Router::add({[&]() {loxODrive.printCmdPos(); }, "get_lox_cmd_pos"});
-        Router::add({[&]() {ipaODrive.printCmdPos(); }, "get_ipa_cmd_pos"});
+        // Router::add({[&]() {ipaODrive.printCmdPos(); }, "get_ipa_cmd_pos"});
 
         Router::add({[&]() {loxODrive.identify(); }, "identify_lox_odrive"});
-        Router::add({[&]() {loxODrive.identify(); }, "identify_ipa_odrive"});
+        // Router::add({[&]() {ipaODrive.identify(); }, "identify_ipa_odrive"});
 
         Router::add({[&]() {loxODrive.printTelemetryCSV(); }, "get_lox_odrive_telem"});
-        Router::add({[&]() {ipaODrive.printTelemetryCSV(); }, "get_ipa_odrive_telem"});
+        // Router::add({[&]() {ipaODrive.printTelemetryCSV(); }, "get_ipa_odrive_telem"});
+
+        Router::add({[&]() {loxODrive.startWatchdogThread(); }, "start_lox_watchdog_thread"});
+        // Router::add({[&]() {ipaODrive.startWatchdogThread(); }, "start_ipa_watchdog_thread"});
+
+        Router::add({[&]() {loxODrive.terminateWatchdogThread(); }, "terminate_lox_watchdog_thread"});
+        // Router::add({[&]() {ipaODrive.terminateWatchdogThread(); }, "terminate_ipa_watchdog_thread"});
 
 #if (ENABLE_ODRIVE_COMM)
         LOX_ODRIVE_SERIAL.begin(LOX_ODRIVE_SERIAL_RATE);
@@ -257,9 +261,9 @@ namespace Driver {
         loxODrive.checkConnection();
         loxODrive.checkConfig();
 
-        Router::info("Connecting to ipa odrive...");
-        ipaODrive.checkConnection();
-        ipaODrive.checkConfig();
+        // Router::info("Connecting to ipa odrive...");
+        // ipaODrive.checkConnection();
+        // ipaODrive.checkConfig();
 
         printODriveInfo();
 #endif
@@ -269,37 +273,37 @@ namespace Driver {
     void printODriveInfo() {
         Router::info("LOX ODrive: ");
         Router::info(loxODrive.getODriveInfo());
-        Router::info("IPA ODrive: ");
-        Router::info(ipaODrive.getODriveInfo());
+        // Router::info("IPA ODrive: ");
+        // Router::info(ipaODrive.getODriveInfo());
     }
 
-    /**
-     * Command for the Router lib to change the thrust manually.
-     */
-    void setThrustCmd() {
-        Router::info("Position?");
-        String thrustString = Router::read(INT_BUFFER_SIZE);
-        Router::info("Response: " + thrustString);
+    // /**
+    //  * Command for the Router lib to change the thrust manually.
+    //  */
+    // void setThrustCmd() {
+    //     Router::info("Position?");
+    //     String thrustString = Router::read(INT_BUFFER_SIZE);
+    //     Router::info("Response: " + thrustString);
 
-        float thrust;
-        int result = std::sscanf(thrustString.c_str(), "%f", &thrust);
-        if (result != 1) {
-            Router::info("Could not convert input to a float, not continuing");
-            return;
-        }
+    //     float thrust;
+    //     int result = std::sscanf(thrustString.c_str(), "%f", &thrust);
+    //     if (result != 1) {
+    //         Router::info("Could not convert input to a float, not continuing");
+    //         return;
+    //     }
 
-        if (thrust < MIN_TRHUST || thrust > MAX_THRUST) {
-            Router::info("Thrust outside defined range in code, not continuing");
-            return;
-        }
+    //     if (thrust < MIN_THRUST || thrust > MAX_THRUST) {
+    //         Router::info("Thrust outside defined range in code, not continuing");
+    //         return;
+    //     }
 
-        setThrust(thrust);
+    //     setThrust(thrust);
 
-        stringstream ss;
-        ss << "Thrust set. LOX pos: " << loxODrive.getLastPosCmd() << " IPA pos: " << ipaODrive.getLastPosCmd();
+    //     printBuffer.clear();
+    //     printBuffer << "Thrust set. LOX pos: " << loxODrive.getLastPosCmd() << " IPA pos: " << ipaODrive.getLastPosCmd();
 
-        Router::info(ss.str());
-    }
+    //     Router::info(printBuffer.str);
+    // }
 
     /*
      * Sets the thrust
@@ -313,6 +317,45 @@ namespace Driver {
     }
 
     /**
+     * Command for the Router lib to change the thrust manually.
+     */
+    void setThrustCmd_OPEN_LOOP() {
+        Router::info("Thrust?");
+        String thrustString = Router::read(INT_BUFFER_SIZE);
+        Router::info("Response: " + thrustString);
+
+        float thrust;
+        int result = std::sscanf(thrustString.c_str(), "%f", &thrust);
+        if (result != 1) {
+            Router::info("Could not convert input to a float, not continuing");
+            return;
+        }
+
+        if (thrust < MIN_THRUST || thrust > MAX_THRUST) {
+            Router::info("Thrust outside defined range in code, not continuing");
+            return;
+        }
+
+        setThrustOpenLoop(thrust);
+
+        printBuffer.clear();
+        printBuffer << "Thrust set using open loop. LOX pos: " << loxODrive.getLastPosCmd(); // << " IPA pos: " << ipaODrive.getLastPosCmd();
+
+        Router::info(printBuffer.str);
+    }
+
+    /*
+     * Sets the thrust using open loop control
+     */
+    void setThrustOpenLoop(float thrust) {
+        float angle_ox;
+        float angle_fuel;
+        open_loop_thrust_control_defaults(thrust, &angle_ox, &angle_fuel);
+        loxODrive.setPos(angle_ox / 360);
+        // ipaODrive.setPos(angle_fuel / 360);
+    }
+
+    /**
      * Initiates curve following based on the curve header loaded in Loader.cpp.
      */
     void followCurve() {
@@ -322,7 +365,7 @@ namespace Driver {
         }
 
         //checkConfig() function provides its own error message console logging
-        if (loxODrive.checkConfig() || ipaODrive.checkConfig()) {return;}
+        if (loxODrive.checkConfig()) {return;}
 
         if (Router::logenabled) {
             odriveLogFile = createCurveLog();
@@ -333,6 +376,9 @@ namespace Driver {
         }
 
         bool open = Loader::header.is_open;
+
+        loxODrive.startWatchdogThread();
+        // ipaODrive.startWatchdogThread();
 
         switch (Loader::header.ctype) {
             case curve_type::lerp:
@@ -353,6 +399,25 @@ namespace Driver {
             odriveLogFile.close();
         }
 
-        Router::info("Finished following curve!");
+        if (watchdogThreadsEnded()) {
+            Router::info("ERROR: Ended curve following early.");
+            loxODrive.printErrors();
+            // ipaODrive.printErrors();
+        } else {
+            Router::info("Finished following curve!");
+        }
+        
+        loxODrive.terminateWatchdogThread();
+        // ipaODrive.terminateWatchdogThread();
+    }
+
+    /*
+     * Checks if either the ipa odrive or lox odrive watchdog threads ended early
+     */
+    bool watchdogThreadsEnded() {
+        if (loxODrive.checkThreadExecutionFinished()) { // || ipaODrive.checkThreadExecutionFinished()) {
+            return true; 
+        }
+        return false;          
     }
 }
