@@ -5,6 +5,9 @@
 #include "Router.h"
 #include "Loader.h"
 #include "SDCard.h"
+#include "Pressure.h"
+
+using namespace Pressure;
 
 void ping() {
    Router::info("pong");
@@ -26,6 +29,8 @@ void setup() {
 
     //set all new threads to run on the CPU for a max of 20 ms before switching to another thread
     threads.setDefaultTimeSlice(20); 
+
+    loxUpstreamPressure.startPressureCheckThread();
 
     Router::add({ping, "ping"}); // example registration
     Router::add({help, "help"});
