@@ -22,6 +22,7 @@ private:
 
 public:
     BiquadLPF(float cutoffFreq, float sampleFreq);
+	BiquadLPF();
     float biquadLPFApply(float x_n) volatile;
 
 };
