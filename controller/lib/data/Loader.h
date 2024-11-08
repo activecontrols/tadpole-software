@@ -18,8 +18,8 @@ class Loader {
 public:
     static control_config config;
     static curve_header header;
-    static lerp_point_open* los;
-    static lerp_point_closed* lcs;
+    static lerp_point_angle* lerp_angle_curve;
+    static lerp_point_thrust* lerp_thrust_curve;
     static bool loaded_curve;
     static bool loaded_config;
 

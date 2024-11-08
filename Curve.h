@@ -1,3 +1,4 @@
+#define CURRENT_CURVEH_VERSION 1 // UPDATE THIS BIT IF THE STRUCT IS CHANGED - it will invalidate files created in older version
 
 enum class curve_type {
     sine,
@@ -9,18 +10,19 @@ typedef struct {
     float time;      // seconds since start
     float lox_angle; // 0-90 degrees?
     float ipa_angle; // 0-90 degrees?
-} lerp_point_open;
+} lerp_point_angle;
 
 typedef struct {
     float time;      // seconds since start
     float thrust;    // 0-100
-} lerp_point_closed;
+} lerp_point_thrust;
 
 typedef struct {
+    int version = CURRENT_CURVEH_VERSION;
     char curve_label[50]; // max 49 char string label
     curve_type ctype;
-    bool is_open;
-    float of_ratio; // used for open loop control for sine and chirp. we currently assume O/F > 1. can change later.
+    float of_ratio; // ratio between valve angles for sine wave angle control
+    bool is_thrust; // true if thrust, false if angle
     union { // which of these is used depends on ctype
         struct {
             float amplitude; // 0-1
@@ -34,12 +36,11 @@ typedef struct {
         } chirp;
         struct {
             int num_points;
-            char checksum[4];
         } lerp;
     };
 } curve_header;
 
-// all placeholders for now
+// NOT USED CURRENTLY
 typedef struct {
     float lox_mdot_gains[30];
     float ipa_mdot_gains[30];
