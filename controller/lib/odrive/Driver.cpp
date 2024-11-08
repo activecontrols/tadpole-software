@@ -119,7 +119,7 @@ namespace Driver {
             unsigned long lastlog = timer;
 
             for (int i = 0; i < Loader::header.lerp.num_points - 1; i++) {
-                while (timer / 1000.0 < los[i].time) {
+                while (timer / 1000.0 < los[i+1].time) {
                     float seconds = timer / 1000.0;
                     if (watchdogThreadsEnded()) { return; }
                     float lox_pos = lerp(los[i].lox_angle, los[i + 1].lox_angle, los[i].time, los[i + 1].time, seconds);
@@ -144,13 +144,14 @@ namespace Driver {
             lerp_point_closed *lcs = Loader::lcs;
             elapsedMillis timer = elapsedMillis();
             unsigned long lastlog = timer;
+            Serial.println(timer);
 
             for (int i = 0; i < Loader::header.lerp.num_points-1; i++) {
-                while (timer / 1000.0 < lcs[i].time) {
+                while (timer / 1000.0 < lcs[i+1].time) {
                     float seconds = timer / 1000.0;
-                    if (watchdogThreadsEnded()) { return; }
+                    // if (watchdogThreadsEnded()) { return; }
                     float thrust = lerp(lcs[i].thrust, lcs[i + 1].thrust, lcs[i].time, lcs[i + 1].time, seconds);
-                    setThrust(thrust);
+                    setThrustOpenLoop(thrust);
                     if (timer - lastlog >= LOG_INTERVAL_MS) {
                         logCurveTelemCSV(seconds, i, thrust);
                         lastlog = timer;
@@ -377,7 +378,7 @@ namespace Driver {
 
         bool open = Loader::header.is_open;
 
-        loxODrive.startWatchdogThread();
+        // loxODrive.startWatchdogThread();
         // ipaODrive.startWatchdogThread();
 
         switch (Loader::header.ctype) {
@@ -399,15 +400,15 @@ namespace Driver {
             odriveLogFile.close();
         }
 
-        if (watchdogThreadsEnded()) {
-            Router::info("ERROR: Ended curve following early.");
-            loxODrive.printErrors();
-            // ipaODrive.printErrors();
-        } else {
+        // if (watchdogThreadsEnded()) {
+        //     Router::info("ERROR: Ended curve following early.");
+        //     loxODrive.printErrors();
+        //     // ipaODrive.printErrors();
+        // } else {
             Router::info("Finished following curve!");
-        }
+        // }
         
-        loxODrive.terminateWatchdogThread();
+        // loxODrive.terminateWatchdogThread();
         // ipaODrive.terminateWatchdogThread();
     }
 

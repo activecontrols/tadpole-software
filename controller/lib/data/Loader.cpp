@@ -43,21 +43,23 @@ void Loader::load_curve_generic(bool serial, File* f) {
             // load lerp points in from serial
             if (header.is_open) {
                 los = (lerp_point_open *) (extmem_calloc(header.lerp.num_points, sizeof(lerp_point_open)));
-                receive((char *) &los, sizeof(lerp_point_open) * header.lerp.num_points);
+                // the ampersand should not be here - los is already a memory address
+                receive((char *) los, sizeof(lerp_point_open) * header.lerp.num_points);
             } else {
                 lcs = (lerp_point_closed *) (extmem_calloc(header.lerp.num_points, sizeof(lerp_point_closed)));
-                receive((char *) &lcs, sizeof(lerp_point_closed) * header.lerp.num_points);
+                // the ampersand should not be here - los is already a memory address
+                receive((char *) lcs, sizeof(lerp_point_closed) * header.lerp.num_points);
 
                 Serial.print("Loaded curve with: ");
                 Serial.print(header.lerp.num_points);
                 Serial.println(" points");
-                
+
                 for (int i = 0; i < header.lerp.num_points; i++) {
-                  Serial.print("Point: ");
-                  Serial.print(lcs[i].time);
-                  Serial.print(" sec | ");
-                  Serial.print(lcs[i].thrust);
-                  Serial.println(" lbf.");
+                    Serial.print("Point: ");
+                    Serial.print(lcs[i].time);
+                    Serial.print(" sec | ");
+                    Serial.print(lcs[i].thrust);
+                    Serial.println(" lbf.");
                 }
             }
             break;
