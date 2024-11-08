@@ -7,7 +7,7 @@
 #include "CString.h"
 #include "ODriveUART.h"
 
-#define ENABLE_ODRIVE_COMM (true)
+#define ENABLE_ODRIVE_COMM (false)
 
 #define ODRIVE_NO_ERROR (0)
 #define ODRIVE_ACTIVE_ERROR (-1)
@@ -26,152 +26,149 @@
 #define MIN_ODRIVE_POS (-1)
 
 /*
- * See comment above `threadArgs` variable in ODrive class 
+ * See comment above `threadArgs` variable in ODrive class
  */
 struct ThreadArgs {
-    Stream& serial;
+  Stream &serial;
 
-    /* 
-     * An bool to determine if the watchdog thread has finished execution
-     * Similar but not completely based on the solution (third example) here: 
-     * https://stackoverflow.com/questions/9094422/how-to-check-if-a-stdthread-is-still-running
-     */
-    volatile bool threadExecutionFinished;
+  /*
+   * An bool to determine if the watchdog thread has finished execution
+   * Similar but not completely based on the solution (third example) here:
+   * https://stackoverflow.com/questions/9094422/how-to-check-if-a-stdthread-is-still-running
+   */
+  volatile bool threadExecutionFinished;
 };
 
 class ODrive : public ODriveUART {
 
 private:
+  /*
+   * Name assigned to the ODrive for more descriptive error codes and
+   * console printing. Can be either "LOX" or "IPA" with a null terminator
+   */
+  char name[4];
 
-    /*
-     * Name assigned to the ODrive for more descriptive error codes and
-     * console printing. Can be either "LOX" or "IPA" with a null terminator
-     */
-    char name[4];
+  CString<40> telemetryCSV;
 
-    CString<40> telemetryCSV;
+  CString<80> odriveInfo;
 
-    CString<80> odriveInfo;
+  /*
+   * The last position command sent to the odrive
+   * Modified only in `setPos()`
+   */
+  float posCmd;
 
-    /*
-     * The last position command sent to the odrive
-     * Modified only in `setPos()`
-     */
-    float posCmd;
+  /*
+   * The last error the odrive encontered
+   * Modified only by `checkErrors()`
+   * Can be cleared by `ODriveUART::clearErrors()`
+   * If there is no last error, then the value will be `0`
+   */
+  int activeError;
 
-    /*
-     * The last error the odrive encontered 
-     * Modified only by `checkErrors()`
-     * Can be cleared by `ODriveUART::clearErrors()`
-     * If there is no last error, then the value will be `0`
-     */
-    int activeError;
+  /*
+   * A flag that determines whether the ODrive is armed or not
+   * Modified by terminateWatchdogThread() and checkErrors()
+   */
+  bool isArmed;
 
-    /*
-     * A flag that determines whether the ODrive is armed or not
-     * Modified by terminateWatchdogThread() and checkErrors()
-     */
-    bool isArmed;
+  /*
+   * A flag that determines whether the ODrive is misconfigured or not
+   * Modified by checkConfig()
+   */
+  bool misconfigured;
 
-    /*
-     * A flag that determines whether the ODrive is misconfigured or not
-     * Modified by checkConfig()
-     */
-    bool misconfigured;
+  /*
+   * A flag that determines whether the ODrive needs to be rebooted
+   * Modified by checkConfig()
+   */
+  bool rebootRequired;
 
-    /*
-     * A flag that determines whether the ODrive needs to be rebooted
-     * Modified by checkConfig()
-     */
-    bool rebootRequired;
-    
-    /*
-     * The error code that made the odrive disarm 
-     * Modified only by `checkErrors()`
-     * Can be cleared by `ODriveUART::clearErrors()`
-     * If there is no last error, then the value will be `0`
-     */
-    int disarmReason;
+  /*
+   * The error code that made the odrive disarm
+   * Modified only by `checkErrors()`
+   * Can be cleared by `ODriveUART::clearErrors()`
+   * If there is no last error, then the value will be `0`
+   */
+  int disarmReason;
 
-    /*
-     * A reference to the serial port object used by the ODrive
-     */
-    Stream &serial;
+  /*
+   * A reference to the serial port object used by the ODrive
+   */
+  Stream &serial;
 
-    /* 
-     * Handler for the thread ( `watchdogThreadFunc` ) that feeds the ODrive watchdog and checks
-     * for active errors.
-     * Modified by `startWatchdogThread()` and `terminateWatchdogThread()`
-     * 
-     * NOTE: This type of thread object comes from TeensyThreads.h and won't have all of the 
-     * funtionality or compatibility that the standard `std::thread` object has in the C++ lib
-     */
-    std::thread* watchdogThread;
+  /*
+   * Handler for the thread ( `watchdogThreadFunc` ) that feeds the ODrive watchdog and checks
+   * for active errors.
+   * Modified by `startWatchdogThread()` and `terminateWatchdogThread()`
+   *
+   * NOTE: This type of thread object comes from TeensyThreads.h and won't have all of the
+   * funtionality or compatibility that the standard `std::thread` object has in the C++ lib
+   */
+  std::thread *watchdogThread;
 
-    /*
-     * The struct that holds the function arguments to be passed into a thread. This struct
-     * will be casted to a (void *) in `startWatchdogThread()`
-     */
-    volatile struct ThreadArgs threadArgs;
+  /*
+   * The struct that holds the function arguments to be passed into a thread. This struct
+   * will be casted to a (void *) in `startWatchdogThread()`
+   */
+  volatile struct ThreadArgs threadArgs;
 
-    /*
-     * The thread ID of the watchdog thread
-     * Modified by `startWatchdogThread()`
-     */
-    int threadID;
+  /*
+   * The thread ID of the watchdog thread
+   * Modified by `startWatchdogThread()`
+   */
+  int threadID;
 
-    /*
-     * The last known position, velocity, voltage, and current of the ODrive
-     * Modified by `getTelemetryCSV()`
-     */
-    float position;
-    float velocity;
-    float voltage;
-    float current;
+  /*
+   * The last known position, velocity, voltage, and current of the ODrive
+   * Modified by `getTelemetryCSV()`
+   */
+  float position;
+  float velocity;
+  float voltage;
+  float current;
 
-    /*
-     * The major and minor version of the hardware and firmware of the ODrive
-     * Modified by `getODriveInfo()`
-     */
-    int hwVersionMajor;
-    int hwVersionMinor;
-    int fwVersionMajor;
-    int fwVersionMinor;
+  /*
+   * The major and minor version of the hardware and firmware of the ODrive
+   * Modified by `getODriveInfo()`
+   */
+  int hwVersionMajor;
+  int hwVersionMinor;
+  int fwVersionMajor;
+  int fwVersionMinor;
 
 public:
+  ODrive(Stream &serial, char[4]);
 
-    ODrive(Stream &serial, char[4]);
+  void checkConnection();
+  int checkConfig();
 
-    void checkConnection();
-    int checkConfig();
+  void setPos(float);
+  void setPosConsoleCmd();
+  float getLastPosCmd() { return posCmd; }
+  void printCmdPos() { Router::info(getLastPosCmd()); }
 
-    void setPos(float);
-    void setPosConsoleCmd();
-    float getLastPosCmd() {return posCmd;}
-    void printCmdPos() { Router::info(getLastPosCmd()); }
+  int checkErrors();
+  void printErrors();
+  void startWatchdogThread();
+  static void watchdogThreadFunc(void *);
+  void terminateWatchdogThread();
+  bool checkThreadExecutionFinished() { return threadArgs.threadExecutionFinished; }
+  static String readLine(Stream &, unsigned long timeout_ms = 10);
+  void clear();
 
-    int checkErrors();
-    void printErrors();
-    void startWatchdogThread();
-    static void watchdogThreadFunc(void *);
-    void terminateWatchdogThread();
-    bool checkThreadExecutionFinished() {return threadArgs.threadExecutionFinished; }
-    static String readLine(Stream&, unsigned long timeout_ms = 10);
-    void clear();
+  void identify();
 
-    void identify();
+  int getActiveError() { return activeError; }
+  int getDisarmReason() { return disarmReason; }
 
-    int getActiveError() {return activeError;}
-    int getDisarmReason() {return disarmReason;}
-
-    char* getTelemetryCSV();
-    void printTelemetryCSV() {
-        Router::info(ODRIVE_TELEM_HEADER);
-        telemetryCSV.print();
-    }
-    char* getODriveInfo();
-    void printODriveInfo() { odriveInfo.print(); }
-
+  char *getTelemetryCSV();
+  void printTelemetryCSV() {
+    Router::info(ODRIVE_TELEM_HEADER);
+    telemetryCSV.print();
+  }
+  char *getODriveInfo();
+  void printODriveInfo() { odriveInfo.print(); }
 };
 
 #endif

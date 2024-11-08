@@ -7,3 +7,6 @@
 .DS_Store
 .idea
 logs
+curve_writer/*.hex
+curve_writer/*.csv
+curve_writer/*.exe

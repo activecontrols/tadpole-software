@@ -68,6 +68,11 @@ namespace Router {
         COMMS_SERIAL.readBytes(msg, len);
     }
 
+    void receive_prompt(const char* prompt, char msg[], unsigned int len) {
+        info(prompt);
+        receive(msg, len);
+    }
+
     String read(unsigned int len) {
         String s = COMMS_SERIAL.readStringUntil('\n', len); 
         s.trim(); //remove leading/trailing whitespace or newline

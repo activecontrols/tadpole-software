@@ -27,6 +27,7 @@ void SDCard::ls() {
             break;
         }
         result += entry.name();
+        result += " ";
         entry.close();
     }
     root.close();

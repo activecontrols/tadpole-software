@@ -47,6 +47,18 @@ void Loader::load_curve_generic(bool serial, File* f) {
             } else {
                 lcs = (lerp_point_closed *) (extmem_calloc(header.lerp.num_points, sizeof(lerp_point_closed)));
                 receive((char *) &lcs, sizeof(lerp_point_closed) * header.lerp.num_points);
+
+                Serial.print("Loaded curve with: ");
+                Serial.print(header.lerp.num_points);
+                Serial.println(" points");
+                
+                for (int i = 0; i < header.lerp.num_points; i++) {
+                  Serial.print("Point: ");
+                  Serial.print(lcs[i].time);
+                  Serial.print(" sec | ");
+                  Serial.print(lcs[i].thrust);
+                  Serial.println(" lbf.");
+                }
             }
             break;
     }
@@ -65,9 +77,9 @@ void Loader::load_config_serial() {
 }
 
 void Loader::load_curve_sd() {
-    char filename[50];
-    Router::receive(filename, 50);
-    File f = SDCard::open(filename, FILE_READ);
+    Router::info("Enter filename: ");
+    String filename = Router::read(50);
+    File f = SDCard::open(filename.c_str(), FILE_READ);
     if (f) {
         load_curve_generic(false, &f);
         f.close();
@@ -79,9 +91,9 @@ void Loader::load_curve_sd() {
 }
 
 void Loader::load_config_sd() {
-    char filename[50];
-    Router::receive(filename, 50);
-    File f = SDCard::open(filename, FILE_READ);
+    Router::info("Enter filename: ");
+    String filename = Router::read(50);
+    File f = SDCard::open(filename.c_str(), FILE_READ);
     if (f) {
         f.read((char *) &config, sizeof(config));
         f.close();
@@ -94,9 +106,10 @@ void Loader::load_config_sd() {
 }
 
 void Loader::write_curve_sd() {
-    char filename[50];
-    Router::receive(filename, 50);
-    File f = SDCard::open(filename, FILE_WRITE);
+
+    Router::info("Enter filename: ");
+    String filename = Router::read(50);
+    File f = SDCard::open(filename.c_str(), FILE_WRITE);
     if (!f) {
         Router::info("File not found.");
         return;
@@ -119,12 +132,15 @@ void Loader::write_curve_sd() {
 }
 
 void Loader::write_config_sd() {
-    char filename[50];
-    Router::receive(filename, 50);
-    File f = SDCard::open(filename, FILE_WRITE);
+    Router::info("Enter filename: ");
+    String filename = Router::read(50);
+    File f = SDCard::open(filename.c_str(), FILE_WRITE);
     if (!f) {
         Router::info("File not found.");
         return;
+    }
+    else {
+        Router::info("File found.");
     }
     f.write((char *) &config, sizeof(config));
     f.close();
