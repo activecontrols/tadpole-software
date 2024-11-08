@@ -176,8 +176,8 @@ void ODrive::watchdogThreadFunc(void *castedArgs) {
          * This could happen because the teensy is done with throttle curve following 
          * and switches the ODrive state, or because of some error
          */
-        Serial.println("r axis0.current_state");
-        
+        args->serial.println("r axis0.current_state");
+
         currentState = readLine(args->serial).toInt();
 
         if (currentState != AXIS_STATE_CLOSED_LOOP_CONTROL) {
