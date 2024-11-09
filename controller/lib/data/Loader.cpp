@@ -25,9 +25,9 @@ void Loader::begin() {
 void Loader::load_curve_generic(bool serial, File *f) {
 
   if (loaded_curve) {
-    free(lerp_angle_curve);
+    extmem_free(lerp_angle_curve);
     lerp_angle_curve = NULL;
-    free(lerp_thrust_curve);
+    extmem_free(lerp_thrust_curve);
     lerp_thrust_curve = NULL;
   }
 
@@ -38,12 +38,13 @@ void Loader::load_curve_generic(bool serial, File *f) {
       f->read(buf, len);
   };
 
+  receive((char *)&header, sizeof(header));
+
   if (header.version != CURRENT_CURVEH_VERSION) {
     Router::info("ERROR! Attempted to load a curve from an older version. Aborting.");
     return;
   }
 
-  receive((char *)&header, sizeof(header));
   switch (header.ctype) {
   case curve_type::sine:
   case curve_type::chirp:
@@ -83,6 +84,7 @@ void Loader::load_curve_generic(bool serial, File *f) {
 }
 
 void Loader::load_curve_serial() {
+  Router::info("Preparing to load curve!");
   load_curve_generic(true, nullptr);
   Router::info("Loaded curve!");
 }
