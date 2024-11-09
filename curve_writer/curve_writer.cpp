@@ -38,6 +38,18 @@ void read_csv_cell(std::stringstream *ss, float *target) {
   *target = std::stof(cell);
 }
 
+void check_header(std::stringstream *ss, std::string header) {
+  std::string cell = ""; // holds one CSV value
+  std::getline(*ss, cell, ',');
+  if (cell == "") {
+    throw std::runtime_error("Malformed CSV - missing column");
+  }
+  if (cell != header) {
+    std::cerr << "Expected header: " << header << " but saw: " << cell << std::endl;
+    throw std::runtime_error("Malformed CSV.");
+  }
+}
+
 // returns number of rows read
 int read_csv(std::ifstream &csv_file, char mode) {
   int rows = 0;     // number of rows of data
@@ -51,8 +63,14 @@ int read_csv(std::ifstream &csv_file, char mode) {
   csv_file.seekg(0);
 
   if (mode == MODE_THRUST) {
-    std::cout << "Reading file - expecting columns time (s), thrust (lbf) - don't include header row" << std::endl;
     ltc = (lerp_point_thrust *)malloc(rows * sizeof(lerp_point_thrust));
+
+    std::getline(csv_file, line);
+    std::stringstream ss(line);
+    check_header(&ss, "time (s)");
+    check_header(&ss, "thrust (lbf)");
+    std::cout << "File header valid - reading file." << std::endl;
+
     for (int i = 0; i < rows; i++) {
       std::getline(csv_file, line);
       std::stringstream ss(line);
@@ -60,8 +78,15 @@ int read_csv(std::ifstream &csv_file, char mode) {
       read_csv_cell(&ss, &ltc[i].thrust);
     }
   } else {
-    std::cout << "Reading file - expecting columns time (s), lox_angle (deg), ipa_angle (deg) - don't include header row" << std::endl;
     lac = (lerp_point_angle *)malloc(rows * sizeof(lerp_point_angle));
+
+    std::getline(csv_file, line);
+    std::stringstream ss(line);
+    check_header(&ss, "time (s)");
+    check_header(&ss, "lox_angle (deg)");
+    check_header(&ss, "ipa_angle (deg)");
+    std::cout << "File header valid - reading file." << std::endl;
+
     for (int i = 0; i < rows; i++) {
       std::getline(csv_file, line);
       std::stringstream ss(line);
@@ -72,7 +97,7 @@ int read_csv(std::ifstream &csv_file, char mode) {
   }
   csv_file.close();
 
-  return rows;
+  return rows - 1; // header row
 }
 
 void fill_header(std::string csv_filename, char mode, int num_points) {
@@ -111,7 +136,7 @@ int main() {
 
   // USER INPUT
   std::cout << "Curve Writer" << std::endl;
-  std::cout << "Running on curve version: " << header.version << std::endl;
+  std::cout << "Running on curveh version: " << header.version << std::endl;
   mode = input_mode();
   std::cout << "Enter the CSV filename: ";
   std::getline(std::cin, csv_filename);
