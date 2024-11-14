@@ -39,15 +39,6 @@ void ODrive::checkConnection() {
  */
 int ODrive::checkConfig() {
 #if (ENABLE_ODRIVE_COMM)
-<<<<<<< HEAD
-    bool misconfigured = ODriveUART::getParameterAsInt("misconfigured");
-    Router::info("ERROR: ODRIVE IS MISCONFIGURED, WILL NOT ALLOW CURVE FOLLOWING");
-    if (misconfigured) {return ODRIVE_MISCONFIGURED;}
-
-    bool rebootRequired = ODriveUART::getParameterAsInt("reboot_required");
-    Router::info("ERROR: ODRIVE NEEDS TO REBOOT, WILL NOT ALLOW CURVE FOLLOWING");
-    if (rebootRequired) {return ODRIVE_REBOOT_REQUIRED;}
-=======
     misconfigured = false; // ODriveUART::getParameterAsInt("misconfigured"); // TODO - deal with this later
     rebootRequired = false; // ODriveUART::getParameterAsInt("reboot_required");
 
@@ -66,7 +57,6 @@ int ODrive::checkConfig() {
         );
         return ODRIVE_REBOOT_REQUIRED;
     }
->>>>>>> origin/open_loop_valves
 #endif
     return ODRIVE_NO_ERROR;
 }
@@ -280,43 +270,6 @@ void ODrive::identify() {
  * Returns a CSV string (max 40 characters) containing the ODrive Telemetry information, in the following 
  * format: position,velocity,voltage,current
  */
-<<<<<<< HEAD
-String ODrive::getTelemetryCSV() {
-
-    /* Used a byte calculator to estimate how much bytes the string needs. This is done
-     * to ensure there is no memory fragmentation when concatenating strings. 
-     * Caluclated using https://mothereff.in/byte-counter 
-     * Note: ints are given a arbitrary space of 8 character bytes in the string, just in case
-     * 
-     * position - float = 8 character bytes max (when converted to string)
-     * "," = 1 byte
-     * velocity - float = 8 character bytes max (when converted to string)
-     * "," = 1 byte
-     * voltage - float = 8 character bytes max (when converted to string)
-     * "," = 1 byte
-     * current - float = 8 character bytes max (when converted to string)
-     * 
-     * Adds up to 35 bytes, rounded up to 40 for leeway (40 is also on 8 byte boundary)
-    */
-
-    String csv;
-    csv.reserve(40);
-
-#if (ENABLE_ODRIVE_COMM)
-    lastKnownPos = ODriveUART::getPosition();
-
-    lastKnownVel = ODriveUART::getVelocity();
-
-    lastKnownVoltage = ODriveUART::getParameterAsFloat("vbus_voltage");
-
-    lastKnownCurrent = ODriveUART::getParameterAsFloat("ibus");
-
-    csv << String(lastKnownPos, 8) << "," << String(lastKnownVel, 8) << ","
-        << String(lastKnownVel, 8) << "," << String(lastKnownCurrent, 8);
-    
-#endif
-    return csv;
-=======
 char* ODrive::getTelemetryCSV() {
     telemetryCSV.clear();
 
@@ -334,44 +287,12 @@ char* ODrive::getTelemetryCSV() {
 #endif
 
     return telemetryCSV.str;
->>>>>>> origin/open_loop_valves
 }
 
 /**
  * Returns a string (max 80 characters) containing the hardware and firmware major and 
  * minor versons of the ODrive
  */
-<<<<<<< HEAD
-String ODrive::getODriveInfo() {
-    String info;
-
-    /* Used a byte calculator to estimate how much bytes the string needs. This is done
-     * to ensure there is no memory fragmentation when concatenating strings. 
-     * Caluclated using https://mothereff.in/byte-counter 
-     * Note: ints are given a arbitrary space of 5 character bytes in the string, just in case
-     * 
-     * "ODrive Hardware Version: " = 25 bytes
-     * hwVersionMajor - int = 5 character bytes max (when converted to string)
-     * "." = 1 byte
-     * hwVersionMinor -  int = 5 character bytes max (when converted to string)
-     * " | Firmware Version: " = 21 bytes
-     * fwVersionMajor - int = 5 character bytes max (when converted to string)
-     * "." = 1 byte
-     * fwVersionMinor - int = 5 character bytes max (when converted to string)
-     * " |||" = 4 bytes
-     * 
-     * Adds up to 72 bytes, rounded up to 80 for leeway (80 is also on 8 byte boundary)
-    */
-
-    info.reserve(80);
-#if (ENABLE_ODRIVE_COMM)
-    int hwVersionMajor = ODriveUART::getParameterAsInt("hw_version_major");
-    int hwVersionMinor = ODriveUART::getParameterAsInt("hw_version_minor");
-    int fwVersionMajor = ODriveUART::getParameterAsInt("fw_version_major");
-    int fwVersionMinor = ODriveUART::getParameterAsInt("fw_version_minor");
-
-    info << "ODrive Hardware Version: " << hwVersionMajor << "." << hwVersionMinor
-=======
 char* ODrive::getODriveInfo() {
     odriveInfo.clear();
 
@@ -382,15 +303,10 @@ char* ODrive::getODriveInfo() {
     fwVersionMinor = ODriveUART::getParameterAsInt("fw_version_minor");
 
     odriveInfo << "ODrive Hardware Version: " << hwVersionMajor << "." << hwVersionMinor
->>>>>>> origin/open_loop_valves
         << " | Firmware Version: " << fwVersionMajor << "." << fwVersionMinor << " |||";
 #endif
-<<<<<<< HEAD
-    return info;
-=======
 
     return odriveInfo.str;
->>>>>>> origin/open_loop_valves
 }
 
 /**

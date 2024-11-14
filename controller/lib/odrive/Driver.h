@@ -11,17 +11,9 @@
 #ifndef DRIVER_H
 #define DRIVER_H
 
-<<<<<<< HEAD
-#include <Loader.h>
-#include <Router.h>
-
-#define LOX_ODRIVE_SERIAL (Serial1)
-#define IPA_ODRIVE_SERIAL (Serial2)
-=======
 #include "Loader.h"
 #include "Router.h"
 #include "valve_controller.hpp"
->>>>>>> origin/open_loop_valves
 
 #define LOX_ODRIVE_SERIAL_RATE (115200)
 #define IPA_ODRIVE_SERIAL_RATE (115200)

@@ -16,13 +16,15 @@
 #define LOX_UPSTREAM_VOLT_MAX 10
 #define LOX_UPSTREAM_PSI_MIN 0
 #define LOX_UPSTREAM_PSI_MAX 100
+#define LOX_UPSTREAM_SAMPLE_FREQ 100
+#define LOX_UPSTREAM_CUTOFF_FREQ 100
 
 namespace Pressure {
     
     PressureObj loxUpstreamPressure(
         LOX_UPSTREAM_PIN, LOX_UPSTREAM_VOLT_MIN, 
         LOX_UPSTREAM_VOLT_MAX, LOX_UPSTREAM_PSI_MIN, 
-        LOX_UPSTREAM_PSI_MAX
+        LOX_UPSTREAM_PSI_MAX, LOX_UPSTREAM_CUTOFF_FREQ, LOX_UPSTREAM_SAMPLE_FREQ
     ); //example pressure sensor obj declaration, may not be used in final code
 
 }

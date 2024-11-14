@@ -1,11 +1,7 @@
 #ifndef ODRIVE_H
 #define ODRIVE_H
 
-<<<<<<< HEAD
-#include <Router.h>
-=======
 #include <TeensyThreads.h>
->>>>>>> origin/open_loop_valves
 
 #include "Router.h"
 #include "CString.h"
@@ -97,12 +93,6 @@ private:
      */
     int disarmReason;
 
-<<<<<<< HEAD
-    float lastKnownPos;
-    float lastKnownVel;
-    float lastKnownVoltage;
-    float lastKnownCurrent;
-=======
     /*
      * A reference to the serial port object used by the ODrive
      */
@@ -147,7 +137,6 @@ private:
     int hwVersionMinor;
     int fwVersionMajor;
     int fwVersionMinor;
->>>>>>> origin/open_loop_valves
 
 public:
 
@@ -175,22 +164,13 @@ public:
     int getActiveError() {return activeError;}
     int getDisarmReason() {return disarmReason;}
 
-<<<<<<< HEAD
-    String getTelemetryCSV();
-=======
     char* getTelemetryCSV();
->>>>>>> origin/open_loop_valves
     void printTelemetryCSV() {
         Router::info(ODRIVE_TELEM_HEADER);
         telemetryCSV.print();
     }
-<<<<<<< HEAD
-    String getODriveInfo();
-    void printODriveInfo() { Router::info(getODriveInfo()); }
-=======
     char* getODriveInfo();
     void printODriveInfo() { odriveInfo.print(); }
->>>>>>> origin/open_loop_valves
 
 };
 
