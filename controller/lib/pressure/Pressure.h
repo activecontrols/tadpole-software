@@ -27,6 +27,10 @@ namespace Pressure {
         LOX_UPSTREAM_PSI_MAX, LOX_UPSTREAM_CUTOFF_FREQ, LOX_UPSTREAM_SAMPLE_FREQ
     ); //example pressure sensor obj declaration, may not be used in final code
 
+    void print_pressure() {
+      Router::info("Current pressure: " + std::to_string(loxUpstreamPressure.pressure));
+    }
+
 }
 
 #endif // PRESSURE_H

@@ -15,21 +15,7 @@
 // Implementation of TeensyThreads based on https://github.com/ftrias/TeensyThreads/tree/master/examples/Runnable
 // Runnable example
 
-class RunnablePressure{
-private:
-protected:
-	virtual void checkPressure(void *arg) = 0;
-public:
-	virtual ~RunnablePressure(){}
-
-	static void runThread(void *arg)
-	{
-		RunnablePressure *_runnable = static_cast<RunnablePressure*> (arg);
-		_runnable->checkPressure(arg);
-	}
-};
-
-class PressureObj : public RunnablePressure {
+class PressureObj {
 
 private:
     unsigned int pin;
@@ -44,15 +30,13 @@ private:
     int threadID;
 protected:
   // Runnable function that we need to implement
-  void checkPressure(void *arg);
+  static void checkPressureThreadFunc(void *arg);
 
 public:
     PressureObj(unsigned int pin, float pressureMin, float pressureMax, float voltageMin, float voltageMax, float filter_cutoff_freq, float filter_sample_freq);
-    float getPressure() volatile;
-    void PressureObj::startPressureCheckThread();
+    float getPressure();
+    void startPressureCheckThread();
     volatile float pressure;
-
 };
-
 
 #endif // PRSSUREOBJ_H
