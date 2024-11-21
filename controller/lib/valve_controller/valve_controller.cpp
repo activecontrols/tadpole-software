@@ -173,24 +173,6 @@ void open_loop_thrust_control_defaults(float thrust, float *angle_ox, float *ang
 //   *value = new_value;
 // }
 
-// // updates ox pressure (in psi)
-// void set_ox_pressure(float pressure) { // TODO - replace these with "lambda" functions
-//   update_float_value(&ox.upstream_pressure, "Ox Pressure (psi): ");
-// }
-
-// // updates ipa pressure (in psi)
-// void set_ipa_pressure(float pressure) {
-//   update_float_value(&ipa.upstream_pressure, "IPA Pressure (psi): ");
-// }
-
-// // updates ox temperature (in K)
-// void set_ox_temperature(float temperature) { // TODO - lookup table updates vapour pressure
-// }
-
-// // updates ipa temperature (in K)
-// void set_ipa_temperature(float temperature) { // TODO - lookup table updates vapour pressure
-// }
-
 // CString<200> fluid_info;
 // void print_fluid_info() {
 //   Router::info("OX Info:");
