@@ -242,10 +242,8 @@ int main() {
   std::cout << "Curve Writer" << std::endl;
   std::cout << "Running on curveh version: " << header.version << std::endl;
   mode = input_mode();
-  mode = 't';
   std::cout << "Enter the CSV filename: ";
   std::getline(std::cin, csv_filename);
-  csv_filename = "myfile.csv";
 
   std::ifstream csv_file(csv_filename);
   if (!csv_file.is_open()) {
