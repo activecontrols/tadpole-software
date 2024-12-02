@@ -165,6 +165,7 @@ public:
   char *getTelemetryCSV();
   void printTelemetryCSV() {
     Router::info(ODRIVE_TELEM_HEADER);
+    getTelemetryCSV();
     telemetryCSV.print();
   }
   char *getODriveInfo();
