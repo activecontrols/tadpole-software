@@ -311,7 +311,7 @@ char* ODrive::getODriveInfo() {
  */
 void ODrive::setPosConsoleCmd() {
 
-    Router::info("Position?");
+    Router::info("Angle (-360 to 360 degrees)?");
     String posString = Router::read(INT_BUFFER_SIZE);
     Router::info("Response: " + posString);
 
@@ -322,6 +322,7 @@ void ODrive::setPosConsoleCmd() {
         return;
     }
 
+    pos /= 360;
     if (pos < MIN_ODRIVE_POS || pos > MAX_ODRIVE_POS) {
         Router::info("Position outside defined range in code, not continuing");
         return;
