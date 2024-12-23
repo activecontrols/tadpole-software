@@ -90,7 +90,7 @@ namespace Router {
     }
 
     [[noreturn]] void run() { // attribute here enables dead-code warning & compiler optimization
-        digitalWrite(LED_BUILTIN, LOW); //led indication that software is waiting for command
+        digitalWrite(LED_BUILTIN, LOW); //led indication that software is waiting for command   
         
         while (true) {
             readCommand();

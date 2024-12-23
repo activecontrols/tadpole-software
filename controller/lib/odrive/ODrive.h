@@ -170,6 +170,13 @@ public:
   }
   char *getODriveInfo();
   void printODriveInfo() { odriveInfo.print(); }
+
+  void homing();
+  void measureCurrent();
+  void kill();
+  void zero();
+  void move();
+  void readMode();
 };
 
 #endif

@@ -17,7 +17,7 @@ ODriveUART::ODriveUART(Stream& serial)
 void ODriveUART::clearErrors() {
     serial_ << "sc\n";
 }
-
+ 
 void ODriveUART::setPosition(float position) {
     setPosition(position, 0.0f, 0.0f);
 }

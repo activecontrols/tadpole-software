@@ -1,4 +1,5 @@
-// THIS FILE IS FOR RUNNING ON A COMPUTER TO WRITE CURVES TO THE SD CARD
+
+  // THIS FILE IS FOR RUNNING ON A COMPUTER TO WRITE CURVES TO THE SD CARD
 // (PLEASE DON'T RUN ON THE TEENSY)
 
 #include "../Curve.h"
@@ -7,9 +8,10 @@
 #include <fstream>
 #include <sstream>
 #include <cstring>
+#include <cstdint>
 
-#include <windows.h>
-HANDLE hSerial; // com port stuff
+//#include <windows.h>
+//HANDLE hSerial; // com port stuff
 
 #define MODE_THRUST 't'
 #define MODE_ANGLES 'a'
@@ -145,93 +147,93 @@ void write_file() {
   file.close();
 }
 
-void setup_com_port(const char *portName) {
-  hSerial = CreateFile(portName, GENERIC_READ | GENERIC_WRITE, 0, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
-  if (hSerial == INVALID_HANDLE_VALUE) {
-    std::cerr << "Error opening COM port\n";
-    return;
-  }
+// void setup_com_port(const char *portName) {
+//   hSerial = CreateFile(portName, GENERIC_READ | GENERIC_WRITE, 0, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
+//   if (hSerial == INVALID_HANDLE_VALUE) {
+//     std::cerr << "Error opening COM port\n";
+//     return;
+//   }
 
-  // Set COM port parameters
-  DCB dcbSerialParams;
-  dcbSerialParams.DCBlength = sizeof(dcbSerialParams);
-  if (!GetCommState(hSerial, &dcbSerialParams)) {
-    std::cerr << "Error getting COM port state\n";
-    CloseHandle(hSerial);
-    return;
-  }
+//   // Set COM port parameters
+//   DCB dcbSerialParams;
+//   dcbSerialParams.DCBlength = sizeof(dcbSerialParams);
+//   if (!GetCommState(hSerial, &dcbSerialParams)) {
+//     std::cerr << "Error getting COM port state\n";
+//     CloseHandle(hSerial);
+//     return;
+//   }
 
-  // Configure baud rate, byte size, stop bits, and parity
-  dcbSerialParams.BaudRate = CBR_9600;
-  dcbSerialParams.ByteSize = 8;
-  dcbSerialParams.StopBits = ONESTOPBIT;
-  dcbSerialParams.Parity = NOPARITY;
-  if (!SetCommState(hSerial, &dcbSerialParams)) {
-    std::cerr << "Error setting COM port state\n";
-    CloseHandle(hSerial);
-    return;
-  }
+//   // Configure baud rate, byte size, stop bits, and parity
+//   dcbSerialParams.BaudRate = CBR_9600;
+//   dcbSerialParams.ByteSize = 8;
+//   dcbSerialParams.StopBits = ONESTOPBIT;
+//   dcbSerialParams.Parity = NOPARITY;
+//   if (!SetCommState(hSerial, &dcbSerialParams)) {
+//     std::cerr << "Error setting COM port state\n";
+//     CloseHandle(hSerial);
+//     return;
+//   }
 
-  // Configure timeouts for reading
-  COMMTIMEOUTS timeouts;
-  timeouts.ReadIntervalTimeout = 50;
-  timeouts.ReadTotalTimeoutConstant = 50;
-  timeouts.ReadTotalTimeoutMultiplier = 10;
-  timeouts.WriteTotalTimeoutConstant = 50;
-  timeouts.WriteTotalTimeoutMultiplier = 10;
+//   // Configure timeouts for reading
+//   COMMTIMEOUTS timeouts;
+//   timeouts.ReadIntervalTimeout = 50;
+//   timeouts.ReadTotalTimeoutConstant = 50;
+//   timeouts.ReadTotalTimeoutMultiplier = 10;
+//   timeouts.WriteTotalTimeoutConstant = 50;
+//   timeouts.WriteTotalTimeoutMultiplier = 10;
 
-  if (!SetCommTimeouts(hSerial, &timeouts)) {
-    std::cerr << "Error setting COM port timeouts\n";
-    return;
-  }
-}
+//   if (!SetCommTimeouts(hSerial, &timeouts)) {
+//     std::cerr << "Error setting COM port timeouts\n";
+//     return;
+//   }
+// }
 
-void read_com_to_serial() {
-  uint8_t readBuffer[100];
-  DWORD bytesRead = 100;
+// void read_com_to_serial() {
+//   uint8_t readBuffer[100];
+//   DWORD bytesRead = 100;
 
-  while (bytesRead == 100) {
-    if (!ReadFile(hSerial, readBuffer, sizeof(readBuffer), &bytesRead, NULL)) {
-      std::cerr << "Error reading from COM port\n";
-    }
-    for (DWORD i = 0; i < bytesRead; i++) {
-      std::cout << readBuffer[i];
-    }
-  }
-}
+//   while (bytesRead == 100) {
+//     if (!ReadFile(hSerial, readBuffer, sizeof(readBuffer), &bytesRead, NULL)) {
+//       std::cerr << "Error reading from COM port\n";
+//     }
+//     for (DWORD i = 0; i < bytesRead; i++) {
+//       std::cout << readBuffer[i];
+//     }
+//   }
+// }
 
-bool write_curve_over_com() {
-  char cmd[] = "ping\nload_curve_serial\n";
+// bool write_curve_over_com() {
+//   char cmd[] = "ping\nload_curve_serial\n";
 
-  // Write raw binary data to the COM port
-  DWORD bytesWritten;
-  if (!WriteFile(hSerial, (uint8_t *)cmd, sizeof(cmd) - 1, &bytesWritten, NULL)) { // don't write final null byte
-    std::cerr << "Error writing to COM port\n";
-    CloseHandle(hSerial);
-    return false;
-  }
-  Sleep(1000); // wait one second for teensy to respond
-  read_com_to_serial();
+//   // Write raw binary data to the COM port
+//   DWORD bytesWritten;
+//   if (!WriteFile(hSerial, (uint8_t *)cmd, sizeof(cmd) - 1, &bytesWritten, NULL)) { // don't write final null byte
+//     std::cerr << "Error writing to COM port\n";
+//     CloseHandle(hSerial);
+//     return false;
+//   }
+//   Sleep(1000); // wait one second for teensy to respond
+//   read_com_to_serial();
 
-  if (!WriteFile(hSerial, (uint8_t *)&header, sizeof(header), &bytesWritten, NULL)) {
-    std::cerr << "Error writing to COM port\n";
-    CloseHandle(hSerial);
-    return false;
-  }
-  if (!WriteFile(hSerial, data, data_len, &bytesWritten, NULL)) {
-    std::cerr << "Error writing to COM port\n";
-    CloseHandle(hSerial);
-    return false;
-  }
+//   if (!WriteFile(hSerial, (uint8_t *)&header, sizeof(header), &bytesWritten, NULL)) {
+//     std::cerr << "Error writing to COM port\n";
+//     CloseHandle(hSerial);
+//     return false;
+//   }
+//   if (!WriteFile(hSerial, data, data_len, &bytesWritten, NULL)) {
+//     std::cerr << "Error writing to COM port\n";
+//     CloseHandle(hSerial);
+//     return false;
+//   }
 
-  Sleep(1000); // wait one second for teensy to respond
-  read_com_to_serial();
-  std::cout << "\nData written to COM port successfully\n";
+//   Sleep(1000); // wait one second for teensy to respond
+//   read_com_to_serial();
+//   std::cout << "\nData written to COM port successfully\n";
 
-  // Close the COM port handle
-  CloseHandle(hSerial);
-  return true;
-}
+//   // Close the COM port handle
+//   CloseHandle(hSerial);
+//   return true;
+// }
 
 int main() {
   char mode;                // thrust or angle
@@ -242,8 +244,10 @@ int main() {
   std::cout << "Curve Writer" << std::endl;
   std::cout << "Running on curveh version: " << header.version << std::endl;
   mode = input_mode();
+  //mode = 't';
   std::cout << "Enter the CSV filename: ";
   std::getline(std::cin, csv_filename);
+  //csv_filename = "myfile.csv";
 
   std::ifstream csv_file(csv_filename);
   if (!csv_file.is_open()) {
@@ -257,17 +261,17 @@ int main() {
   write_file();
   std::cout << "File output to out.hex" << std::endl;
 
-  char letter;
-  std::cout << "Hit [y] to send data to serial: ";
-  std::cin >> letter;
-  std::cin.ignore(); // ignore newline left in buffer
-  if (letter == 'y') {
-    std::string com_port;
-    std::cout << "Enter the COM port: ";
-    std::getline(std::cin, com_port);
-    setup_com_port(com_port.c_str());
-    write_curve_over_com();
-  }
+  // char letter;
+  // std::cout << "Hit [y] to send data to serial: ";
+  // std::cin >> letter;
+  // std::cin.ignore(); // ignore newline left in buffer
+  // if (letter == 'y') {
+  //   std::string com_port;
+  //   std::cout << "Enter the COM port: ";
+  //   std::getline(std::cin, com_port);
+  //   setup_com_port(com_port.c_str());
+  //   write_curve_over_com();
+  // }
 
   return 0;
 }

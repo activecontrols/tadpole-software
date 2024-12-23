@@ -132,6 +132,7 @@ void followAngleLerpCurve() {
       lox_pos = constrain(lox_pos, MIN_ODRIVE_POS, MAX_ODRIVE_POS);
       ipa_pos = constrain(ipa_pos, MIN_ODRIVE_POS, MAX_ODRIVE_POS);
       loxODrive.setPos(lox_pos);
+      
       // ipaODrive.setPos(ipa_pos);
       if (timer - lastlog > LOG_INTERVAL_MS) {
         logCurveTelemCSV(seconds, i, -1);
@@ -259,6 +260,27 @@ void begin() {
   Router::add({[&]() { loxODrive.terminateWatchdogThread(); }, "terminate_lox_watchdog_thread"});
   // Router::add({[&]() {ipaODrive.terminateWatchdogThread(); }, "terminate_ipa_watchdog_thread"});
 
+
+
+
+  Router::add({[&]() { loxODrive.homing(); }, "home"});
+  // Router::add({[&]() {ipaODrive.homing(); }, "home_ipa_odrive"});
+
+  Router::add({[&]() { loxODrive.measureCurrent(); }, "amps"});
+  // Router::add({[&]() {ipaODrive.homing(); }, "home_ipa_odrive"});
+
+  Router::add({[&]() { loxODrive.kill(); }, "kill"});
+  // Router::add({[&]() {ipaODrive.homing(); }, "home_ipa_odrive"});
+
+  Router::add({[&]() { loxODrive.zero(); }, "zero"});
+  // Router::add({[&]() {ipaODrive.homing(); }, "home_ipa_odrive"});
+
+  Router::add({[&]() { loxODrive.move(); }, "move"});
+  // Router::add({[&]() {ipaODrive.homing(); }, "home_ipa_odrive"});
+
+  Router::add({[&]() { loxODrive.readMode(); }, "readMode"});
+  // Router::add({[&]() {ipaODrive.homing(); }, "home_ipa_odrive"});
+
 #if (ENABLE_ODRIVE_COMM)
   LOX_ODRIVE_SERIAL.begin(LOX_ODRIVE_SERIAL_RATE);
   IPA_ODRIVE_SERIAL.begin(IPA_ODRIVE_SERIAL_RATE);
@@ -385,6 +407,13 @@ void followCurve() {
   // loxODrive.startWatchdogThread();
   // ipaODrive.startWatchdogThread();
 
+
+
+  // TODO - enable PIN
+  pinMode(41, OUTPUT);
+  digitalWrite(41, HIGH);
+
+
   switch (Loader::header.ctype) {
   case curve_type::lerp:
     (Loader::header.is_thrust ? followThrustLerpCurve() : followAngleLerpCurve());
@@ -398,6 +427,10 @@ void followCurve() {
   default:
     break;
   }
+
+
+  // TODO - disable PIN
+  digitalWrite(41, LOW);
 
   if (Router::logenabled) {
     odriveLogFile.flush();
