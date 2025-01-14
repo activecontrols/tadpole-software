@@ -51,9 +51,9 @@ CString<100> printBuffer;
  */
 void logCurveTelemCSV(float time, int phase, float thrust) {
   curveTelemCSV.clear();
-  curveTelemCSV << "," << time << "," << phase << "," << thrust << "," << loxODrive.getLastPosCmd()
-                << "," << "nope" << "," << loxODrive.getTelemetryCSV() << ","
-                << "nope";
+  curveTelemCSV << time << "," << phase << "," << thrust << "," << loxODrive.getLastPosCmd()
+                << "," << " " << "," << loxODrive.getTelemetryCSV() << ","
+                << " , , , ";
   curveTelemCSV.print();
   if (Router::logenabled) {
     odriveLogFile.println(curveTelemCSV.str);
@@ -81,8 +81,7 @@ File createCurveLog() {
     break;
   }
   curveFileName << ".csv";
-
-  File odriveLogFile = SDCard::open(curveFileName.str, FILE_WRITE);
+  File odriveLogFile = SDCard::open("LOG.CSV", FILE_WRITE);
 
   if (!odriveLogFile) { // Failed to create a log file
     return odriveLogFile;

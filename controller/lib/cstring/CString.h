@@ -39,7 +39,7 @@ public:
     int leftover;
 
     //Constructor to initialize the CString with an empty string and default precision
-    CString() : precision(2) {
+    CString() : precision(5) {
         clear();
     }
 

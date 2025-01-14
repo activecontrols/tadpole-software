@@ -282,8 +282,10 @@ char* ODrive::getTelemetryCSV() {
 
     telemetryCSV << position << "," << velocity << ","
         << voltage << "," << current;
+#else
+    telemetryCSV << "pos" << "," << "vel" << ","
+                 << "V" << "," << "A";
 #endif
-
     return telemetryCSV.str;
 }
 
