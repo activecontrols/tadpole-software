@@ -18,13 +18,15 @@
 #define LOX_ODRIVE_SERIAL_RATE (115200)
 #define IPA_ODRIVE_SERIAL_RATE (115200)
 
-#define LOG_HEADER ("time,phase,thrust_cmd," \
-                   "lox_pos_cmd,ipa_pos_cmd," \
-                   "lox_pos,lox_vel," \
-                   "lox_voltage,lox_current," \
-                   "ipa_pos,ipa_vel," \
-                   "ipa_voltage,ipa_current")
-
+#define LOG_HEADER ("time,phase,thrust_cmd,"           \
+                    "lox_pos_cmd,ipa_pos_cmd,"         \
+                    "lox_pos,lox_vel,"                 \
+                    "lox_voltage,lox_current,"         \
+                    "lox_pressure_in,lox_pressure_out," \
+                    "ipa_pos,ipa_vel,"                 \
+                    "ipa_voltage,ipa_current," \
+					"ipa_pressure_in,ipa_pressure_out")
+                                        
 
 namespace Driver {
 

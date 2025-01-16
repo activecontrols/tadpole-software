@@ -127,6 +127,8 @@ private:
   float velocity;
   float voltage;
   float current;
+  float pressure_in;
+  float pressure_out;
 
   /*
    * The major and minor version of the hardware and firmware of the ODrive
@@ -172,6 +174,7 @@ public:
   void printODriveInfo() { odriveInfo.print(); }
   void hardStopHoming();
   void indexHoming();
+  void readPressure();
 };
 
 #endif

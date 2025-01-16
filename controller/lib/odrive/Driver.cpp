@@ -264,6 +264,9 @@ void begin() {
   Router::add({[&]() { loxODrive.indexHoming(); }, "lox_idx_homing"});
   // Router::add({[&]() { ipaODrive.indexHoming(); }, "ipa_idx_homing"});
 
+  Router::add({[&]() { loxODrive.readPressure(); }, "lox_read_pressure"});
+  // Router::add({[&]() { ipaODrive.readPressure(); }, "ipa_read_pressure"});
+
 #if (ENABLE_ODRIVE_COMM)
   LOX_ODRIVE_SERIAL.begin(LOX_ODRIVE_SERIAL_RATE);
   IPA_ODRIVE_SERIAL.begin(IPA_ODRIVE_SERIAL_RATE);

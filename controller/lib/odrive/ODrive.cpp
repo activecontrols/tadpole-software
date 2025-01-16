@@ -280,11 +280,14 @@ char* ODrive::getTelemetryCSV() {
 
     current = ODriveUART::getParameterAsFloat("ibus");
 
+    pressure_in = (analogRead(22) / 1023.0) * 3.3;
+    pressure_out = (analogRead(22) / 1023.0) * 3.3;
+
     telemetryCSV << position << "," << velocity << ","
-        << voltage << "," << current;
+        << voltage << "," << current << "," << pressure_in << "," << pressure_out;
 #else
     telemetryCSV << "pos" << "," << "vel" << ","
-                 << "V" << "," << "A";
+                 << "V" << "," << "A" << "," << "PI" < "," << "PO";
 #endif
     return telemetryCSV.str;
 }
@@ -390,3 +393,12 @@ void ODrive::indexHoming() {
 }
 
 // TODO - check .toFloat precision
+
+void ODrive::readPressure() {
+  float current_pressure_in = (analogRead(22) / 1023) * 3.3; // UPDATE THESE PIN NUMBERS
+  float current_pressure_out = (analogRead(23) / 1023) * 3.3;
+  COMMS_SERIAL.print("Pressure in = ");
+  Router::info(current_pressure_in);
+  COMMS_SERIAL.print("Pressure out = ");
+  Router::info(current_pressure_out);
+}
