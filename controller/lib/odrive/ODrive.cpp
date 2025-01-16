@@ -324,7 +324,7 @@ void ODrive::setPosConsoleCmd() {
         return;
     }
 
-    pos /= 360;
+    pos /= 360; // TODO RJN - check units later
     if (pos < MIN_ODRIVE_POS || pos > MAX_ODRIVE_POS) {
         Router::info("Position outside defined range in code, not continuing");
         return;
@@ -333,3 +333,60 @@ void ODrive::setPosConsoleCmd() {
     setPos(pos);
     Router::info("Position set");
 }
+
+void ODrive::hardStopHoming() { // @ Xander
+
+  int current = 0;
+  
+  digitalWrite(LED_BUILTIN, HIGH);                 // visual that homing is occuring
+  Router::info("Configuring Hard Stop Homing..."); // print statement
+
+  // WARNING how does odrive decide which direction to move to reach the desired position???????????????? ----desired position is absolute in refdrance to the inital startup position
+  // + cw, - ccw --loooking from top of motor
+  ODriveUART::setParameter("axis0.controller.config.control_mode", CONTROL_MODE_VELOCITY_CONTROL); // set the control mode
+  // input mode config: position filter / velocity ramp / trap trajectory
+  ODriveUART::setParameter("axis0.controller.config.input_mode", INPUT_MODE_VEL_RAMP); // InputMode.VEL_RAMP      //Activate the setpoint filter
+
+  Router::info("Starting Hard Stop Homing Sequence"); // print statement
+  delay(500);
+  ODriveUART::setParameter("axis0.controller.input_vel", -0.1); // velocity [turn/s]
+
+  // TODO - replace with more robust + update thresholds
+  while (current < 30 && current > -30) {                                     // thresholds must be experimentally determined. will be diffrent depening on needed current to normally move valve
+    current = ODriveUART::getParameterAsFloat("axis0.motor.foc.Iq_measured"); // update current reading
+    delay(20);
+  }
+  ODriveUART::setParameter("axis0.controller.input_vel", 0); // velocity [turn/s]
+  // done to limit standby / hold current
+  // ODriveUART::setParameter("axis0.requested_state", AXIS_STATE_IDLE); //stop talking movement commands
+  // ODriveUART::setParameter("axis0.requested_state", AXIS_STATE_CLOSED_LOOP_CONTROL); //resume taking movement commands
+  delay(300);
+
+  Router::info("Home Found"); // print statement
+  // set new home
+  float current_pos = ODriveUART::getParameterAsFloat("axis0.pos_estimate"); // which encoder does this read? -- load encoder
+  COMMS_SERIAL.print("current_pos = ");
+  Router::info(current_pos);                                                 // axis0.motor.current_control.Iq_measured
+  ODriveUART::setParameter("axis0.pos_estimate", -0.01);                     // set position refrance to current position --see odrice homing note above
+  
+
+  delay(300);
+
+  // This sets odrive back into position control for the setPos command which doesnt do control mode or input mode setup
+  ODriveUART::setParameter("axis0.controller.config.control_mode", CONTROL_MODE_POSITION_CONTROL); // set the control mode
+  // input mode config: position filter / velocity ramp / trap trajectory
+  ODriveUART::setParameter("axis0.controller.config.input_mode", INPUT_MODE_POS_FILTER); // InputMode.POS_FILTER         //Activate the setpoint filter
+  ODriveUART::setParameter("axis0.controller.input_pos", 0);                             // position [turns]
+
+  delay(300);
+
+  COMMS_SERIAL.print("Standby Current = ");                                     // prints without a new line
+  Router::info(ODriveUART::getParameterAsFloat("axis0.motor.foc.Iq_measured")); // axis0.motor.current_control.Iq_measured
+
+  Router::info("Home Set");
+}
+
+void ODrive::indexHoming() {
+}
+
+// TODO - check .toFloat precision

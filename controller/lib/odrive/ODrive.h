@@ -170,6 +170,8 @@ public:
   }
   char *getODriveInfo();
   void printODriveInfo() { odriveInfo.print(); }
+  void hardStopHoming();
+  void indexHoming();
 };
 
 #endif

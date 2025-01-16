@@ -258,6 +258,12 @@ void begin() {
   Router::add({[&]() { loxODrive.terminateWatchdogThread(); }, "terminate_lox_watchdog_thread"});
   // Router::add({[&]() {ipaODrive.terminateWatchdogThread(); }, "terminate_ipa_watchdog_thread"});
 
+  Router::add({[&]() { loxODrive.hardStopHoming(); }, "lox_hard_stop_home"});
+  // Router::add({[&]() { ipaODrive.hardStopHoming(); }, "ipa_hard_stop_home"});
+
+  Router::add({[&]() { loxODrive.indexHoming(); }, "lox_idx_homing"});
+  // Router::add({[&]() { ipaODrive.indexHoming(); }, "ipa_idx_homing"});
+
 #if (ENABLE_ODRIVE_COMM)
   LOX_ODRIVE_SERIAL.begin(LOX_ODRIVE_SERIAL_RATE);
   IPA_ODRIVE_SERIAL.begin(IPA_ODRIVE_SERIAL_RATE);
@@ -384,6 +390,8 @@ void followCurve() {
   // loxODrive.startWatchdogThread();
   // ipaODrive.startWatchdogThread();
 
+  // TODO - enable sync line
+
   switch (Loader::header.ctype) {
   case curve_type::lerp:
     (Loader::header.is_thrust ? followThrustLerpCurve() : followAngleLerpCurve());
@@ -397,6 +405,8 @@ void followCurve() {
   default:
     break;
   }
+
+  // TODO - disable sync line
 
   if (Router::logenabled) {
     odriveLogFile.flush();

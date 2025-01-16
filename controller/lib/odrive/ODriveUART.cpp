@@ -26,7 +26,7 @@ void ODriveUART::setPosition(float position, float velocity_feedforward) {
     setPosition(position, velocity_feedforward, 0.0f);
 }
 
-void ODriveUART::setPosition(float position, float velocity_feedforward, float torque_feedforward) {
+void ODriveUART::setPosition(float position, float velocity_feedforward, float torque_feedforward) { // note - requires input mode to be reset to input_mode_pos_filter
     serial_ << "p " << kMotorNumber  << " " << position << " " << velocity_feedforward << " " << torque_feedforward << "\n";
 }
 
