@@ -60,6 +60,10 @@ namespace Router {
         COMMS_SERIAL.println(msg);
     }
 
+    void info_no_newline(const char *msg) {
+      COMMS_SERIAL.print(msg);
+    }
+
     void send(char msg[], unsigned int len) {
         COMMS_SERIAL.write(msg, len);
     }

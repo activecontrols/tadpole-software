@@ -30,8 +30,11 @@ namespace Router {
     void init_comms();
     // info sends a string & newline over serial
     void info(const char *msg);
-    inline void info(const String& msg) { info(msg.c_str()); }
+    void info_no_newline(const char *msg);
+	inline void info(const String &msg) { info(msg.c_str()); }
+	inline void info_no_newline(const String &msg) { info_no_newline(msg.c_str()); }
     inline void info(const std::string& msg) { info(msg.c_str()); }
+    inline void info_no_newline(const std::string &msg) { info_no_newline(msg.c_str()); }
     // log writes a string to the log file if logging is enabled
     void log(const char *msg);
     inline void log(const String& msg) { log(msg.c_str()); }

@@ -37,7 +37,7 @@ void ODrive::checkConnection() {
  */
 int ODrive::checkConfig() {
 #if (ENABLE_ODRIVE_COMM)
-    misconfigured = false; // ODriveUART::getParameterAsInt("misconfigured"); // TODO - deal with this later
+    misconfigured = false; // ODriveUART::getParameterAsInt("misconfigured"); // TODO RJN - deal with this later
     rebootRequired = false; // ODriveUART::getParameterAsInt("reboot_required");
 
     if (misconfigured) {
@@ -354,7 +354,7 @@ void ODrive::hardStopHoming() { // @ Xander
   delay(500);
   ODriveUART::setParameter("axis0.controller.input_vel", -0.1); // velocity [turn/s]
 
-  // TODO - replace with more robust + update thresholds
+  // TODO RJN - replace with more robust + update thresholds
   while (current < 30 && current > -30) {                                     // thresholds must be experimentally determined. will be diffrent depening on needed current to normally move valve
     current = ODriveUART::getParameterAsFloat("axis0.motor.foc.Iq_measured"); // update current reading
     delay(20);
@@ -368,7 +368,7 @@ void ODrive::hardStopHoming() { // @ Xander
   Router::info("Home Found"); // print statement
   // set new home
   float current_pos = ODriveUART::getParameterAsFloat("axis0.pos_estimate"); // which encoder does this read? -- load encoder
-  COMMS_SERIAL.print("current_pos = ");
+  Router::info_no_newline("current_pos = ");
   Router::info(current_pos);                                                 // axis0.motor.current_control.Iq_measured
   ODriveUART::setParameter("axis0.pos_estimate", -0.01);                     // set position refrance to current position --see odrice homing note above
   
@@ -383,7 +383,7 @@ void ODrive::hardStopHoming() { // @ Xander
 
   delay(300);
 
-  COMMS_SERIAL.print("Standby Current = ");                                     // prints without a new line
+  Router::info_no_newline("Standby Current = ");                                // prints without a new line
   Router::info(ODriveUART::getParameterAsFloat("axis0.motor.foc.Iq_measured")); // axis0.motor.current_control.Iq_measured
 
   Router::info("Home Set");
@@ -392,13 +392,13 @@ void ODrive::hardStopHoming() { // @ Xander
 void ODrive::indexHoming() {
 }
 
-// TODO - check .toFloat precision
+// TODO RJN - check .toFloat precision
 
 void ODrive::readPressure() {
-  float current_pressure_in = (analogRead(22) / 1023) * 3.3; // UPDATE THESE PIN NUMBERS
+  float current_pressure_in = (analogRead(22) / 1023) * 3.3; // TODO RJN UPDATE THESE PIN NUMBERS
   float current_pressure_out = (analogRead(23) / 1023) * 3.3;
-  COMMS_SERIAL.print("Pressure in = ");
+  Router::info_no_newline("Pressure in = ");
   Router::info(current_pressure_in);
-  COMMS_SERIAL.print("Pressure out = ");
+  Router::info_no_newline("Pressure out = ");
   Router::info(current_pressure_out);
 }
