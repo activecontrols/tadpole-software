@@ -327,7 +327,7 @@ void ODrive::setPosConsoleCmd() {
         return;
     }
 
-    pos /= 360; // TODO RJN - check units later
+    pos /= 360;
     if (pos < MIN_ODRIVE_POS || pos > MAX_ODRIVE_POS) {
         Router::info("Position outside defined range in code, not continuing");
         return;
@@ -391,8 +391,6 @@ void ODrive::hardStopHoming() { // @ Xander
 
 void ODrive::indexHoming() {
 }
-
-// TODO RJN - check .toFloat precision
 
 void ODrive::readPressure() {
   float current_pressure_in = (analogRead(22) / 1023) * 3.3; // TODO RJN UPDATE THESE PIN NUMBERS
