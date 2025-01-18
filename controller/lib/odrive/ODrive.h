@@ -180,6 +180,7 @@ public:
   void hardStopHoming();
   void indexHoming();
   void printPressure();
+  void kill();
 };
 
 #endif

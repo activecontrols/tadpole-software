@@ -255,6 +255,8 @@ void begin() {
   Router::add({[&]() { loxODrive.printPressure(); }, "lox_print_pressure"});
   // Router::add({[&]() { ipaODrive.printPressure(); }, "lox_print_pressure"});
 
+  Router::add({[&]() { loxODrive.kill(); }, "kill"}); // TODO - ipaODrive kill
+
 #if (ENABLE_ODRIVE_COMM)
   LOX_ODRIVE_SERIAL.begin(LOX_ODRIVE_SERIAL_RATE);
   IPA_ODRIVE_SERIAL.begin(IPA_ODRIVE_SERIAL_RATE);

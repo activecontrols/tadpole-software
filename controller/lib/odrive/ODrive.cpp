@@ -395,3 +395,10 @@ void ODrive::printPressure() {
   Router::info_no_newline("Pressure out = ");
   Router::info(pressure_sensor_out->getPressure());
 }
+
+void ODrive::kill() {
+  ODriveUART::setParameter("axis0.requested_state", AXIS_STATE_IDLE); // stop movement attempt
+  delay(1000);
+  ODriveUART::setParameter("axis0.requested_state", AXIS_STATE_CLOSED_LOOP_CONTROL); // resume taking movement commands
+  Router::info("State Reset");
+}
