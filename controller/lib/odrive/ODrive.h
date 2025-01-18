@@ -6,6 +6,7 @@
 #include "Router.h"
 #include "CString.h"
 #include "ODriveUART.h"
+#include "PressureSensor.h"
 
 #define ENABLE_ODRIVE_COMM (true)
 
@@ -47,6 +48,10 @@ private:
    * console printing. Can be either "LOX" or "IPA" with a null terminator
    */
   char name[4];
+
+  // refrences to releveant pressure sensors for each valve
+  PressureSensor *pressure_sensor_in;
+  PressureSensor *pressure_sensor_out;
 
   CString<40> telemetryCSV;
 
@@ -140,7 +145,7 @@ private:
   int fwVersionMinor;
 
 public:
-  ODrive(Stream &serial, char[4]);
+  ODrive(Stream &serial, char[4], PressureSensor *, PressureSensor *);
 
   void checkConnection();
   int checkConfig();
@@ -174,7 +179,7 @@ public:
   void printODriveInfo() { odriveInfo.print(); }
   void hardStopHoming();
   void indexHoming();
-  void readPressure();
+  void printPressure();
 };
 
 #endif

@@ -34,8 +34,8 @@ namespace { // private
 
 char loxName[4] = "LOX";
 // char ipaName[4] = "IPA";
-ODrive loxODrive(LOX_ODRIVE_SERIAL, loxName);
-// ODrive ipaODrive(IPA_ODRIVE_SERIAL, ipaName);
+ODrive loxODrive(LOX_ODRIVE_SERIAL, loxName, &Pressure::lox_pressure_in, &Pressure::lox_pressure_out);
+// ODrive loxODrive(IPA_ODRIVE_SERIAL, ipaName, &Pressure::ipa_pressure_in, &Pressure::ipa_pressure_out);
 
 File odriveLogFile;
 
@@ -251,8 +251,8 @@ void begin() {
   Router::add({[&]() { loxODrive.indexHoming(); }, "lox_idx_homing"});
   // Router::add({[&]() { ipaODrive.indexHoming(); }, "ipa_idx_homing"});
 
-  Router::add({[&]() { loxODrive.readPressure(); }, "lox_read_pressure"});
-  // Router::add({[&]() { ipaODrive.readPressure(); }, "ipa_read_pressure"});
+  Router::add({[&]() { loxODrive.printPressure(); }, "lox_print_pressure"});
+  // Router::add({[&]() { ipaODrive.printPressure(); }, "lox_print_pressure"});
 
 #if (ENABLE_ODRIVE_COMM)
   LOX_ODRIVE_SERIAL.begin(LOX_ODRIVE_SERIAL_RATE);
