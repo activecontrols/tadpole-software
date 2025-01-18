@@ -75,7 +75,7 @@ void Loader::load_curve_generic(bool serial, File *f) {
         Serial.print(lerp_angle_curve[i].ipa_angle);
         Serial.print(" deg | OX ");
         Serial.print(lerp_angle_curve[i].lox_angle);
-        Serial.print(" deg.");
+        Serial.println(" deg.");
       }
     }
     break;
