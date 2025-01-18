@@ -4,6 +4,7 @@
 
 PressureSensor::PressureSensor(unsigned int pin) {
   this->pin = pin;
+  pinMode(pin, INPUT);
 }
 
 float PressureSensor::getPressure() {
