@@ -11,6 +11,7 @@
 #include <Arduino.h>
 #include <TeensyThreads.h>
 
+#include "zucrow_interface.hpp"
 #include "SDCard.h"
 #include "Driver.h"
 #include "ODrive.h"
@@ -384,7 +385,7 @@ void followCurve() {
   // loxODrive.startWatchdogThread();
   // ipaODrive.startWatchdogThread();
 
-  // TODO - enable sync line
+  ZucrowInterface::set_sync_line(SYNC_CURVE_RUNNING);
 
   switch (Loader::header.ctype) {
   case curve_type::lerp:
@@ -400,7 +401,7 @@ void followCurve() {
     break;
   }
 
-  // TODO - disable sync line
+  ZucrowInterface::set_sync_line(SYNC_CURVE_IDLE);
 
   if (Router::logenabled) {
     odriveLogFile.flush();
