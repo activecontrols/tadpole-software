@@ -8,8 +8,12 @@
 #include <sstream>
 #include <cstring>
 
+#define ENABLE_SERIAL_COMMS false
+
+#if ENABLE_SERIAL_COMMS
 #include <windows.h>
 HANDLE hSerial; // com port stuff
+#endif
 
 #define MODE_THRUST 't'
 #define MODE_ANGLES 'a'
@@ -145,6 +149,7 @@ void write_file() {
   file.close();
 }
 
+#if ENABLE_SERIAL_COMMS
 void setup_com_port(const char *portName) {
   hSerial = CreateFile(portName, GENERIC_READ | GENERIC_WRITE, 0, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
   if (hSerial == INVALID_HANDLE_VALUE) {
@@ -232,6 +237,7 @@ bool write_curve_over_com() {
   CloseHandle(hSerial);
   return true;
 }
+#endif
 
 int main() {
   char mode;                // thrust or angle
@@ -257,6 +263,7 @@ int main() {
   write_file();
   std::cout << "File output to out.hex" << std::endl;
 
+#if ENABLE_SERIAL_COMMS
   char letter;
   std::cout << "Hit [y] to send data to serial: ";
   std::cin >> letter;
@@ -268,6 +275,7 @@ int main() {
     setup_com_port(com_port.c_str());
     write_curve_over_com();
   }
+#endif
 
   return 0;
 }
