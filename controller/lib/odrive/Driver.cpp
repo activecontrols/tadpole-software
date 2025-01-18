@@ -51,9 +51,8 @@ CString<100> printBuffer;
  */
 void logCurveTelemCSV(float time, int phase, float thrust) {
   curveTelemCSV.clear();
-  curveTelemCSV << time << "," << phase << "," << thrust << "," << loxODrive.getLastPosCmd()
-                << "," << " " << "," << loxODrive.getTelemetryCSV() << ","
-                << " , , , ";
+  curveTelemCSV << time << "," << phase << "," << thrust << "," << loxODrive.getLastPosCmd() << "," << "ipa_pos_cmd" << ","
+                << loxODrive.getTelemetryCSV() << "," << " , , , , , "; // TODO RJN - enable telem from 2 valves
   curveTelemCSV.print();
   if (Router::logenabled) {
     odriveLogFile.println(curveTelemCSV.str);
@@ -65,23 +64,11 @@ void logCurveTelemCSV(float time, int phase, float thrust) {
  * @return The created log file.
  */
 File createCurveLog() {
-  curveFileName << Loader::header.curve_label;
-
-  switch (Loader::header.ctype) {
-  case curve_type::lerp:
-    curveFileName << (Loader::header.is_thrust ? "_lerp_thrust" : "_lerp_angle");
-    break;
-  case curve_type::sine:
-    curveFileName << (Loader::header.is_thrust ? "_sine_thrust" : "_sine_angle");
-    break;
-  case curve_type::chirp:
-    curveFileName << (Loader::header.is_thrust ? "_chirp_thrust" : "_chirp_angle");
-    break;
-  default:
-    break;
-  }
-  curveFileName << ".csv";
-  File odriveLogFile = SDCard::open("LOG.CSV", FILE_WRITE);
+  // filenames use DOS 8.3 standard
+  Router::info_no_newline("Enter log filename (1-8 chars + '.' + 3 chars): ");
+  String filename = Router::read(50);
+  filename.toUpperCase(); // lower case files have issues on teensy
+  File odriveLogFile = SDCard::open(filename.c_str(), FILE_WRITE);
 
   if (!odriveLogFile) { // Failed to create a log file
     return odriveLogFile;
@@ -294,7 +281,7 @@ void printODriveInfo() {
 //  * Command for the Router lib to change the thrust manually.
 //  */
 // void setThrustCmd() {
-//     Router::info("Position?");
+//     Router::info_no_newline("Position?");
 //     String thrustString = Router::read(INT_BUFFER_SIZE);
 //     Router::info("Response: " + thrustString);
 
@@ -333,7 +320,7 @@ void printODriveInfo() {
  * Command for the Router lib to change the thrust manually.
  */
 void setThrustCmd_OPEN_LOOP() {
-  Router::info("Thrust?");
+  Router::info_no_newline("Thrust?");
   String thrustString = Router::read(INT_BUFFER_SIZE);
   Router::info("Response: " + thrustString);
 
@@ -386,7 +373,11 @@ void followCurve() {
     odriveLogFile = createCurveLog();
 
     if (!odriveLogFile) {
-      Router::info("Failed to create odrive log file.");
+      Router::info_no_newline("Failed to create odrive log file. Send 'y' to continue anyway. ");
+      String resp = Router::read(50);
+      if (resp != "y") {
+        return;
+      }
     }
   }
 

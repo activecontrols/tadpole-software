@@ -96,7 +96,8 @@ void Loader::load_config_serial() {
 }
 
 void Loader::load_curve_sd() {
-  Router::info("Enter filename: ");
+  // filenames use DOS 8.3 standard
+  Router::info_no_newline("Enter filename: ");
   String filename = Router::read(50);
   File f = SDCard::open(filename.c_str(), FILE_READ);
   if (f) {
@@ -110,7 +111,8 @@ void Loader::load_curve_sd() {
 }
 
 void Loader::load_config_sd() {
-  Router::info("Enter filename: ");
+  // filenames use DOS 8.3 standard
+  Router::info_no_newline("Enter filename: ");
   String filename = Router::read(50);
   File f = SDCard::open(filename.c_str(), FILE_READ);
   if (f) {
@@ -125,8 +127,8 @@ void Loader::load_config_sd() {
 }
 
 void Loader::write_curve_sd() {
-
-  Router::info("Enter filename: ");
+  // filenames use DOS 8.3 standard
+  Router::info_no_newline("Enter filename: ");
   String filename = Router::read(50);
   File f = SDCard::open(filename.c_str(), FILE_WRITE);
   if (!f) {
@@ -151,7 +153,8 @@ void Loader::write_curve_sd() {
 }
 
 void Loader::write_config_sd() {
-  Router::info("Enter filename: ");
+  // filenames use DOS 8.3 standard
+  Router::info_no_newline("Enter filename: ");
   String filename = Router::read(50);
   File f = SDCard::open(filename.c_str(), FILE_WRITE);
   if (!f) {

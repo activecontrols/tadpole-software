@@ -287,7 +287,7 @@ char* ODrive::getTelemetryCSV() {
         << voltage << "," << current << "," << pressure_in << "," << pressure_out;
 #else
     telemetryCSV << "pos" << "," << "vel" << ","
-                 << "V" << "," << "A" << "," << "PI" < "," << "PO";
+                 << "V" << "," << "A" << "," << "PI" << "," << "PO";
 #endif
     return telemetryCSV.str;
 }
@@ -316,7 +316,7 @@ char* ODrive::getODriveInfo() {
  */
 void ODrive::setPosConsoleCmd() {
 
-    Router::info("Angle (-360 to 360 degrees)?");
+    Router::info_no_newline("Angle (-360 to 360 degrees)?");
     String posString = Router::read(INT_BUFFER_SIZE);
     Router::info("Response: " + posString);
 

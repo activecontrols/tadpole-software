@@ -17,7 +17,7 @@
 #define ODRIVE_BAD_STATE (-5)
 #define ODRIVE_THREAD_ENDED_PREMATURELY (-6)
 
-#define ODRIVE_TELEM_HEADER ("position,velocity,voltage,current")
+#define ODRIVE_TELEM_HEADER ("position,velocity,voltage,current,pressure_in,pressure_out")
 
 #define INT_BUFFER_SIZE (50)
 #define MAX_THRUST (600)
