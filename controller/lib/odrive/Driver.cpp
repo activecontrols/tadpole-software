@@ -40,7 +40,7 @@ ODrive loxODrive(LOX_ODRIVE_SERIAL, loxName, &Pressure::lox_pressure_in, &Pressu
 
 File odriveLogFile;
 
-CString<80> curveTelemCSV;
+CString<120> curveTelemCSV;
 CString<50> curveFileName;
 CString<100> printBuffer;
 
@@ -114,8 +114,8 @@ void followAngleLerpCurve() {
       if (watchdogThreadsEnded()) {
         return;
       }
-      float lox_pos = lerp(lac[i].lox_angle, lac[i + 1].lox_angle, lac[i].time, lac[i + 1].time, seconds) / 360;
-      float ipa_pos = lerp(lac[i].ipa_angle, lac[i + 1].ipa_angle, lac[i].time, lac[i + 1].time, seconds) / 360;
+      float lox_pos = lerp(lac[i].lox_angle, lac[i + 1].lox_angle, lac[i].time, lac[i + 1].time, seconds) / 4;
+      float ipa_pos = lerp(lac[i].ipa_angle, lac[i + 1].ipa_angle, lac[i].time, lac[i + 1].time, seconds) / 4;
       lox_pos = constrain(lox_pos, MIN_ODRIVE_POS, MAX_ODRIVE_POS);
       ipa_pos = constrain(ipa_pos, MIN_ODRIVE_POS, MAX_ODRIVE_POS);
       loxODrive.setPos(lox_pos);
@@ -199,8 +199,18 @@ void followChirpCurve() {
 
 } // namespace
 
+float clip(float v) {
+  if (v < 0.02) {
+    v = 0.02;
+  }
+  if (v > 0.23) {
+    v = 0.23;
+  }
+  return v;
+}
+
 void basic_control_loop(float run_time, float min_p, float max_p) {
-  loxODrive.setPos(0.25);
+  loxODrive.setPos(45 / 360.0);
   delay(1000);
   Router::info("Starting control loop...");
   elapsedMillis timer = elapsedMillis();
@@ -211,13 +221,15 @@ void basic_control_loop(float run_time, float min_p, float max_p) {
     Router::info_no_newline(" Angle: ");
     Router::info(loxODrive.getLastPosCmd());
     if (pres_dif < min_p) {
-      loxODrive.setPos(loxODrive.getLastPosCmd() + 0.01);
+      Router::info("MORE");
+      loxODrive.setPos(clip(loxODrive.getLastPosCmd() - 0.0001));
     }
 
     if (pres_dif > max_p) {
-      loxODrive.setPos(loxODrive.getLastPosCmd() - 0.01);
+      Router::info("LESS");
+      loxODrive.setPos(clip(loxODrive.getLastPosCmd() + 0.0001));
     }
-    delay(10);
+    delay(3);
   }
 }
 

@@ -8,7 +8,7 @@
 #include "ODriveUART.h"
 #include "PressureSensor.h"
 
-#define ENABLE_ODRIVE_COMM (false)
+#define ENABLE_ODRIVE_COMM (true)
 
 #define ODRIVE_NO_ERROR (0)
 #define ODRIVE_ACTIVE_ERROR (-1)
@@ -49,7 +49,7 @@ private:
    */
   char name[4];
 
-  CString<40> telemetryCSV;
+  CString<60> telemetryCSV;
 
   CString<80> odriveInfo;
 
