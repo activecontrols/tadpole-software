@@ -64,10 +64,24 @@ int ODrive::checkConfig() {
  * @param pos value to be sent to odrive (valid values are from `MIN_ODRIVE_POS` to `MAX_ODRIVE_POS`).
  */
 void ODrive::setPos(float pos) {
+  posCmd = pos;
+  pos = 0.25 - pos; // invert command send to motor
+
+  if (pos < MIN_ODRIVE_POS) {
+    Router::info_no_newline("Clipping pos to ");
+    Router::info(MIN_ODRIVE_POS);
+    pos = MIN_ODRIVE_POS;
+  }
+
+  if (pos > MAX_ODRIVE_POS) {
+    Router::info_no_newline("Clipping pos to ");
+    Router::info(MAX_ODRIVE_POS);
+    pos = MAX_ODRIVE_POS;
+  }
+
 #if (ENABLE_ODRIVE_COMM)
   ODriveUART::setPosition(pos);
 #endif
-  posCmd = pos;
 }
 
 /**

@@ -115,8 +115,6 @@ void followAngleLerpCurve() {
       }
       float lox_pos = lerp(lac[i].lox_angle, lac[i + 1].lox_angle, lac[i].time, lac[i + 1].time, seconds) / 360;
       float ipa_pos = lerp(lac[i].ipa_angle, lac[i + 1].ipa_angle, lac[i].time, lac[i + 1].time, seconds) / 360;
-      lox_pos = constrain(lox_pos, MIN_ODRIVE_POS, MAX_ODRIVE_POS);
-      ipa_pos = constrain(ipa_pos, MIN_ODRIVE_POS, MAX_ODRIVE_POS);
       loxODrive.setPos(lox_pos);
       // ipaODrive.setPos(ipa_pos);
       if (timer - lastlog > LOG_INTERVAL_MS) {
@@ -180,8 +178,6 @@ void followSineCurve() {
       } else {
         lox_pos = abs(amplitude * (sin(2 * M_PI * seconds / period) + 1.0) / 2.0);
         ipa_pos = lox_pos / Loader::header.of_ratio;
-        lox_pos = constrain(lox_pos, MIN_ODRIVE_POS, MAX_ODRIVE_POS);
-        ipa_pos = constrain(ipa_pos, MIN_ODRIVE_POS, MAX_ODRIVE_POS);
         loxODrive.setPos(lox_pos);
         // ipaODrive.setPos(ipa_pos);
       }
@@ -199,7 +195,7 @@ void followChirpCurve() {
 } // namespace
 
 void basic_control_loop(float run_time, float min_p, float max_p) {
-  loxODrive.setPos(0.25);
+  loxODrive.setPos(45 / 360.0);
   delay(1000);
   Router::info("Starting control loop...");
   elapsedMillis timer = elapsedMillis();

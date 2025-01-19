@@ -23,8 +23,8 @@
 #define INT_BUFFER_SIZE (50)
 #define MAX_THRUST (600)
 #define MIN_THRUST (0)
-#define MAX_ODRIVE_POS (1)
-#define MIN_ODRIVE_POS (-1)
+#define MAX_ODRIVE_POS (90.0 / 360.0)
+#define MIN_ODRIVE_POS (0.0 / 360.0)
 
 /*
  * See comment above `threadArgs` variable in ODrive class
