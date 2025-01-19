@@ -40,8 +40,7 @@ ODrive loxODrive(LOX_ODRIVE_SERIAL, loxName, &Pressure::lox_pressure_in, &Pressu
 
 File odriveLogFile;
 
-CString<80> curveTelemCSV;
-CString<50> curveFileName;
+CString<200> curveTelemCSV;
 CString<100> printBuffer;
 
 /**
@@ -211,13 +210,13 @@ void basic_control_loop(float run_time, float min_p, float max_p) {
     Router::info_no_newline(" Angle: ");
     Router::info(loxODrive.getLastPosCmd());
     if (pres_dif < min_p) {
-      loxODrive.setPos(loxODrive.getLastPosCmd() + 0.01);
+      loxODrive.setPos(loxODrive.getLastPosCmd() - 0.0001);
     }
 
     if (pres_dif > max_p) {
-      loxODrive.setPos(loxODrive.getLastPosCmd() - 0.01);
+      loxODrive.setPos(loxODrive.getLastPosCmd() + 0.0001);
     }
-    delay(10);
+    delay(3);
   }
 }
 
@@ -313,14 +312,6 @@ void begin() {
   Router::add({[&]() { loxODrive.kill(); }, "kill"}); // TODO - ipaODrive kill
 
   Router::add({[&]() { basic_control_loop_cmd(); }, "control_loop_bad"});
-
-  Router::add({[&]() {
-                 Router::info("starting tare...");
-                 loxODrive.pressure_sensor_in->tare();
-                 loxODrive.pressure_sensor_out->tare();
-                 Router::info("tare complete");
-               },
-               "tare"}); // TODO - ipaODrive tare
 
 #if (ENABLE_ODRIVE_COMM)
   LOX_ODRIVE_SERIAL.begin(LOX_ODRIVE_SERIAL_RATE);

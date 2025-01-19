@@ -49,8 +49,7 @@ private:
    */
   char name[4];
 
-  CString<40> telemetryCSV;
-
+  CString<60> telemetryCSV;
   CString<80> odriveInfo;
 
   /*
