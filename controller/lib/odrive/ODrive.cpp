@@ -286,7 +286,7 @@ char *ODrive::getTelemetryCSV() {
 
   pressure_in = pressure_sensor_in->getPressure();
   pressure_out = pressure_sensor_out->getPressure();
-  telemetryCSV << "," << pressure_in << "," << pressure_out;
+  telemetryCSV << "," << pressure_in << "," << pressure_out << "," << pressure_in + 14.7 << "," << pressure_out + 14.7;
   return telemetryCSV.str;
 }
 
