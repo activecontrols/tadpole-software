@@ -18,7 +18,7 @@ void PressureSensor::tare() {
 
 float PressureSensor::getPressure() {
   float pressure = analogRead(pin);
-  return map(pressure, 0, 1023, 0, 10) * 7.9 + 4.8;
+  return map(pressure, 0, 1023, 0, 10) * 9.38 + 2.3;
 }
 
 namespace Pressure {
