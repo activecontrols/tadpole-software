@@ -278,15 +278,15 @@ char *ODrive::getTelemetryCSV() {
 
   current = ODriveUART::getParameterAsFloat("ibus");
 
-  pressure_in = pressure_sensor_in->getPressure();
-  pressure_out = pressure_sensor_out->getPressure();
-
-  telemetryCSV << position << "," << velocity << ","
-               << voltage << "," << current << "," << pressure_in << "," << pressure_out;
+  telemetryCSV << position << "," << velocity << "," << voltage << "," << current;
 #else
   telemetryCSV << "pos" << "," << "vel" << ","
-               << "V" << "," << "A" << "," << "PI" << "," << "PO";
+               << "V" << "," << "A";
 #endif
+
+  pressure_in = pressure_sensor_in->getPressure();
+  pressure_out = pressure_sensor_out->getPressure();
+  telemetryCSV << "," << pressure_in << "," << pressure_out;
   return telemetryCSV.str;
 }
 

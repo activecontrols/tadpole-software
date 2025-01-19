@@ -13,9 +13,11 @@ class PressureSensor {
 
 private:
   unsigned int pin;
+  float tare_offset = 0;
 
 public:
   PressureSensor(unsigned int pin);
+  void tare();
   float getPressure();
 };
 

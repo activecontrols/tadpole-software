@@ -233,20 +233,20 @@ void basic_control_loop_cmd() {
   }
 
   Router::info_no_newline("Target Min Pressure (0 - 3.3): ");
-  String respStr = Router::read(INT_BUFFER_SIZE);
+  respStr = Router::read(INT_BUFFER_SIZE);
 
   float min_p = 0.0;
-  int result = std::sscanf(respStr.c_str(), "%f", &min_p);
+  result = std::sscanf(respStr.c_str(), "%f", &min_p);
   if (result != 1) {
     Router::info("Could not convert input to a float, not continuing");
     return;
   }
 
   Router::info_no_newline("Target Max Pressure (0 - 3.3): ");
-  String respStr = Router::read(INT_BUFFER_SIZE);
+  respStr = Router::read(INT_BUFFER_SIZE);
 
   float max_p = 0.0;
-  int result = std::sscanf(respStr.c_str(), "%f", &max_p);
+  result = std::sscanf(respStr.c_str(), "%f", &max_p);
   if (result != 1) {
     Router::info("Could not convert input to a float, not continuing");
     return;
@@ -313,6 +313,12 @@ void begin() {
   Router::add({[&]() { loxODrive.kill(); }, "kill"}); // TODO - ipaODrive kill
 
   Router::add({[&]() { basic_control_loop_cmd(); }, "control_loop_bad"});
+
+  Router::add({[&]() {
+                 loxODrive.pressure_sensor_in->tare();
+                 loxODrive.pressure_sensor_out->tare();
+               },
+               "tare"}); // TODO - ipaODrive tare
 
 #if (ENABLE_ODRIVE_COMM)
   LOX_ODRIVE_SERIAL.begin(LOX_ODRIVE_SERIAL_RATE);
