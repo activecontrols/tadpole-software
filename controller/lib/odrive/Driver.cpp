@@ -315,8 +315,10 @@ void begin() {
   Router::add({[&]() { basic_control_loop_cmd(); }, "control_loop_bad"});
 
   Router::add({[&]() {
+                 Router::info("starting tare...");
                  loxODrive.pressure_sensor_in->tare();
                  loxODrive.pressure_sensor_out->tare();
+                 Router::info("tare complete");
                },
                "tare"}); // TODO - ipaODrive tare
 

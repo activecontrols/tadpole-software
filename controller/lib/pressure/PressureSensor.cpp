@@ -11,6 +11,7 @@ void PressureSensor::tare() {
   float p_sum = 0;
   for (int i = 0; i < 10; i++) {
     p_sum += analogRead(pin);
+    delay(100);
   }
   tare_offset = p_sum / 10;
 }
