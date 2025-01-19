@@ -199,6 +199,61 @@ void followChirpCurve() {
 
 } // namespace
 
+void basic_control_loop(float run_time, float min_p, float max_p) {
+  loxODrive.setPos(0.25);
+  delay(1000);
+  Router::info("Starting control loop...");
+  elapsedMillis timer = elapsedMillis();
+  while (timer / 1000.0 < run_time) {
+    float pres_dif = loxODrive.pressure_sensor_in->getPressure() - loxODrive.pressure_sensor_out->getPressure();
+    Router::info_no_newline("Pres dif: ");
+    Router::info_no_newline(pres_dif);
+    Router::info_no_newline(" Angle: ");
+    Router::info(loxODrive.getLastPosCmd());
+    if (pres_dif < min_p) {
+      loxODrive.setPos(loxODrive.getLastPosCmd() + 0.01);
+    }
+
+    if (pres_dif > max_p) {
+      loxODrive.setPos(loxODrive.getLastPosCmd() - 0.01);
+    }
+    delay(10);
+  }
+}
+
+void basic_control_loop_cmd() {
+  Router::info_no_newline("Time (seconds): ");
+  String respStr = Router::read(INT_BUFFER_SIZE);
+
+  float time = 0.0;
+  int result = std::sscanf(respStr.c_str(), "%f", &time);
+  if (result != 1) {
+    Router::info("Could not convert input to a float, not continuing");
+    return;
+  }
+
+  Router::info_no_newline("Target Min Pressure (0 - 3.3): ");
+  String respStr = Router::read(INT_BUFFER_SIZE);
+
+  float min_p = 0.0;
+  int result = std::sscanf(respStr.c_str(), "%f", &min_p);
+  if (result != 1) {
+    Router::info("Could not convert input to a float, not continuing");
+    return;
+  }
+
+  Router::info_no_newline("Target Max Pressure (0 - 3.3): ");
+  String respStr = Router::read(INT_BUFFER_SIZE);
+
+  float max_p = 0.0;
+  int result = std::sscanf(respStr.c_str(), "%f", &max_p);
+  if (result != 1) {
+    Router::info("Could not convert input to a float, not continuing");
+    return;
+  }
+  basic_control_loop(time, min_p, max_p);
+}
+
 void begin() {
   Router::add({Driver::followCurve, "follow_curve"});
   Router::add({Driver::printODriveInfo, "get_odrive_info"});
@@ -256,6 +311,8 @@ void begin() {
   // Router::add({[&]() { ipaODrive.printPressure(); }, "lox_print_pressure"});
 
   Router::add({[&]() { loxODrive.kill(); }, "kill"}); // TODO - ipaODrive kill
+
+  Router::add({[&]() { basic_control_loop_cmd(); }, "control_loop_bad"});
 
 #if (ENABLE_ODRIVE_COMM)
   LOX_ODRIVE_SERIAL.begin(LOX_ODRIVE_SERIAL_RATE);

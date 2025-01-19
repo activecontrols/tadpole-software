@@ -49,10 +49,6 @@ private:
    */
   char name[4];
 
-  // refrences to releveant pressure sensors for each valve
-  PressureSensor *pressure_sensor_in;
-  PressureSensor *pressure_sensor_out;
-
   CString<40> telemetryCSV;
 
   CString<80> odriveInfo;
@@ -146,6 +142,10 @@ private:
 
 public:
   ODrive(Stream &serial, char[4], PressureSensor *, PressureSensor *);
+
+  // refrences to releveant pressure sensors for each valve
+  PressureSensor *pressure_sensor_in;
+  PressureSensor *pressure_sensor_out;
 
   void checkConnection();
   int checkConfig();
