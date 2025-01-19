@@ -290,7 +290,7 @@ char *ODrive::getTelemetryCSV() {
 
   voltage = ODriveUART::getParameterAsFloat("vbus_voltage");
 
-  current = ODriveUART::getParameterAsFloat("ibus");
+  current = ODriveUART::getParameterAsFloat("axis0.motor.foc.Iq_measured");
 
   telemetryCSV << position << "," << velocity << "," << voltage << "," << current;
 #else
