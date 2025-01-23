@@ -10,6 +10,8 @@
 #ifndef TADPOLE_SOFTWARE_ROUTER_H
 #define TADPOLE_SOFTWARE_ROUTER_H
 
+#define CHECK_SERIAL_KILL // should check for 'k' on serial monitor to kill
+
 #include <vector>
 #include <string>
 #include <functional>

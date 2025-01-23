@@ -10,6 +10,8 @@
 namespace ZucrowInterface {
 void begin();
 void set_sync_line(bool status);
+bool check_fault_from_zucrow();
+void send_fault_to_zucrow();
 } // namespace ZucrowInterface
 
 #endif

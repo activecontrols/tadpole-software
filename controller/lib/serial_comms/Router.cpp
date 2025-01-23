@@ -7,6 +7,7 @@
 
 #include "SDCard.h"
 #include "CString.h"
+#include "zucrow_interface.hpp"
 
 #define COMMAND_BUFFER_SIZE (200)
 
@@ -123,4 +124,18 @@ namespace Router {
         info(f.name);
       }
     }
+
+	bool check_for_kill() {
+		if (ZucrowInterface::check_fault_from_zucrow()) {
+			return true;
+		}
+
+#ifdef CHECK_SERIAL_KILL
+		if (COMMS_SERIAL.available() && COMMS_SERIAL.read() == 'k') {
+			ZucrowInterface::send_fault_to_zucrow();
+			return true;
+		}
+#endif  
+        return false;
+	}
 }
