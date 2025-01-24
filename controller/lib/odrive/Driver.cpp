@@ -9,7 +9,6 @@
  */
 
 // TODO - interrupt curves over serial or with panic line
-// TODO - .py curve generator
 // TODO - log motor temperature
 
 #include <Arduino.h>
