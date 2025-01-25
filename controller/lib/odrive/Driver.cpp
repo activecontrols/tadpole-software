@@ -126,6 +126,8 @@ void followAngleLerpCurve() {
 
       ZucrowInterface::send_valve_angles_to_zucrow(loxODrive.getPosition(), 0);
       if (Router::check_for_kill()) {
+        loxODrive.setParameter("axis0.requested_state", AXIS_STATE_IDLE); // stop movement attempt
+        // ipaODrive.setParameter("axis0.requested_state", AXIS_STATE_IDLE); // stop movement attempt
         break;
       }
       delay(COMMAND_INTERVAL_MS);
@@ -155,6 +157,8 @@ void followThrustLerpCurve() {
 
       ZucrowInterface::send_valve_angles_to_zucrow(loxODrive.getPosition(), 0);
       if (Router::check_for_kill()) {
+        loxODrive.setParameter("axis0.requested_state", AXIS_STATE_IDLE); // stop movement attempt
+        // ipaODrive.setParameter("axis0.requested_state", AXIS_STATE_IDLE); // stop movement attempt
         break;
       }
       delay(COMMAND_INTERVAL_MS);
@@ -185,6 +189,8 @@ void basic_control_loop(float run_time, float min_p, float max_p) {
 
     ZucrowInterface::send_valve_angles_to_zucrow(loxODrive.getPosition(), 0);
     if (Router::check_for_kill()) {
+      loxODrive.setParameter("axis0.requested_state", AXIS_STATE_IDLE); // stop movement attempt
+      // ipaODrive.setParameter("axis0.requested_state", AXIS_STATE_IDLE); // stop movement attempt
       break;
     }
     delay(3);
