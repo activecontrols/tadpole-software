@@ -128,6 +128,7 @@ void followAngleLerpCurve() {
       if (Router::check_for_kill()) {
         loxODrive.setParameter("axis0.requested_state", AXIS_STATE_IDLE); // stop movement attempt
         // ipaODrive.setParameter("axis0.requested_state", AXIS_STATE_IDLE); // stop movement attempt
+        Router::info("Panic! Loop terminated.");
         break;
       }
       delay(COMMAND_INTERVAL_MS);
@@ -159,6 +160,7 @@ void followThrustLerpCurve() {
       if (Router::check_for_kill()) {
         loxODrive.setParameter("axis0.requested_state", AXIS_STATE_IDLE); // stop movement attempt
         // ipaODrive.setParameter("axis0.requested_state", AXIS_STATE_IDLE); // stop movement attempt
+        Router::info("Panic! Loop terminated.");
         break;
       }
       delay(COMMAND_INTERVAL_MS);
@@ -191,6 +193,7 @@ void basic_control_loop(float run_time, float min_p, float max_p) {
     if (Router::check_for_kill()) {
       loxODrive.setParameter("axis0.requested_state", AXIS_STATE_IDLE); // stop movement attempt
       // ipaODrive.setParameter("axis0.requested_state", AXIS_STATE_IDLE); // stop movement attempt
+      Router::info("Panic! Loop terminated.");
       break;
     }
     delay(3);
