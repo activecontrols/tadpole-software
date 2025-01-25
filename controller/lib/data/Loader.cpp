@@ -45,41 +45,35 @@ void Loader::load_curve_generic(bool serial, File *f) {
     return;
   }
 
-  switch (header.ctype) {
-  case curve_type::sine:
-  case curve_type::chirp:
-    break; // params already present in header
-  case curve_type::lerp:
-    // load lerp points in from serial
-    if (header.is_thrust) {
-      lerp_thrust_curve = (lerp_point_thrust *)(extmem_calloc(header.lerp.num_points, sizeof(lerp_point_thrust)));
-      receive((char *)lerp_thrust_curve, sizeof(lerp_point_thrust) * header.lerp.num_points);
-    } else {
-      lerp_angle_curve = (lerp_point_angle *)(extmem_calloc(header.lerp.num_points, sizeof(lerp_point_angle)));
-      receive((char *)lerp_angle_curve, sizeof(lerp_point_angle) * header.lerp.num_points);
-    }
-    Serial.print("Loaded curve with: ");
-    Serial.print(header.lerp.num_points);
-    Serial.println(" points");
-
-    for (int i = 0; i < header.lerp.num_points; i++) {
-      Serial.print("Point: ");
-      if (header.is_thrust) {
-        Serial.print(lerp_thrust_curve[i].time);
-        Serial.print(" sec | ");
-        Serial.print(lerp_thrust_curve[i].thrust);
-        Serial.println(" lbf.");
-      } else {
-        Serial.print(lerp_angle_curve[i].time);
-        Serial.print(" sec | IPA ");
-        Serial.print(lerp_angle_curve[i].ipa_angle);
-        Serial.print(" deg | OX ");
-        Serial.print(lerp_angle_curve[i].lox_angle);
-        Serial.println(" deg.");
-      }
-    }
-    break;
+  // load lerp points in from serial
+  if (header.is_thrust) {
+    lerp_thrust_curve = (lerp_point_thrust *)(extmem_calloc(header.num_points, sizeof(lerp_point_thrust)));
+    receive((char *)lerp_thrust_curve, sizeof(lerp_point_thrust) * header.num_points);
+  } else {
+    lerp_angle_curve = (lerp_point_angle *)(extmem_calloc(header.num_points, sizeof(lerp_point_angle)));
+    receive((char *)lerp_angle_curve, sizeof(lerp_point_angle) * header.num_points);
   }
+  Serial.print("Loaded curve with: ");
+  Serial.print(header.num_points);
+  Serial.println(" points");
+
+  for (int i = 0; i < header.num_points; i++) {
+    Serial.print("Point: ");
+    if (header.is_thrust) {
+      Serial.print(lerp_thrust_curve[i].time);
+      Serial.print(" sec | ");
+      Serial.print(lerp_thrust_curve[i].thrust);
+      Serial.println(" lbf.");
+    } else {
+      Serial.print(lerp_angle_curve[i].time);
+      Serial.print(" sec | IPA ");
+      Serial.print(lerp_angle_curve[i].ipa_angle);
+      Serial.print(" deg | OX ");
+      Serial.print(lerp_angle_curve[i].lox_angle);
+      Serial.println(" deg.");
+    }
+  }
+
   loaded_curve = true;
 }
 
@@ -136,18 +130,12 @@ void Loader::write_curve_sd() {
     return;
   }
   f.write((char *)&header, sizeof(header));
-  switch (header.ctype) {
-  case curve_type::sine:
-  case curve_type::chirp:
-    break; // params already present in header
-  case curve_type::lerp:
-    if (header.is_thrust) {
-      f.write((char *)lerp_thrust_curve, sizeof(lerp_point_thrust) * header.lerp.num_points);
-    } else {
-      f.write((char *)lerp_angle_curve, sizeof(lerp_point_angle) * header.lerp.num_points);
-    }
-    break;
+  if (header.is_thrust) {
+    f.write((char *)lerp_thrust_curve, sizeof(lerp_point_thrust) * header.num_points);
+  } else {
+    f.write((char *)lerp_angle_curve, sizeof(lerp_point_angle) * header.num_points);
   }
+
   f.close();
   Router::info("Wrote curve!");
 }

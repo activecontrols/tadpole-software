@@ -5,6 +5,7 @@
 #include "Router.h"
 #include "Loader.h"
 #include "SDCard.h"
+#include "zucrow_interface.hpp"
 
 void ping() {
    Router::info("pong");
@@ -38,6 +39,7 @@ void setup() {
 
     Driver::begin(); // initializes the odrives and functions to start curves
 
+    ZucrowInterface::begin(); // initializes the DAC
 }
 
 void loop() {

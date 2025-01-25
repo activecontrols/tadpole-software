@@ -8,7 +8,6 @@
  *               The curves supported are lerp (linear interpolation), sine, and chirp.
  */
 
-// TODO - interrupt curves over serial or with panic line
 // TODO - log motor temperature
 
 #include <Arduino.h>
@@ -110,7 +109,7 @@ void followAngleLerpCurve() {
   elapsedMillis timer = elapsedMillis();
   unsigned long lastlog = timer;
 
-  for (int i = 0; i < Loader::header.lerp.num_points - 1; i++) {
+  for (int i = 0; i < Loader::header.num_points - 1; i++) {
     while (timer / 1000.0 < lac[i + 1].time) {
       float seconds = timer / 1000.0;
       if (watchdogThreadsEnded()) {
@@ -123,6 +122,11 @@ void followAngleLerpCurve() {
       if (timer - lastlog > LOG_INTERVAL_MS) {
         logCurveTelemCSV(seconds, i, -1);
         lastlog = timer;
+      }
+
+      ZucrowInterface::send_valve_angles_to_zucrow(loxODrive.getPosition(), 0);
+      if (Router::check_for_kill()) {
+        break;
       }
       delay(COMMAND_INTERVAL_MS);
     }
@@ -138,7 +142,7 @@ void followThrustLerpCurve() {
   unsigned long lastlog = timer;
   Serial.println(timer);
 
-  for (int i = 0; i < Loader::header.lerp.num_points - 1; i++) {
+  for (int i = 0; i < Loader::header.num_points - 1; i++) {
     while (timer / 1000.0 < ltc[i + 1].time) {
       float seconds = timer / 1000.0;
       // if (watchdogThreadsEnded()) { return; }
@@ -148,51 +152,14 @@ void followThrustLerpCurve() {
         logCurveTelemCSV(seconds, i, thrust);
         lastlog = timer;
       }
+
+      ZucrowInterface::send_valve_angles_to_zucrow(loxODrive.getPosition(), 0);
+      if (Router::check_for_kill()) {
+        break;
+      }
       delay(COMMAND_INTERVAL_MS);
     }
   }
-}
-
-/**
- * Follows a closed or open sine curve by generating lox/ipa positions or thrust values.
- */
-void followSineCurve() {
-  float amplitude = Loader::header.sine.amplitude;
-  if (amplitude > 1.0 || amplitude < -1.0) {
-    Router::info("|amplitude| > 1.0, saturating.");
-    amplitude = amplitude > 0 ? 1.0 : -1.0;
-  }
-  float period = Loader::header.sine.period;
-  int num_cycles = Loader::header.sine.num_cycles;
-
-  elapsedMillis timer = elapsedMillis();
-  unsigned long lastlog = timer;
-  float ipa_pos, lox_pos, thrust = -1;
-
-  for (int i = 0; i < num_cycles; i++) {
-    while (timer / 1000.0 < period) {
-      float seconds = timer / 1000.0;
-      if (watchdogThreadsEnded()) {
-        return;
-      }
-      if (Loader::header.is_thrust) {
-        thrust = amplitude * (sin(2 * M_PI * seconds / period) + 1.0) / 2.0;
-        setThrustOpenLoop(thrust);
-      } else {
-        lox_pos = abs(amplitude * (sin(2 * M_PI * seconds / period) + 1.0) / 2.0);
-        ipa_pos = lox_pos / Loader::header.of_ratio;
-        loxODrive.setPos(lox_pos);
-        // ipaODrive.setPos(ipa_pos);
-      }
-      if (timer - lastlog >= LOG_INTERVAL_MS) {
-        logCurveTelemCSV(seconds, i, thrust);
-        lastlog = timer;
-      }
-    }
-  }
-}
-
-void followChirpCurve() {
 }
 
 } // namespace
@@ -214,6 +181,11 @@ void basic_control_loop(float run_time, float min_p, float max_p) {
 
     if (pres_dif > max_p) {
       loxODrive.setPos(loxODrive.getLastPosCmd() + 0.0001);
+    }
+
+    ZucrowInterface::send_valve_angles_to_zucrow(loxODrive.getPosition(), 0);
+    if (Router::check_for_kill()) {
+      break;
     }
     delay(3);
   }
@@ -442,23 +414,14 @@ void followCurve() {
   // loxODrive.startWatchdogThread();
   // ipaODrive.startWatchdogThread();
 
-  ZucrowInterface::set_sync_line(SYNC_CURVE_RUNNING);
+  ZucrowInterface::send_ok_to_zucrow(); // tell zucrow we are ready to go
 
-  switch (Loader::header.ctype) {
-  case curve_type::lerp:
-    (Loader::header.is_thrust ? followThrustLerpCurve() : followAngleLerpCurve());
-    break;
-  case curve_type::sine:
-    followSineCurve();
-    break;
-  case curve_type::chirp:
-    followChirpCurve();
-    break;
-  default:
-    break;
-  }
+  while (ZucrowInterface::check_sync_from_zucrow() != ZUCROW_SYNC_RUNNING) {
+  }; // wait until zucrow gives us the go
 
-  ZucrowInterface::set_sync_line(SYNC_CURVE_IDLE);
+  ZucrowInterface::send_sync_to_zucrow(TEENSY_SYNC_RUNNING);
+  Loader::header.is_thrust ? followThrustLerpCurve() : followAngleLerpCurve();
+  ZucrowInterface::send_sync_to_zucrow(TEENSY_SYNC_IDLE);
 
   if (Router::logenabled) {
     odriveLogFile.flush();

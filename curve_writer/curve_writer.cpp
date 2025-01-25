@@ -134,10 +134,8 @@ void fill_header(std::string csv_filename, char mode, int num_points) {
     }
   }
 
-  header.ctype = curve_type::lerp; // only support lerp curves
-  header.of_ratio = 1.2;           // this is only needed for sine / chirp curves
   header.is_thrust = mode == MODE_THRUST;
-  header.lerp.num_points = num_points;
+  header.num_points = num_points;
 }
 
 void write_file() {

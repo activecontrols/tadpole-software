@@ -59,6 +59,9 @@ namespace Router {
     // returns.
     [[noreturn]] extern void run();
     void print_all_cmds();
+
+	// returns true if should stop loop
+	bool check_for_kill();
 };
 
 struct func {
