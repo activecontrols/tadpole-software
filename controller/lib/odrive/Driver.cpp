@@ -112,9 +112,6 @@ void followAngleLerpCurve() {
   for (int i = 0; i < Loader::header.num_points - 1; i++) {
     while (timer / 1000.0 < lac[i + 1].time) {
       float seconds = timer / 1000.0;
-      if (watchdogThreadsEnded()) {
-        return;
-      }
       float lox_pos = lerp(lac[i].lox_angle, lac[i + 1].lox_angle, lac[i].time, lac[i + 1].time, seconds) / 360;
       float ipa_pos = lerp(lac[i].ipa_angle, lac[i + 1].ipa_angle, lac[i].time, lac[i + 1].time, seconds) / 360;
       loxODrive.setPos(lox_pos);
@@ -148,7 +145,6 @@ void followThrustLerpCurve() {
   for (int i = 0; i < Loader::header.num_points - 1; i++) {
     while (timer / 1000.0 < ltc[i + 1].time) {
       float seconds = timer / 1000.0;
-      // if (watchdogThreadsEnded()) { return; }
       float thrust = lerp(ltc[i].thrust, ltc[i + 1].thrust, ltc[i].time, ltc[i + 1].time, seconds);
       setThrustOpenLoop(thrust);
       if (timer - lastlog >= LOG_INTERVAL_MS) {
@@ -273,12 +269,6 @@ void begin() {
 
   Router::add({[&]() { loxODrive.printTelemetryCSV(); }, "get_lox_odrive_telem"});
   // Router::add({[&]() {ipaODrive.printTelemetryCSV(); }, "get_ipa_odrive_telem"});
-
-  Router::add({[&]() { loxODrive.startWatchdogThread(); }, "start_lox_watchdog_thread"});
-  // Router::add({[&]() {ipaODrive.startWatchdogThread(); }, "start_ipa_watchdog_thread"});
-
-  Router::add({[&]() { loxODrive.terminateWatchdogThread(); }, "terminate_lox_watchdog_thread"});
-  // Router::add({[&]() {ipaODrive.terminateWatchdogThread(); }, "terminate_ipa_watchdog_thread"});
 
   Router::add({[&]() { loxODrive.hardStopHoming(); }, "lox_hard_stop_home"});
   // Router::add({[&]() { ipaODrive.hardStopHoming(); }, "ipa_hard_stop_home"});
@@ -420,9 +410,6 @@ void followCurve() {
     }
   }
 
-  // loxODrive.startWatchdogThread();
-  // ipaODrive.startWatchdogThread();
-
   ZucrowInterface::send_ok_to_zucrow(); // tell zucrow we are ready to go
 
   while (ZucrowInterface::check_sync_from_zucrow() != ZUCROW_SYNC_RUNNING) {
@@ -437,25 +424,6 @@ void followCurve() {
     odriveLogFile.close();
   }
 
-  // if (watchdogThreadsEnded()) {
-  //     Router::info("ERROR: Ended curve following early.");
-  //     loxODrive.printErrors();
-  //     // ipaODrive.printErrors();
-  // } else {
   Router::info("Finished following curve!");
-  // }
-
-  // loxODrive.terminateWatchdogThread();
-  // ipaODrive.terminateWatchdogThread();
-}
-
-/*
- * Checks if either the ipa odrive or lox odrive watchdog threads ended early
- */
-bool watchdogThreadsEnded() {
-  if (loxODrive.checkThreadExecutionFinished()) { // || ipaODrive.checkThreadExecutionFinished()) {
-    return true;
-  }
-  return false;
 }
 } // namespace Driver

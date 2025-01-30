@@ -34,7 +34,6 @@ void setThrustCmd_OPEN_LOOP();
 void printODriveInfo();
 
 void followCurve();
-bool watchdogThreadsEnded();
 
 }; // namespace Driver
 

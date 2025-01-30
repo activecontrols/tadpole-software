@@ -1,8 +1,6 @@
 #ifndef ODRIVE_H
 #define ODRIVE_H
 
-#include <TeensyThreads.h>
-
 #include "Router.h"
 #include "CString.h"
 #include "ODriveUART.h"
@@ -25,20 +23,6 @@
 #define MIN_THRUST (0)
 #define MAX_ODRIVE_POS (90.0 / 360.0)
 #define MIN_ODRIVE_POS (0.0 / 360.0)
-
-/*
- * See comment above `threadArgs` variable in ODrive class
- */
-struct ThreadArgs {
-  Stream &serial;
-
-  /*
-   * An bool to determine if the watchdog thread has finished execution
-   * Similar but not completely based on the solution (third example) here:
-   * https://stackoverflow.com/questions/9094422/how-to-check-if-a-stdthread-is-still-running
-   */
-  volatile bool threadExecutionFinished;
-};
 
 class ODrive : public ODriveUART {
 
@@ -98,28 +82,6 @@ private:
   Stream &serial;
 
   /*
-   * Handler for the thread ( `watchdogThreadFunc` ) that feeds the ODrive watchdog and checks
-   * for active errors.
-   * Modified by `startWatchdogThread()` and `terminateWatchdogThread()`
-   *
-   * NOTE: This type of thread object comes from TeensyThreads.h and won't have all of the
-   * funtionality or compatibility that the standard `std::thread` object has in the C++ lib
-   */
-  std::thread *watchdogThread;
-
-  /*
-   * The struct that holds the function arguments to be passed into a thread. This struct
-   * will be casted to a (void *) in `startWatchdogThread()`
-   */
-  volatile struct ThreadArgs threadArgs;
-
-  /*
-   * The thread ID of the watchdog thread
-   * Modified by `startWatchdogThread()`
-   */
-  int threadID;
-
-  /*
    * The last known position, velocity, voltage, and current of the ODrive
    * Modified by `getTelemetryCSV()`
    */
@@ -157,10 +119,6 @@ public:
 
   int checkErrors();
   void printErrors();
-  void startWatchdogThread();
-  static void watchdogThreadFunc(void *);
-  void terminateWatchdogThread();
-  bool checkThreadExecutionFinished() { return threadArgs.threadExecutionFinished; }
   static String readLine(Stream &, unsigned long timeout_ms = 10);
   void clear();
 
