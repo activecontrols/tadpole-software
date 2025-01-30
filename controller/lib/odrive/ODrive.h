@@ -82,18 +82,6 @@ private:
   Stream &serial;
 
   /*
-   * The last known position, velocity, voltage, and current of the ODrive
-   * Modified by `getTelemetryCSV()`
-   */
-  float position;
-  float velocity;
-  float voltage;
-  float current;
-  float temperature;
-  float pressure_in;
-  float pressure_out;
-
-  /*
    * The major and minor version of the hardware and firmware of the ODrive
    * Modified by `getODriveInfo()`
    */
@@ -109,6 +97,18 @@ public:
   PressureSensor *pressure_sensor_in;
   PressureSensor *pressure_sensor_out;
 
+  /*
+   * The last known position, velocity, voltage, and current of the ODrive
+   * Modified by `getTelemetryCSV()`
+   */
+  float position;
+  float velocity;
+  float voltage;
+  float current;
+  float temperature;
+  float pressure_in;
+  float pressure_out;
+
   void checkConnection();
   int checkConfig();
 
@@ -119,7 +119,6 @@ public:
 
   int checkErrors();
   void printErrors();
-  static String readLine(Stream &, unsigned long timeout_ms = 10);
   void clear();
 
   void identify();

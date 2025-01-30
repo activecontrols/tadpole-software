@@ -30,6 +30,12 @@ ThreadWrap(Serial2, SerialXtra2);
 
 #define LOG_INTERVAL_MS 10
 #define COMMAND_INTERVAL_MS 1
+#define kill_handler()                \
+  int kill_reason = check_for_kill(); \
+  if (kill_reason != DONT_KILL) {     \
+    kill_response(kill_reason);       \
+    break;                            \
+  }
 
 namespace Driver {
 
@@ -100,6 +106,37 @@ float lerp(float a, float b, float t0, float t1, float t) {
   return a + (b - a) * ((t - t0) / (t1 - t0));
 }
 
+void kill_response(int kill_reason) {
+  loxODrive.setParameter("axis0.requested_state", AXIS_STATE_IDLE); // stop movement attempt
+  // ipaODrive.setParameter("axis0.requested_state", AXIS_STATE_IDLE); // stop movement attempt
+  ZucrowInterface::send_fault_to_zucrow();
+  Router::info("Panic! Loop terminated.");
+  Router::info_no_newline("Kill code: ");
+  Router::info(kill_reason);
+}
+
+int check_for_kill() {
+  if (ZucrowInterface::check_fault_from_zucrow()) {
+    return KILLED_BY_ZUCROW;
+  }
+
+#ifdef CHECK_SERIAL_KILL
+  if (COMMS_SERIAL.available() && COMMS_SERIAL.read() == 'k') {
+    return KILLED_BY_SERIAL;
+  }
+#endif
+
+  if (abs(loxODrive.position - loxODrive.getLastPosCmd()) > ANGLE_OOR_THRESH) { // TODO - check both motors
+    return KILLED_BY_ANGLE_OOR;
+  }
+
+  if (loxODrive.getState() != AXIS_STATE_CLOSED_LOOP_CONTROL) {
+    return KILLED_BY_ODRIVE_FAULT;
+  }
+
+  return DONT_KILL;
+}
+
 /**
  * Follows an open lerp curve by interpolating between LOX and IPA positions.
  */
@@ -113,7 +150,7 @@ void followAngleLerpCurve() {
     while (timer / 1000.0 < lac[i + 1].time) {
       float seconds = timer / 1000.0;
       float lox_pos = lerp(lac[i].lox_angle, lac[i + 1].lox_angle, lac[i].time, lac[i + 1].time, seconds) / 360;
-      float ipa_pos = lerp(lac[i].ipa_angle, lac[i + 1].ipa_angle, lac[i].time, lac[i + 1].time, seconds) / 360;
+      // float ipa_pos = lerp(lac[i].ipa_angle, lac[i + 1].ipa_angle, lac[i].time, lac[i + 1].time, seconds) / 360;
       loxODrive.setPos(lox_pos);
       // ipaODrive.setPos(ipa_pos);
       if (timer - lastlog > LOG_INTERVAL_MS) {
@@ -121,13 +158,8 @@ void followAngleLerpCurve() {
         lastlog = timer;
       }
 
-      ZucrowInterface::send_valve_angles_to_zucrow(loxODrive.getPosition(), 0);
-      if (Router::check_for_kill()) {
-        loxODrive.setParameter("axis0.requested_state", AXIS_STATE_IDLE); // stop movement attempt
-        // ipaODrive.setParameter("axis0.requested_state", AXIS_STATE_IDLE); // stop movement attempt
-        Router::info("Panic! Loop terminated.");
-        break;
-      }
+      ZucrowInterface::send_valve_angles_to_zucrow(loxODrive.position, 0);
+      kill_handler();
       delay(COMMAND_INTERVAL_MS);
     }
   }
@@ -152,13 +184,8 @@ void followThrustLerpCurve() {
         lastlog = timer;
       }
 
-      ZucrowInterface::send_valve_angles_to_zucrow(loxODrive.getPosition(), 0);
-      if (Router::check_for_kill()) {
-        loxODrive.setParameter("axis0.requested_state", AXIS_STATE_IDLE); // stop movement attempt
-        // ipaODrive.setParameter("axis0.requested_state", AXIS_STATE_IDLE); // stop movement attempt
-        Router::info("Panic! Loop terminated.");
-        break;
-      }
+      ZucrowInterface::send_valve_angles_to_zucrow(loxODrive.position, 0);
+      kill_handler();
       delay(COMMAND_INTERVAL_MS);
     }
   }
@@ -185,13 +212,8 @@ void basic_control_loop(float run_time, float min_p, float max_p) {
       loxODrive.setPos(loxODrive.getLastPosCmd() + 0.0001);
     }
 
-    ZucrowInterface::send_valve_angles_to_zucrow(loxODrive.getPosition(), 0);
-    if (Router::check_for_kill()) {
-      loxODrive.setParameter("axis0.requested_state", AXIS_STATE_IDLE); // stop movement attempt
-      // ipaODrive.setParameter("axis0.requested_state", AXIS_STATE_IDLE); // stop movement attempt
-      Router::info("Panic! Loop terminated.");
-      break;
-    }
+    ZucrowInterface::send_valve_angles_to_zucrow(loxODrive.position, 0);
+    kill_handler();
     delay(3);
   }
 }

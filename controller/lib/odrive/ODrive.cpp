@@ -112,30 +112,6 @@ void ODrive::printErrors() {
 #endif
 }
 
-/*
- * Static function to read the result of a command from the ODrive. Call this function after
- * sending a command to the ODrive.
- *
- * This function was ported from ODriveUART.cpp (the official ODrive lib) and was modified to
- * be static to use in the thread function `watchdogThreadFunc`
- */
-String ODrive::readLine(Stream &serial, unsigned long timeout_ms) {
-  String str = "";
-  unsigned long timeout_start = millis();
-  for (;;) {
-    while (!serial.available()) {
-      if (millis() - timeout_start >= timeout_ms) {
-        return str;
-      }
-    }
-    char c = serial.read();
-    if (c == '\n')
-      break;
-    str += c;
-  }
-  return str;
-}
-
 /**
  * Clears error codes on ODrive and sets disarmReason and activeError variable to 0
  */
@@ -168,9 +144,10 @@ char *ODrive::getTelemetryCSV() {
   telemetryCSV.clear();
 
 #if (ENABLE_ODRIVE_COMM)
-  position = ODriveUART::getPosition();
+  ODriveFeedback odFeedback = ODrive::getFeedback();
+  position = 0.25 - odFeedback.pos;
 
-  velocity = ODriveUART::getVelocity();
+  velocity = odFeedback.vel;
 
   voltage = ODriveUART::getParameterAsFloat("vbus_voltage");
 
