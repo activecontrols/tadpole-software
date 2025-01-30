@@ -18,7 +18,7 @@
 #define ODRIVE_BAD_STATE (-5)
 #define ODRIVE_THREAD_ENDED_PREMATURELY (-6)
 
-#define ODRIVE_TELEM_HEADER ("position,velocity,voltage,current,pressure_in,pressure_out")
+#define ODRIVE_TELEM_HEADER ("position,velocity,voltage,current,temperature,pressure_in,pressure_out")
 
 #define INT_BUFFER_SIZE (50)
 #define MAX_THRUST (600)
@@ -49,7 +49,7 @@ private:
    */
   char name[4];
 
-  CString<60> telemetryCSV;
+  CString<80> telemetryCSV;
   CString<80> odriveInfo;
 
   /*
@@ -127,6 +127,7 @@ private:
   float velocity;
   float voltage;
   float current;
+  float temperature;
   float pressure_in;
   float pressure_out;
 

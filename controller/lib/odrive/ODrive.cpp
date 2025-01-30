@@ -292,10 +292,12 @@ char *ODrive::getTelemetryCSV() {
 
   current = ODriveUART::getParameterAsFloat("axis0.motor.foc.Iq_measured");
 
-  telemetryCSV << position << "," << velocity << "," << voltage << "," << current;
+  temperature = ODriveUART::getParameterAsFloat("axis0.motor.motor_thermistor");
+
+  telemetryCSV << position << "," << velocity << "," << voltage << "," << current << "," << temperature;
 #else
   telemetryCSV << "pos" << "," << "vel" << ","
-               << "V" << "," << "A";
+               << "V" << "," << "A" << "," << "T";
 #endif
 
   pressure_in = pressure_sensor_in->getPressure();
