@@ -3,8 +3,18 @@
 
 #include "Router.h"
 #include "CString.h"
-#include "ODriveUART.h"
+#include "ODriveCAN.h"
+#include <FlexCAN_T4.h>
+#include "ODriveFlexCAN.hpp"
+#define CAN_BAUDRATE 250000
 #include "PressureSensor.h"
+
+struct ODriveUserData {
+  Heartbeat_msg_t last_heartbeat;
+  bool received_heartbeat = false;
+  Get_Encoder_Estimates_msg_t last_feedback;
+  bool received_feedback = false;
+};
 
 #define ENABLE_ODRIVE_COMM (true)
 
@@ -24,7 +34,11 @@
 #define MAX_ODRIVE_POS (90.0 / 360.0)
 #define MIN_ODRIVE_POS (0.0 / 360.0)
 
-class ODrive : public ODriveUART {
+void onHeartbeatCB(Heartbeat_msg_t &msg, void *user_data);
+void onFeedbackCB(Get_Encoder_Estimates_msg_t &msg, void *user_data);
+void setup_can(_MB_ptr handler);
+
+class ODrive : public ODriveCAN {
 
 private:
   /*
@@ -45,7 +59,7 @@ private:
   /*
    * The last error the odrive encontered
    * Modified only by `checkErrors()`
-   * Can be cleared by `ODriveUART::clearErrors()`
+   * Can be cleared by `ODriveCAN::clearErrors()`
    * If there is no last error, then the value will be `0`
    */
   int activeError;
@@ -71,15 +85,10 @@ private:
   /*
    * The error code that made the odrive disarm
    * Modified only by `checkErrors()`
-   * Can be cleared by `ODriveUART::clearErrors()`
+   * Can be cleared by `ODriveCAN::clearErrors()`
    * If there is no last error, then the value will be `0`
    */
   int disarmReason;
-
-  /*
-   * A reference to the serial port object used by the ODrive
-   */
-  Stream &serial;
 
   /*
    * The major and minor version of the hardware and firmware of the ODrive
@@ -91,7 +100,7 @@ private:
   int fwVersionMinor;
 
 public:
-  ODrive(Stream &serial, char[4], PressureSensor *, PressureSensor *);
+  ODrive(uint32_t can_id, char[4], PressureSensor *, PressureSensor *);
 
   // refrences to releveant pressure sensors for each valve
   PressureSensor *pressure_sensor_in;
@@ -108,6 +117,9 @@ public:
   float temperature;
   float pressure_in;
   float pressure_out;
+
+  // stores data sent back from the odrive - modified by onHeartbeat() and onFeedback()
+  ODriveUserData odrive_status;
 
   void checkConnection();
   int checkConfig();

@@ -19,14 +19,8 @@
 #include "ODrive.h"
 #include "CString.h"
 
-ThreadWrap(Serial1, SerialXtra1);
-#define Serial1 ThreadClone(SerialXtra1)
-
-ThreadWrap(Serial2, SerialXtra2);
-#define Serial2 ThreadClone(SerialXtra2)
-
-#define LOX_ODRIVE_SERIAL (Serial1)
-#define IPA_ODRIVE_SERIAL (Serial2)
+#define LOX_ODRIVE_CAN_ID 0
+#define IPA_ODRIVE_CAN_ID 1
 
 #define LOG_INTERVAL_MS 10
 #define COMMAND_INTERVAL_MS 1
@@ -43,8 +37,8 @@ namespace { // private
 
 char loxName[4] = "LOX";
 // char ipaName[4] = "IPA";
-ODrive loxODrive(LOX_ODRIVE_SERIAL, loxName, &Pressure::lox_pressure_in, &Pressure::lox_pressure_out);
-// ODrive loxODrive(IPA_ODRIVE_SERIAL, ipaName, &Pressure::ipa_pressure_in, &Pressure::ipa_pressure_out);
+ODrive loxODrive(LOX_ODRIVE_CAN_ID, loxName, &Pressure::lox_pressure_in, &Pressure::lox_pressure_out);
+// ODrive loxODrive(IPA_ODRIVE_CAN_ID, ipaName, &Pressure::ipa_pressure_in, &Pressure::ipa_pressure_out);
 
 File odriveLogFile;
 
@@ -107,8 +101,8 @@ float lerp(float a, float b, float t0, float t1, float t) {
 }
 
 void kill_response(int kill_reason) {
-  loxODrive.setParameter("axis0.requested_state", AXIS_STATE_IDLE); // stop movement attempt
-  // ipaODrive.setParameter("axis0.requested_state", AXIS_STATE_IDLE); // stop movement attempt
+  loxODrive.setState(AXIS_STATE_IDLE);
+  // ipaODrive.setState(AXIS_STATE_IDLE);
   ZucrowInterface::send_fault_to_zucrow();
   Router::info("Panic! Loop terminated.");
   Router::info_no_newline("Kill code: ");
@@ -130,7 +124,7 @@ int check_for_kill() {
     return KILLED_BY_ANGLE_OOR;
   }
 
-  if (loxODrive.getState() != AXIS_STATE_CLOSED_LOOP_CONTROL) {
+  if (loxODrive.odrive_status.last_heartbeat.Axis_State != AXIS_STATE_CLOSED_LOOP_CONTROL) {
     return KILLED_BY_ODRIVE_FAULT;
   }
 
@@ -251,7 +245,13 @@ void basic_control_loop_cmd() {
   basic_control_loop(time, min_p, max_p);
 }
 
+void onCanMessage(const CanMsg &msg) {
+  onReceive(msg, loxODrive);
+  // onReceive(msg, ipaODrive);
+}
+
 void begin() {
+  setup_can(onCanMessage);
   Router::add({Driver::followCurve, "follow_curve"});
   Router::add({Driver::printODriveInfo, "get_odrive_info"});
   // Router::add({Driver::setThrustCmd, "set_thrust"});
@@ -306,9 +306,6 @@ void begin() {
   Router::add({[&]() { basic_control_loop_cmd(); }, "control_loop_bad"});
 
 #if (ENABLE_ODRIVE_COMM)
-  LOX_ODRIVE_SERIAL.begin(LOX_ODRIVE_SERIAL_RATE);
-  IPA_ODRIVE_SERIAL.begin(IPA_ODRIVE_SERIAL_RATE);
-
   Router::info("Connecting to lox odrive...");
   loxODrive.checkConnection();
   loxODrive.checkConfig();
