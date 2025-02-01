@@ -1,5 +1,7 @@
 #include "zucrow_interface.hpp"
 
+MCP4822 dac(DAC_CS_PIN);
+
 void ZucrowInterface::begin() {
   pinMode(ZUCROW_PANIC_PIN, INPUT);
   pinMode(ZUCROW_SYNC_PIN, INPUT);
@@ -9,7 +11,18 @@ void ZucrowInterface::begin() {
   digitalWrite(TEENSY_PANIC_PIN, TEENSY_PANIC);
   digitalWrite(TEENSY_SYNC_PIN, TEENSY_SYNC_IDLE);
 
-  // TODO - SPI setup
+  dac.init();
+
+  // The channels are turned off at startup so we need to turn the channel we need on
+  dac.turnOnChannelA();
+  dac.turnOnChannelB();
+
+  // We configure the channels in High gain
+  // It is also the default value so it is not really needed
+  dac.setGainA(MCP4822::High);
+  dac.setGainB(MCP4822::High);
+
+  dac.updateDAC();
 }
 
 bool ZucrowInterface::check_fault_from_zucrow() {
@@ -33,5 +46,9 @@ void ZucrowInterface::send_sync_to_zucrow(bool status) {
 }
 
 void ZucrowInterface::send_valve_angles_to_zucrow(float lox_pos, float ipa_pos) {
-  // TODO - SPI magic
+  int va = lox_pos * 4 * 4096; // remap pos from 0 to 1, then multiply by  4096 for 12 bit resolution
+  int vb = ipa_pos * 4 * 4096;
+  dac.setVoltageA(va);
+  dac.setVoltageB(vb);
+  dac.updateDAC();
 }
