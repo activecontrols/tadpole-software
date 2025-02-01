@@ -1,6 +1,7 @@
 #include <Arduino.h>
 
 #include "PressureSensor.h"
+#include "teensy_pins.hpp"
 
 PressureSensor::PressureSensor(unsigned int pin, float slope, float offset) {
   this->pin = pin;
@@ -20,8 +21,8 @@ float PressureSensor::getPressure() {
 }
 
 namespace Pressure {
-PressureSensor lox_pressure_in(21, 9.38, 2.3);
-PressureSensor lox_pressure_out(22, 9.38, 2.3);
+PressureSensor lox_pressure_in(LOX_PRESSURE_UPSTREAM_PIN, 9.38, 2.3);
+PressureSensor lox_pressure_out(LOX_PRESSURE_DOWNSTREAM_PIN, 9.38, 2.3);
 // PressureSensor ipa_pressure_in(21);
 // PressureSensor ipa_pressure_out(22);
 } // namespace Pressure

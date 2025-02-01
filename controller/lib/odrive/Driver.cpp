@@ -8,8 +8,6 @@
  *               The curves supported are lerp (linear interpolation), sine, and chirp.
  */
 
-// TODO - log motor temperature
-
 #include <Arduino.h>
 #include <TeensyThreads.h>
 

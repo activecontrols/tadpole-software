@@ -5,6 +5,7 @@
 #include "Router.h"
 #include "Loader.h"
 #include "SDCard.h"
+#include "spi_demux.hpp"
 #include "zucrow_interface.hpp"
 
 void ping() {
@@ -38,6 +39,8 @@ void setup() {
     Loader::begin(); // registers data loader functions with the router
 
     Driver::begin(); // initializes the odrives and functions to start curves
+
+	SPI_Demux::begin(); // initializes the SPI backplane
 
     ZucrowInterface::begin(); // initializes the DAC
 }

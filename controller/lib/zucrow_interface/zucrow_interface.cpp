@@ -1,4 +1,5 @@
 #include "zucrow_interface.hpp"
+#include "teensy_pins.hpp"
 
 MCP4822 dac(DAC_CS_PIN);
 
