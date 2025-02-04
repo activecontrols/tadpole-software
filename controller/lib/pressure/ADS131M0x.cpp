@@ -1,6 +1,7 @@
 #include "Arduino.h"
 #include "ADS131M0x.h"
 #include "SPI.h"
+#include "spi_demux.hpp"
 
 #ifdef IS_M02
 #define DO_PRAGMA(x) _Pragma(#x)
@@ -14,16 +15,8 @@ int32_t ADS131M0x::val32Ch0 = 0x7FFFFF;
  * @brief Construct a new ADS131M0x::ADS131M0x object
  *
  */
-ADS131M0x::ADS131M0x() {
-}
-
-/**
- * @brief Set SPI speed (call bevor "begin" to change default 2MHz)
- *
- * @param cspeed value in Hz
- */
-void ADS131M0x::setClockSpeed(uint32_t cspeed) {
-  spiClockSpeed = cspeed;
+ADS131M0x::ADS131M0x(int demuxAddr) {
+  demuxAddr = demuxAddr;
 }
 
 /**
@@ -39,52 +32,53 @@ uint8_t ADS131M0x::writeRegister(uint8_t address, uint16_t value) {
   uint8_t bytesRcv;
   uint16_t cmd = 0;
 
-  digitalWrite(csPin, LOW);
+  SPI.beginTransaction(SPISettings(20000000, MSBFIRST, SPI_MODE1));
+  SPI_Demux::select_chip(demuxAddr);
   delayMicroseconds(1);
 
   cmd = (CMD_WRITE_REG) | (address << 7) | 0;
 
-  // res = spiPort->transfer16(cmd);
-  spiPort->transfer16(cmd);
-  spiPort->transfer(0x00);
+  SPI.transfer16(cmd);
+  SPI.transfer(0x00);
 
-  spiPort->transfer16(value);
-  spiPort->transfer(0x00);
+  SPI.transfer16(value);
+  SPI.transfer(0x00);
 
-  spiPort->transfer16(0x0000);
-  spiPort->transfer(0x00);
+  SPI.transfer16(0x0000);
+  SPI.transfer(0x00);
 
-  spiPort->transfer16(0x0000);
-  spiPort->transfer(0x00);
+  SPI.transfer16(0x0000);
+  SPI.transfer(0x00);
 
 #ifndef IS_M02
-  spiPort->transfer16(0x0000);
-  spiPort->transfer(0x00);
+  SPI.transfer16(0x0000);
+  SPI.transfer(0x00);
 
-  spiPort->transfer16(0x0000);
-  spiPort->transfer(0x00);
+  SPI.transfer16(0x0000);
+  SPI.transfer(0x00);
 #endif
 
-  res = spiPort->transfer16(0x0000);
-  spiPort->transfer(0x00);
+  res = SPI.transfer16(0x0000);
+  SPI.transfer(0x00);
 
-  spiPort->transfer16(0x0000);
-  spiPort->transfer(0x00);
+  SPI.transfer16(0x0000);
+  SPI.transfer(0x00);
 
-  spiPort->transfer16(0x0000);
-  spiPort->transfer(0x00);
+  SPI.transfer16(0x0000);
+  SPI.transfer(0x00);
 
-  spiPort->transfer16(0x0000);
-  spiPort->transfer(0x00);
+  SPI.transfer16(0x0000);
+  SPI.transfer(0x00);
 #ifndef IS_M02
-  spiPort->transfer16(0x0000);
-  spiPort->transfer(0x00);
+  SPI.transfer16(0x0000);
+  SPI.transfer(0x00);
 
-  spiPort->transfer16(0x0000);
-  spiPort->transfer(0x00);
+  SPI.transfer16(0x0000);
+  SPI.transfer(0x00);
 #endif
   delayMicroseconds(1);
-  digitalWrite(csPin, HIGH);
+  SPI_Demux::deselect_chip();
+  SPI.endTransaction();
 
   addressRcv = (res & REGMASK_CMD_READ_REG_ADDRESS) >> 7;
   bytesRcv = (res & REGMASK_CMD_READ_REG_BYTES);
@@ -107,47 +101,50 @@ uint16_t ADS131M0x::readRegister(uint8_t address) {
 
   cmd = CMD_READ_REG | (address << 7 | 0);
 
-  digitalWrite(csPin, LOW);
+  SPI.beginTransaction(SPISettings(20000000, MSBFIRST, SPI_MODE1));
+  SPI_Demux::select_chip(demuxAddr);
   delayMicroseconds(1);
 
-  spiPort->transfer16(cmd);
-  spiPort->transfer(0x00);
+  SPI.transfer16(cmd);
+  SPI.transfer(0x00);
 
-  spiPort->transfer16(0x0000);
-  spiPort->transfer(0x00);
+  SPI.transfer16(0x0000);
+  SPI.transfer(0x00);
 
-  spiPort->transfer16(0x0000);
-  spiPort->transfer(0x00);
+  SPI.transfer16(0x0000);
+  SPI.transfer(0x00);
 
-  spiPort->transfer16(0x0000);
-  spiPort->transfer(0x00);
+  SPI.transfer16(0x0000);
+  SPI.transfer(0x00);
 #ifndef IS_M02
-  spiPort->transfer16(0x0000);
-  spiPort->transfer(0x00);
+  SPI.transfer16(0x0000);
+  SPI.transfer(0x00);
 
-  spiPort->transfer16(0x0000);
-  spiPort->transfer(0x00);
+  SPI.transfer16(0x0000);
+  SPI.transfer(0x00);
 #endif
-  data = spiPort->transfer16(0x0000);
-  spiPort->transfer(0x00);
+  data = SPI.transfer16(0x0000);
+  SPI.transfer(0x00);
 
-  spiPort->transfer16(0x0000);
-  spiPort->transfer(0x00);
+  SPI.transfer16(0x0000);
+  SPI.transfer(0x00);
 
-  spiPort->transfer16(0x0000);
-  spiPort->transfer(0x00);
+  SPI.transfer16(0x0000);
+  SPI.transfer(0x00);
 
-  spiPort->transfer16(0x0000);
-  spiPort->transfer(0x00);
+  SPI.transfer16(0x0000);
+  SPI.transfer(0x00);
 #ifndef IS_M02
-  spiPort->transfer16(0x0000);
-  spiPort->transfer(0x00);
+  SPI.transfer16(0x0000);
+  SPI.transfer(0x00);
 
-  spiPort->transfer16(0x0000);
-  spiPort->transfer(0x00);
+  SPI.transfer16(0x0000);
+  SPI.transfer(0x00);
 #endif
   delayMicroseconds(1);
-  digitalWrite(csPin, HIGH);
+  SPI_Demux::deselect_chip();
+  SPI.endTransaction();
+
   return data;
 }
 
@@ -189,34 +186,6 @@ void ADS131M0x::reset(uint8_t reset_pin) {
  */
 uint16_t ADS131M0x::isResetOK(void) {
   return (readRegister(CMD_RESET));
-}
-
-/**
- * @brief basic initialisation,
- * call '.SetClockSpeed' before to set custom SPI-Clock (default=1MHz),
- * call '.reset' to make extra hardware-reset (optional)
- *
- * @param port      Pointer to SPIClass object
- * @param clk_pin
- * @param miso_pin
- * @param mosi_pin
- * @param cs_pin
- * @param drdy_pin
- */
-void ADS131M0x::begin(SPIClass *port, uint8_t clk_pin, uint8_t miso_pin, uint8_t mosi_pin, uint8_t cs_pin, uint8_t drdy_pin) {
-  // Set pins up
-  csPin = cs_pin;
-  drdyPin = drdy_pin;
-  spiPort = port;
-
-  spiPort->begin(clk_pin, miso_pin, mosi_pin, cs_pin); // SCLK, MISO, MOSI, SS
-  SPISettings settings(spiClockSpeed, SPI_MSBFIRST, SPI_MODE1);
-  spiPort->beginTransaction(settings);
-  delay(1);
-
-  pinMode(csPin, OUTPUT);
-  digitalWrite(csPin, HIGH); // CS HIGH --> not selected
-  pinMode(drdyPin, INPUT);   // DRDY Input
 }
 
 /**
@@ -480,74 +449,6 @@ bool ADS131M0x::setChannelGainCalibration(uint8_t channel, uint32_t gain) {
   return false;
 }
 
-/// @brief hardware-pin test if data is ready
-/// @return
-bool ADS131M0x::isDataReady() {
-  if (digitalRead(drdyPin) == HIGH) {
-    return false;
-  }
-  return true;
-}
-
-/// @brief Read only CH0 fast
-/// @param
-/// @return ch0 (int32)
-int32_t ADS131M0x::readfastCh0(void) {
-  uint8_t x = 0;
-  uint8_t x2 = 0;
-  uint8_t x3 = 0;
-  int32_t aux;
-  adcOutput res;
-
-  digitalWrite(csPin, LOW);
-  // NOP();
-  x = spiPort->transfer(0x00);
-  x2 = spiPort->transfer(0x00);
-  spiPort->transfer(0x00);
-
-  res.status = ((x << 8) | x2);
-
-  // read CH0 --------
-  x = spiPort->transfer(0x00);
-  x2 = spiPort->transfer(0x00);
-  x3 = spiPort->transfer(0x00);
-  aux = (((x << 16) | (x2 << 8) | x3) & 0x00FFFFFF);
-  if (aux > 0x7FFFFF) {
-    val32Ch0 = ((~(aux) & 0x00FFFFFF) + 1) * -1;
-  } else {
-    val32Ch0 = aux;
-  }
-
-  spiPort->write16(0x00);
-  spiPort->write(0x00);
-
-  spiPort->write16(0x00);
-  spiPort->write(0x00);
-
-  spiPort->write16(0x00);
-  spiPort->write(0x00);
-
-  /* slower
-  spiPort->transfer(0x00);
-  spiPort->transfer(0x00);
-  spiPort->transfer(0x00);
-
-  spiPort->transfer(0x00);
-  spiPort->transfer(0x00);
-  spiPort->transfer(0x00);
-
-  spiPort->transfer(0x00);
-  spiPort->transfer(0x00);
-  spiPort->transfer(0x00);
-  */
-
-  // delay(1);
-  // NOP();
-  digitalWrite(csPin, HIGH);
-
-  return val32Ch0;
-}
-
 /// @brief reset device from register, read CAP 8.5.1.10 Commands from official documentation
 /// @param
 /// @return True if the device responded with the RSP_RESET_OK message
@@ -556,18 +457,19 @@ bool ADS131M0x::resetDevice(void) {
   uint8_t x2 = 0;
   uint16_t ris = 0;
 
-  digitalWrite(csPin, LOW);
+  SPI.beginTransaction(SPISettings(20000000, MSBFIRST, SPI_MODE1));
+  SPI_Demux::select_chip(demuxAddr);
 #ifndef NO_CS_DELAY
   delayMicroseconds(1);
 #endif
 
-  x = spiPort->transfer(0x00);
-  x2 = spiPort->transfer(0x11);
-  spiPort->transfer(0x00);
+  x = SPI.transfer(0x00);
+  x2 = SPI.transfer(0x11);
+  SPI.transfer(0x00);
 
   ris = ((x << 8) | x2);
 
-  digitalWrite(csPin, HIGH);
+  SPI_Demux::deselect_chip();
 #ifndef NO_CS_DELAY
   delayMicroseconds(1);
 #endif
@@ -588,20 +490,21 @@ adcOutput ADS131M0x::readADC(void) {
   int32_t aux;
   adcOutput res;
 
-  digitalWrite(csPin, LOW);
+  SPI.beginTransaction(SPISettings(20000000, MSBFIRST, SPI_MODE1));
+  SPI_Demux::select_chip(demuxAddr);
 #ifndef NO_CS_DELAY
   delayMicroseconds(1);
 #endif
-  x = spiPort->transfer(0x00);
-  x2 = spiPort->transfer(0x00);
-  spiPort->transfer(0x00);
+  x = SPI.transfer(0x00);
+  x2 = SPI.transfer(0x00);
+  SPI.transfer(0x00);
 
   res.status = ((x << 8) | x2);
 
   // read CH0 --------
-  x = spiPort->transfer(0x00);
-  x2 = spiPort->transfer(0x00);
-  x3 = spiPort->transfer(0x00);
+  x = SPI.transfer(0x00);
+  x2 = SPI.transfer(0x00);
+  x3 = SPI.transfer(0x00);
   aux = (((x << 16) | (x2 << 8) | x3) & 0x00FFFFFF);
   if (aux > 0x7FFFFF) {
     res.ch0 = ((~(aux) & 0x00FFFFFF) + 1) * -1;
@@ -610,13 +513,13 @@ adcOutput ADS131M0x::readADC(void) {
   }
 
   // faster!!!
-  spiPort->transfer(0x00);
-  spiPort->transfer(0x00);
-  spiPort->transfer(0x00);
+  SPI.transfer(0x00);
+  SPI.transfer(0x00);
+  SPI.transfer(0x00);
   // read CH1 --------
-  x = spiPort->transfer(0x00);
-  x2 = spiPort->transfer(0x00);
-  x3 = spiPort->transfer(0x00);
+  x = SPI.transfer(0x00);
+  x2 = SPI.transfer(0x00);
+  x3 = SPI.transfer(0x00);
   aux = (((x << 16) | (x2 << 8) | x3) & 0x00FFFFFF);
   if (aux > 0x7FFFFF) {
     res.ch1 = ((~(aux) & 0x00FFFFFF) + 1) * -1;
@@ -625,9 +528,9 @@ adcOutput ADS131M0x::readADC(void) {
   }
 
 #ifndef IS_M02
-  x = spiPort->transfer(0x00);
-  x2 = spiPort->transfer(0x00);
-  x3 = spiPort->transfer(0x00);
+  x = SPI.transfer(0x00);
+  x2 = SPI.transfer(0x00);
+  x3 = SPI.transfer(0x00);
   aux = (((x << 16) | (x2 << 8) | x3) & 0x00FFFFFF);
   if (aux > 0x7FFFFF) {
     res.ch2 = ((~(aux) & 0x00FFFFFF) + 1) * -1;
@@ -635,9 +538,9 @@ adcOutput ADS131M0x::readADC(void) {
     res.ch2 = aux;
   }
 
-  x = spiPort->transfer(0x00);
-  x2 = spiPort->transfer(0x00);
-  x3 = spiPort->transfer(0x00);
+  x = SPI.transfer(0x00);
+  x2 = SPI.transfer(0x00);
+  x3 = SPI.transfer(0x00);
   aux = (((x << 16) | (x2 << 8) | x3) & 0x00FFFFFF);
   if (aux > 0x7FFFFF) {
     res.ch3 = ((~(aux) & 0x00FFFFFF) + 1) * -1;
@@ -646,12 +549,14 @@ adcOutput ADS131M0x::readADC(void) {
   }
 #endif
 
-  spiPort->transfer(0x00);
-  spiPort->transfer(0x00);
-  spiPort->transfer(0x00);
+  SPI.transfer(0x00);
+  SPI.transfer(0x00);
+  SPI.transfer(0x00);
 #ifndef NO_CS_DELAY
   delayMicroseconds(1);
 #endif
-  digitalWrite(csPin, HIGH);
+  SPI_Demux::deselect_chip();
+  SPI.endTransaction();
+
   return res;
 }

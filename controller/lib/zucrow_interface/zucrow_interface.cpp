@@ -1,7 +1,7 @@
 #include "zucrow_interface.hpp"
 #include "teensy_pins.hpp"
 
-MCP4822 dac(DAC_CS_PIN);
+MCP4822 dac(SPI_DEVICE_ZUCROW_DAC);
 
 void ZucrowInterface::begin() {
   pinMode(ZUCROW_PANIC_PIN, INPUT);
@@ -11,8 +11,6 @@ void ZucrowInterface::begin() {
 
   digitalWrite(TEENSY_PANIC_PIN, TEENSY_PANIC);
   digitalWrite(TEENSY_SYNC_PIN, TEENSY_SYNC_IDLE);
-
-  dac.init();
 
   // The channels are turned off at startup so we need to turn the channel we need on
   dac.turnOnChannelA();

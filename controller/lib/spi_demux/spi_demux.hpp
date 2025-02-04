@@ -12,10 +12,14 @@
 #define SPI_DEVICE_TC_2 6
 #define SPI_DEVICE_TC_3 7
 
+#define SPI_DEVICE_ZUCROW_DAC 14
+#define SPI_DEVICE_NULL 15
+
 namespace SPI_Demux {
 
 void begin();
 void select_chip(int chip_id);
+void deselect_chip();
 
 } // namespace SPI_Demux
 

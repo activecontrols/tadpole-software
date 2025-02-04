@@ -36,11 +36,11 @@ void setup() {
         Router::info("SD card not found. SD logging disabled.");
     }
 
+    SPI_Demux::begin(); // initializes the SPI backplane
+
     Loader::begin(); // registers data loader functions with the router
 
     Driver::begin(); // initializes the odrives and functions to start curves
-
-	SPI_Demux::begin(); // initializes the SPI backplane
 
     ZucrowInterface::begin(); // initializes the DAC
 }

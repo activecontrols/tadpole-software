@@ -2,16 +2,16 @@
 #define MCP48XX_LIB_MCP48XX_H
 
 // modified by @RobertJN64 to support the tadpole multi-device SPI system
-// TODO - demux SPI
 
 #include <Arduino.h>
 #include <SPI.h>
+#include "spi_demux.hpp"
 
 template <uint8_t BITS_RES>
 class MCP48xx {
 
 private:
-  const uint8_t cs;
+  int demuxAddr;
   uint16_t command[2] = {0};
   bool isAActive = false;
   bool isBActive = false;
@@ -27,7 +27,7 @@ public:
     Low = 1u
   };
 
-  explicit MCP48xx(uint8_t cs);
+  explicit MCP48xx(int demuxAddr);
 
   ~MCP48xx();
 
@@ -67,23 +67,14 @@ typedef MCP48xx<8> MCP4802;
 /* Implementation */
 
 template <uint8_t BITS_RES>
-MCP48xx<BITS_RES>::MCP48xx(uint8_t cs) : cs(cs) {
+MCP48xx<BITS_RES>::MCP48xx(int demuxAddr) : demuxAddr(demuxAddr) {
   /* Setting channel bits*/
   command[Channel::A] = command[Channel::A] | (0u << 15u);
   command[Channel::B] = command[Channel::B] | (1u << 15u);
-
-  SPI.begin();
-}
-
-template <uint8_t BITS_RES>
-void MCP48xx<BITS_RES>::init() {
-  pinMode(cs, OUTPUT);
-  digitalWrite(cs, HIGH);
 }
 
 template <uint8_t BITS_RES>
 MCP48xx<BITS_RES>::~MCP48xx() {
-  SPI.end();
 }
 
 template <uint8_t BITS_RES>
@@ -167,18 +158,14 @@ void MCP48xx<BITS_RES>::updateDAC() {
 
   /* begin transaction using maximum clock frequency of 20MHz */
   SPI.beginTransaction(SPISettings(20000000, MSBFIRST, SPI_MODE0));
-
+  SPI_Demux::select_chip(demuxAddr);
   if (isAActive) {
-    digitalWrite(cs, LOW);               // select device
     SPI.transfer16(command[Channel::A]); // sent command for the A channel
-    digitalWrite(cs, HIGH);              // deselect device
   }
   if (isBActive) {
-    digitalWrite(cs, LOW);
     SPI.transfer16(command[Channel::B]); // sent command for the B channel
-    digitalWrite(cs, HIGH);
   }
-
+  SPI_Demux::deselect_chip();
   SPI.endTransaction();
 }
 

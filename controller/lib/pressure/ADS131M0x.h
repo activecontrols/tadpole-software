@@ -259,11 +259,9 @@ struct adcOutput {
 class ADS131M0x {
 public:
   static int32_t val32Ch0;
-  ADS131M0x();
+  ADS131M0x(int demuxAddr);
 
-  void begin(SPIClass *port, uint8_t clk_pin, uint8_t miso_pin, uint8_t mosi_pin, uint8_t cs_pin, uint8_t drdy_pin);
   int8_t isDataReadySoft(byte channel);
-  bool isDataReady(void);
   void reset(uint8_t reset_pin);
   bool isResetStatus(void);
   bool isLockSPI(void);
@@ -282,19 +280,12 @@ public:
 
   uint16_t isResetOK(void);
   adcOutput readADC(void);
-  int32_t readfastCh0(void);
-
-  void setClockSpeed(uint32_t cspeed);
 
 private:
   uint8_t writeRegister(uint8_t address, uint16_t value);
   void writeRegisterMasked(uint8_t address, uint16_t value, uint16_t mask);
   uint16_t readRegister(uint8_t address);
 
-  uint8_t csPin;
-  uint8_t drdyPin;
-
-  SPIClass *spiPort;
-  uint32_t spiClockSpeed = 1000000; // default 1MHz SPI-clock
+  int demuxAddr;
 };
 #endif

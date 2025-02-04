@@ -12,9 +12,6 @@
 #define TEENSY_PANIC_PIN 16
 #define TEENSY_SYNC_PIN 17
 
-// This will be replaced by the demux system
-#define DAC_CS_PIN 18
-
 // Demux System
 #define SPI_DEMUX_BIT_0 41
 #define SPI_DEMUX_BIT_1 40
