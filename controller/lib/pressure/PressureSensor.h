@@ -1,6 +1,8 @@
 #ifndef PRESSURE_SENSOR_H
 #define PRESSURE_SENSOR_H
 
+#include "ADS131M0x.h"
+
 /*
  * PressureSensor.h
  *
@@ -9,15 +11,14 @@
  *  in which each object is used to read from a specific pressure sensor.
  */
 
-class PressureSensor {
+class PressureSensor : ADS131M0x {
 
 private:
-  unsigned int pin;
   float slope;
   float offset;
 
 public:
-  PressureSensor(unsigned int pin, float slope, float offset);
+  PressureSensor(int demuxAddr, float slope, float offset);
   float getPressure();
 };
 

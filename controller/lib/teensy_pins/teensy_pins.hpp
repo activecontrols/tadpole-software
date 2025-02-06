@@ -3,10 +3,6 @@
 
 // https://www.pjrc.com/teensy/card11a_rev3_web.png
 
-// These will get replaced by ADC stuff
-#define LOX_PRESSURE_UPSTREAM_PIN 21
-#define LOX_PRESSURE_DOWNSTREAM_PIN 20
-
 #define ZUCROW_PANIC_PIN 14
 #define ZUCROW_SYNC_PIN 15
 #define TEENSY_PANIC_PIN 16

@@ -1,13 +1,11 @@
 #include <Arduino.h>
 
 #include "PressureSensor.h"
-#include "teensy_pins.hpp"
+#include "spi_demux.hpp"
 
-PressureSensor::PressureSensor(unsigned int pin, float slope, float offset) {
-  this->pin = pin;
+PressureSensor::PressureSensor(int demuxAddr, float slope, float offset) : ADS131M0x(demuxAddr) {
   this->slope = slope;
   this->offset = offset;
-  pinMode(pin, INPUT);
 }
 
 // returns the absolute pressure
@@ -16,13 +14,12 @@ PressureSensor::PressureSensor(unsigned int pin, float slope, float offset) {
 // to find these values, measure a few points of **ABSOLUTE** pressure and the corresponding voltages
 // plot as voltage on x and pressure on y, and find the line of best fit
 float PressureSensor::getPressure() {
-  float pressure = analogRead(pin);
-  return map(pressure, 0, 1023, 0, 10) * slope + offset;
+  return map(this->readADC().ch0, 0, 1023, 0, 10) * slope + offset;
 }
 
 namespace Pressure {
-PressureSensor lox_pressure_in(LOX_PRESSURE_UPSTREAM_PIN, 9.38, 2.3);
-PressureSensor lox_pressure_out(LOX_PRESSURE_DOWNSTREAM_PIN, 9.38, 2.3);
+PressureSensor lox_pressure_in(SPI_DEVICE_PT_0, 9.38, 2.3);
+PressureSensor lox_pressure_out(SPI_DEVICE_PT_1, 9.38, 2.3);
 // PressureSensor ipa_pressure_in(21);
 // PressureSensor ipa_pressure_out(22);
 } // namespace Pressure
