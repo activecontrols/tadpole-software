@@ -58,7 +58,7 @@ CString<100> printBuffer;
 void logCurveTelemCSV(float time, int phase, float thrust) {
   curveTelemCSV.clear();
   curveTelemCSV << time << "," << phase << "," << thrust << "," << loxODrive.getLastPosCmd() << "," << "ipa_pos_cmd" << ","
-                << loxODrive.getTelemetryCSV() << "," << " , , , , , "; // TODO RJN - enable telem from 2 valves
+                << loxODrive.getTelemetryCSV() << "," << " , , , , , "; // TODO RJN odrive - enable telem from 2 valves
   curveTelemCSV.print();
   if (Router::logenabled) {
     odriveLogFile.println(curveTelemCSV.str);
@@ -124,7 +124,7 @@ int check_for_kill() {
   }
 #endif
 
-  if (abs(loxODrive.position - loxODrive.getLastPosCmd()) > ANGLE_OOR_THRESH) { // TODO - check both motors
+  if (abs(loxODrive.position - loxODrive.getLastPosCmd()) > ANGLE_OOR_THRESH) { // TODO RJN odrive - check both motors
     return KILLED_BY_ANGLE_OOR;
   }
 
@@ -299,7 +299,7 @@ void begin() {
   Router::add({[&]() { loxODrive.printPressure(); }, "lox_print_pressure"});
   // Router::add({[&]() { ipaODrive.printPressure(); }, "lox_print_pressure"});
 
-  Router::add({[&]() { loxODrive.kill(); }, "kill"}); // TODO - ipaODrive kill
+  Router::add({[&]() { loxODrive.kill(); }, "kill"}); // TODO RJN odrive - ipaODrive kill
 
   Router::add({[&]() { basic_control_loop_cmd(); }, "control_loop_bad"});
 

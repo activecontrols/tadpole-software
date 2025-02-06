@@ -6,6 +6,8 @@
 PressureSensor::PressureSensor(int demuxAddr, float slope, float offset) : ADS131M0x(demuxAddr) {
   this->slope = slope;
   this->offset = offset;
+
+  // TODO RJN Pressure Sensor - configure board settings
 }
 
 // returns the absolute pressure

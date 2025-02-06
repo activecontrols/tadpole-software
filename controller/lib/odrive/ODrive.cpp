@@ -39,7 +39,7 @@ void ODrive::checkConnection() {
  */
 int ODrive::checkConfig() {
 #if (ENABLE_ODRIVE_COMM)
-  misconfigured = false;  // ODriveUART::getParameterAsInt("misconfigured"); // TODO RJN - deal with this later
+  misconfigured = false;  // ODriveUART::getParameterAsInt("misconfigured"); // TODO RJN odrive - deal with this later
   rebootRequired = false; // ODriveUART::getParameterAsInt("reboot_required");
 
   if (misconfigured) {
@@ -229,7 +229,7 @@ void ODrive::hardStopHoming() { // @ Xander
   delay(500);
   ODriveUART::setParameter("axis0.controller.input_vel", -0.1); // velocity [turn/s]
 
-  // TODO RJN - replace with more robust + update thresholds
+  // TODO RJN odrive - replace with more robust + update thresholds
   while (current < 30 && current > -30) {                                     // thresholds must be experimentally determined. will be diffrent depening on needed current to normally move valve
     current = ODriveUART::getParameterAsFloat("axis0.motor.foc.Iq_measured"); // update current reading
     delay(20);

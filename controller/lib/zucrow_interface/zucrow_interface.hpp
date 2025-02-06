@@ -4,8 +4,6 @@
 #include <Arduino.h>
 #include "MCP48xx.hpp"
 
-// TODO - set pin numbers
-
 // INPUTS FROM ZUCROW
 #define ZUCROW_PANIC false
 #define ZUCROW_NO_PANIC true

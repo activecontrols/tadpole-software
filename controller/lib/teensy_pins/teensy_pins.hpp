@@ -3,6 +3,8 @@
 
 // https://www.pjrc.com/teensy/card11a_rev3_web.png
 
+// TODO RJN teensy - set pins
+
 #define ZUCROW_PANIC_PIN 14
 #define ZUCROW_SYNC_PIN 15
 #define TEENSY_PANIC_PIN 16
