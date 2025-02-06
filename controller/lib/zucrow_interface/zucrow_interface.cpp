@@ -16,10 +16,9 @@ void ZucrowInterface::begin() {
   dac.turnOnChannelA();
   dac.turnOnChannelB();
 
-  // We configure the channels in High gain
-  // It is also the default value so it is not really needed
-  dac.setGainA(MCP4822::High);
-  dac.setGainB(MCP4822::High);
+  // We configure the channels in low gain (2.5 V max)
+  dac.setGainA(MCP4822::Low);
+  dac.setGainB(MCP4822::Low);
 
   dac.updateDAC();
 }
