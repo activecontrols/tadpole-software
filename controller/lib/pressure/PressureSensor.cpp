@@ -6,7 +6,9 @@
 PressureSensor::PressureSensor(int demuxAddr, float slope, float offset) : ADS131M0x(demuxAddr) {
   this->slope = slope;
   this->offset = offset;
+}
 
+void PressureSensor::begin() {
   // TODO RJN Pressure Sensor - configure board settings
 }
 
@@ -24,4 +26,9 @@ PressureSensor lox_pressure_in(SPI_DEVICE_PT_0, 9.38, 2.3);
 PressureSensor lox_pressure_out(SPI_DEVICE_PT_1, 9.38, 2.3);
 // PressureSensor ipa_pressure_in(21);
 // PressureSensor ipa_pressure_out(22);
+
+void begin() {
+  lox_pressure_in.begin();
+  lox_pressure_out.begin();
+}
 } // namespace Pressure

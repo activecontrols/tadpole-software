@@ -7,6 +7,8 @@
 #include "SDCard.h"
 #include "spi_demux.hpp"
 #include "zucrow_interface.hpp"
+#include "PressureSensor.h"
+#include "Thermocouples.h"
 
 void ping() {
    Router::info("pong");
@@ -43,6 +45,8 @@ void setup() {
     Driver::begin(); // initializes the odrives and functions to start curves
 
     ZucrowInterface::begin(); // initializes the DAC
+	Pressure::begin();
+	TC::begin();
 }
 
 void loop() {

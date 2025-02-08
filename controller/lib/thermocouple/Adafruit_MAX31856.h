@@ -99,8 +99,6 @@ typedef enum {
 #include "WProgram.h"
 #endif
 
-#include <Adafruit_SPIDevice.h>
-
 /**************************************************************************/
 /*!
     @brief  Class that stores state and functions for interacting with MAX31856
@@ -109,11 +107,7 @@ typedef enum {
 
 class Adafruit_MAX31856 {
 public:
-  Adafruit_MAX31856(int8_t spi_cs, int8_t spi_mosi, int8_t spi_miso,
-                    int8_t spi_clk);
-  Adafruit_MAX31856(int8_t spi_cs, SPIClass *_spi = &SPI);
-
-  bool begin(void);
+  Adafruit_MAX31856(int demuxAddr);
 
   void setConversionMode(max31856_conversion_mode_t mode);
   max31856_conversion_mode_t getConversionMode(void);
@@ -133,8 +127,10 @@ public:
   void setColdJunctionFaultThreshholds(int8_t low, int8_t high);
   void setNoiseFilter(max31856_noise_filter_t noiseFilter);
 
+  void writeRegister8(uint8_t addr, uint8_t reg);
+
 private:
-  Adafruit_SPIDevice spi_dev;
+  int demuxAddr;
   bool initialized = false;
 
   max31856_conversion_mode_t conversionMode;
@@ -144,8 +140,6 @@ private:
   uint8_t readRegister8(uint8_t addr);
   uint16_t readRegister16(uint8_t addr);
   uint32_t readRegister24(uint8_t addr);
-
-  void writeRegister8(uint8_t addr, uint8_t reg);
 };
 
 #endif

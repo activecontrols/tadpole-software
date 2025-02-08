@@ -19,10 +19,13 @@ private:
 
 public:
   PressureSensor(int demuxAddr, float slope, float offset);
+  void begin();
   float getPressure();
 };
 
 namespace Pressure {
+void begin();
+
 extern PressureSensor lox_pressure_in;
 extern PressureSensor lox_pressure_out;
 // extern PressureSensor ipa_pressure_in;

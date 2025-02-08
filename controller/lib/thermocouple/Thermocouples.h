@@ -9,14 +9,19 @@
  *  in which each object is used to read from a specific thermocouple.
  */
 
-class Thermocouple {
+#include "Adafruit_MAX31856.h"
+
+class Thermocouple : Adafruit_MAX31856 {
 
 public:
   Thermocouple(int demuxAddr);
+  void begin();
   float getTemperature();
 };
 
 namespace TC {
+void begin();
+
 extern Thermocouple example_tc;
 } // namespace TC
 

@@ -42,61 +42,16 @@
 
 #include <SPI.h>
 #include <stdlib.h>
-
-/**************************************************************************/
-/*!
-    @brief  Instantiate MAX31856 object and use software SPI pins
-    @param  spi_cs Bitbang SPI Chip Select
-    @param  spi_mosi Bitbang SPI MOSI
-    @param  spi_miso Bitbang SPI MISO
-    @param  spi_clk Bitbang SPI Clock
-*/
-/**************************************************************************/
-Adafruit_MAX31856::Adafruit_MAX31856(int8_t spi_cs, int8_t spi_mosi,
-                                     int8_t spi_miso, int8_t spi_clk)
-    : spi_dev(spi_cs, spi_clk, spi_miso, spi_mosi, 1000000,
-              SPI_BITORDER_MSBFIRST, SPI_MODE1) {}
+#include "spi_demux.hpp"
 
 /**************************************************************************/
 /*!
     @brief  Instantiate MAX31856 object and use hardware SPI
-    @param  spi_cs Any pin for SPI Chip Select
-    @param _spi which spi buss to use.
+    @param  demuxAddr
 */
 /**************************************************************************/
-Adafruit_MAX31856::Adafruit_MAX31856(int8_t spi_cs, SPIClass *_spi)
-    : spi_dev(spi_cs, 1000000, SPI_BITORDER_MSBFIRST, SPI_MODE1, _spi) {}
-
-/**************************************************************************/
-/*!
-    @brief  Initialize MAX31856 attach/set pins or SPI device, default to K
-   thermocouple
-    @returns Always returns true at this time (no known way of detecting chip
-   ID)
-*/
-/**************************************************************************/
-bool Adafruit_MAX31856::begin(void) {
-  initialized = spi_dev.begin();
-
-  if (!initialized)
-    return false;
-
-  // assert on any fault
-  writeRegister8(MAX31856_MASK_REG, 0x0);
-
-  // enable open circuit fault detection
-  writeRegister8(MAX31856_CR0_REG, MAX31856_CR0_OCFAULT0);
-
-  // set cold junction temperature offset to zero
-  writeRegister8(MAX31856_CJTO_REG, 0x0);
-
-  // set Type K by default
-  setThermocoupleType(MAX31856_TCTYPE_K);
-
-  // set One-Shot conversion mode
-  setConversionMode(MAX31856_ONESHOT);
-
-  return true;
+Adafruit_MAX31856::Adafruit_MAX31856(int demuxAddr) {
+  this->demuxAddr = demuxAddr;
 }
 
 /**************************************************************************/
@@ -330,7 +285,19 @@ void Adafruit_MAX31856::readRegisterN(uint8_t addr, uint8_t buffer[],
                                       uint8_t n) {
   addr &= 0x7F; // MSB=0 for read, make sure top bit is not set
 
-  spi_dev.write_then_read(&addr, 1, buffer, n);
+  SPI.beginTransaction(SPISettings(1000000, MSBFIRST, SPI_MODE1));
+  SPI_Demux::select_chip(demuxAddr);
+  delayMicroseconds(1);
+
+  SPI.transfer(addr);
+
+  for (size_t i = 0; i < n; i++) {
+    buffer[i] = SPI.transfer(0xFF);
+  }
+
+  delayMicroseconds(1);
+  SPI_Demux::deselect_chip();
+  SPI.endTransaction();
 }
 
 void Adafruit_MAX31856::writeRegister8(uint8_t addr, uint8_t data) {
@@ -338,5 +305,15 @@ void Adafruit_MAX31856::writeRegister8(uint8_t addr, uint8_t data) {
 
   uint8_t buffer[2] = {addr, data};
 
-  spi_dev.write(buffer, 2);
+  SPI.beginTransaction(SPISettings(1000000, MSBFIRST, SPI_MODE1));
+  SPI_Demux::select_chip(demuxAddr);
+  delayMicroseconds(1);
+
+  for (size_t i = 0; i < 2; i++) {
+    SPI.transfer(buffer[i]);
+  }
+
+  delayMicroseconds(1);
+  SPI_Demux::deselect_chip();
+  SPI.endTransaction();
 }
