@@ -30,14 +30,14 @@ ODrive::ODrive(uint32_t can_id, char name[4], PressureSensor *pressure_sensor_in
 }
 
 // Called every time a Heartbeat message arrives from the ODrive
-void onHeartbeat(Heartbeat_msg_t &msg, void *user_data) {
+void onHeartbeatCB(Heartbeat_msg_t &msg, void *user_data) {
   ODriveUserData *odrv_user_data = static_cast<ODriveUserData *>(user_data);
   odrv_user_data->last_heartbeat = msg;
   odrv_user_data->received_heartbeat = true;
 }
 
 // Called every time a feedback message arrives from the ODrive
-void onFeedback(Get_Encoder_Estimates_msg_t &msg, void *user_data) {
+void onFeedbackCB(Get_Encoder_Estimates_msg_t &msg, void *user_data) {
   ODriveUserData *odrv_user_data = static_cast<ODriveUserData *>(user_data);
   odrv_user_data->last_feedback = msg;
   odrv_user_data->received_feedback = true;
@@ -123,14 +123,8 @@ int ODrive::checkErrors() {
   Get_Error_msg_t err_msg;
   ODriveCAN::getError(err_msg);
   activeError = err_msg.Active_Errors;
+  disarmReason = err_msg.Disarm_Reason;
   if (activeError != 0) {
-    isArmed = ODriveCAN::getParameterAsInt("axis0.is_armed");
-    if (!isArmed) {
-      Get_Error_msg_t err_msg;
-      ODriveCAN::getError(err_msg);
-      disarmReason = err_msg.Disarm_Reason;
-      return ODRIVE_ERROR_DISARMED;
-    }
     return ODRIVE_ACTIVE_ERROR;
   }
 #endif
@@ -254,6 +248,7 @@ void ODrive::setPosConsoleCmd() {
   Router::info("Position set");
 }
 
+// TODO RJN CAN - verify that this works
 void ODrive::hardStopHoming() { // @ Xander
 
   float current = 0;
@@ -287,10 +282,11 @@ void ODrive::hardStopHoming() { // @ Xander
 
   Router::info("Home Found"); // print statement
   // set new home
-  float current_pos = ODriveCAN::getParameterAsFloat("axis0.pos_estimate"); // which encoder does this read? -- load encoder
+  Get_Encoder_Estimates_msg_t pos_est_msg;
+  ODriveCAN::getFeedback(pos_est_msg);
   Router::info_no_newline("current_pos = ");
-  Router::info(current_pos);                            // axis0.motor.current_control.Iq_measured
-  ODriveCAN::setParameter("axis0.pos_estimate", -0.01); // set position refrance to current position --see odrice homing note above
+  Router::info(pos_est_msg.Pos_Estimate);
+  ODriveCAN::setAbsolutePosition(-0.01);
 
   delay(300);
 
@@ -299,8 +295,8 @@ void ODrive::hardStopHoming() { // @ Xander
   // input mode config: position filter / velocity ramp / trap trajectory
   // InputMode.POS_FILTER         //Activate the setpoint filter
   ODriveCAN::setControllerMode(CONTROL_MODE_POSITION_CONTROL, INPUT_MODE_POS_FILTER);
-  Set_Absolute_Position_msg_t abs_pos;
-  ODriveCAN::setParameter("axis0.controller.input_pos", 0); // position [turns]
+
+  // ODriveCAN::setParameter("axis0.controller.input_pos", 0); // position [turns]
 
   delay(300);
 

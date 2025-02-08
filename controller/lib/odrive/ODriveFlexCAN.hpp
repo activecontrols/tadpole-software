@@ -21,12 +21,7 @@ static bool sendMsg(FlexCAN_T4_Base& can_intf, uint32_t id, uint8_t length, cons
     return (can_intf.write(teensy_msg) > 0);
 }
 
-void onReceive(const CAN_message_t& msg, ODriveCAN& odrive) {
-    odrive.onReceive(msg.id | (msg.flags.extended ? 0x80000000 : 0), msg.len, msg.buf);
-}
-
-void pumpEvents(FlexCAN_T4_Base& can_intf) {
-    can_intf.events();
-}
+void onReceive(const CAN_message_t& msg, ODriveCAN& odrive);
+void pumpEvents(FlexCAN_T4_Base& can_intf);
 
 CREATE_CAN_INTF_WRAPPER(FlexCAN_T4_Base)
