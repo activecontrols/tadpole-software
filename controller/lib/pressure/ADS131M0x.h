@@ -1,6 +1,8 @@
 #ifndef ADS131M0x_h
 #define ADS131M0x_h
 
+// based on https://github.com/nikiGagliardi/ADS131M0x/tree/master
+
 #include "Arduino.h"
 #include "SPI.h"
 
