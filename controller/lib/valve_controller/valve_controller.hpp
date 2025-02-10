@@ -19,6 +19,7 @@ struct fluid {
 };
 
 struct sensor_data {
+  float chamber_pressure;      // psi
   float ox_tank_pressure;      // psi
   float ipa_tank_pressure;     // psi
   float ox_valve_temperature;  // K

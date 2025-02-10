@@ -1,4 +1,5 @@
 #include <valve_controller.hpp>
+#include <pi_controller.hpp>
 #include <math.h>
 
 // #include <Router.h>
@@ -10,6 +11,8 @@
 #define tadpole_MASS_FLOW_RATIO 1.2      // #ox = 1.2 * fuel
 #define GRAVITY_FT_S 32.1740             // Gravity in (ft / s^2)
 #define GRAVITY_IN_S (GRAVITY_FT_S * 12) // Gravity in (in / s^2)
+
+#define DEFAULT_CHAMBER_PRESSURE 100 // psi
 
 #define cav_vent_ox_AREA_OF_THROAT 0.00989 // in^2 #-200 deg C
 #define cav_vent_ox_CD 0.975               // unitless
@@ -51,7 +54,7 @@ float ox_pressure_table[2][INTERPOLATION_TABLE_LENGTH] = {
     {55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 105, 110, 115, 120, 125, 130, 135, 140, 145, 150},
     {0.0259, 0.10527, 0.33866, 0.90826, 2.1099, 4.369, 8.2426, 14.41, 23.653, 36.84, 54.901, 78.814, 109.59, 148.27, 195.93, 253.68, 322.72, 404.33, 500.05, 611.86}};
 
-sensor_data default_sensor_data{fluid_ox_UPSTREAM_PRESSURE, fluid_ipa_UPSTREAM_PRESSURE, fluid_ox_DEFAULT_TEMPERATURE, fluid_ipa_DEFAULT_TEMPERATURE, fluid_ox_DEFAULT_TEMPERATURE, fluid_ipa_DEFAULT_TEMPERATURE};
+sensor_data default_sensor_data{DEFAULT_CHAMBER_PRESSURE, fluid_ox_UPSTREAM_PRESSURE, fluid_ipa_UPSTREAM_PRESSURE, fluid_ox_DEFAULT_TEMPERATURE, fluid_ipa_DEFAULT_TEMPERATURE, fluid_ox_DEFAULT_TEMPERATURE, fluid_ipa_DEFAULT_TEMPERATURE};
 cav_vent ox_cv{cav_vent_ox_AREA_OF_THROAT, cav_vent_ox_CD};
 cav_vent ipa_cv{cav_vent_ipa_AREA_OF_THROAT, cav_vent_ipa_CD};
 
@@ -158,6 +161,35 @@ void open_loop_thrust_control(float thrust, sensor_data current_sensor_data, flo
 
 void open_loop_thrust_control_defaults(float thrust, float *angle_ox, float *angle_fuel) {
   open_loop_thrust_control(thrust, default_sensor_data, angle_ox, angle_fuel);
+}
+
+float estimate_mass_flow() {
+  // TODO RJN CL - mass flow estimator
+}
+
+void closed_loop_thrust_control(float thrust, sensor_data current_sensor_data, float *angle_ox, float *angle_fuel) {
+  // ol_ for open loop computations
+  // err_ for err between ol and sensor
+  // col_ for closed loop computation
+
+  float ol_chamber_pressure = chamber_pressure(thrust);
+  float err_chamber_pressure = current_sensor_data.chamber_pressure - ol_chamber_pressure;
+  float cl_chamber_pressure = ol_chamber_pressure + ClosedLoopControllers::Chamber_Pressure_Controller.compute(err_chamber_pressure);
+
+  float ol_mass_flow_ox;
+  float ol_mass_flow_fuel;
+  mass_balance(mass_flow_rate(cl_chamber_pressure), &ol_mass_flow_ox, &ol_mass_flow_fuel);
+
+  float err_mass_flow_ox = estimate_mass_flow() - ol_mass_flow_ox;
+  float err_mass_flow_fuel = estimate_mass_flow() - ol_mass_flow_fuel;
+
+  float ox_valve_downstream_pressure_goal = cavitating_venturi(ol_mass_flow_ox, ox_cv, ox_from_temperature(current_sensor_data.ox_cv_temperature));
+  float ipa_valve_downstream_pressure_goal = cavitating_venturi(ol_mass_flow_fuel, ipa_cv, ipa_from_temperature(current_sensor_data.ipa_cv_temperature));
+  float ol_angle_ox = valve_angle(sub_critical_cv(ol_mass_flow_ox, current_sensor_data.ox_tank_pressure, ox_valve_downstream_pressure_goal, ox_from_temperature(current_sensor_data.ox_valve_temperature)));
+  float ol_angle_fuel = valve_angle(sub_critical_cv(ol_mass_flow_fuel, current_sensor_data.ipa_tank_pressure, ipa_valve_downstream_pressure_goal, ipa_from_temperature(current_sensor_data.ipa_valve_temperature)));
+
+  *angle_ox = ol_angle_ox + ClosedLoopControllers::LOX_Angle_Controller.compute(err_mass_flow_ox);
+  *angle_fuel = ol_angle_fuel + ClosedLoopControllers::LOX_Angle_Controller.compute(err_mass_flow_ox);
 }
 
 // void update_float_value(float *value, const char *prompt) {
