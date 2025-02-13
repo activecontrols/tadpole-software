@@ -15,7 +15,9 @@ class Thermocouple : Adafruit_MAX31856 {
 
 public:
   Thermocouple(int demuxAddr);
-  void begin();
+  void begin(max31856_thermocoupletype_t type);
+
+  // get temperature in F
   float getTemperature();
 };
 
