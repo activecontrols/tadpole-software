@@ -45,8 +45,8 @@ void setup() {
     Driver::begin(); // initializes the odrives and functions to start curves
 
     ZucrowInterface::begin(); // initializes the DAC
-	  Pressure::begin();
-	  TC::begin();
+    Pressure::begin();        // initializes the PT Boards
+    TC::begin();              // initializes the TC Boards
 }
 
 void loop() {
