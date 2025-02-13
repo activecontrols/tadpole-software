@@ -158,7 +158,7 @@ void followAngleLerpCurve() {
         lastlog = timer;
       }
 
-      ZucrowInterface::send_valve_angles_to_zucrow(lox_pos, ipa_pos);
+      ZucrowInterface::send_valve_angles_to_zucrow(lox_pos, 0);
       kill_reason = check_for_kill();
       if (kill_reason != DONT_KILL) {
         kill_response(kill_reason);
