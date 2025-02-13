@@ -158,14 +158,16 @@ void MCP48xx<BITS_RES>::updateDAC() {
 
   /* begin transaction using maximum clock frequency of 20MHz */
   SPI.beginTransaction(SPISettings(20000000, MSBFIRST, SPI_MODE0));
-  SPI_Demux::select_chip(demuxAddr);
   if (isAActive) {
+    SPI_Demux::select_chip(demuxAddr);
     SPI.transfer16(command[Channel::A]); // sent command for the A channel
+    SPI_Demux::deselect_chip();
   }
   if (isBActive) {
+    SPI_Demux::select_chip(demuxAddr);
     SPI.transfer16(command[Channel::B]); // sent command for the B channel
+    SPI_Demux::deselect_chip();
   }
-  SPI_Demux::deselect_chip();
   SPI.endTransaction();
 }
 

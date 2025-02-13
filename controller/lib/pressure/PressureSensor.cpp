@@ -9,7 +9,8 @@ PressureSensor::PressureSensor(int demuxAddr, float slope, float offset) : ADS13
 }
 
 void PressureSensor::begin() {
-  // TODO RJN Pressure Sensor - configure board settings
+  setInputChannelSelection(0, INPUT_CHANNEL_MUX_AIN0P_AIN0N);
+  setInputChannelSelection(1, INPUT_CHANNEL_MUX_AIN0P_AIN0N);
 }
 
 // returns the absolute pressure
@@ -18,7 +19,14 @@ void PressureSensor::begin() {
 // to find these values, measure a few points of **ABSOLUTE** pressure and the corresponding voltages
 // plot as voltage on x and pressure on y, and find the line of best fit
 float PressureSensor::getPressure() {
-  return map(this->readADC().ch0, 0, 1023, 0, 10) * slope + offset;
+  adcOutput out = this->readADC();
+  if (!(out.status & 0b1)) {
+    Serial.println("no data");
+  }
+  float voltage = out.ch0;
+  voltage *= 2.4 / 1;
+  voltage /= pow(2, 24);
+  return map(voltage, 0, 1, 0, 10) * slope + offset;
 }
 
 namespace Pressure {
