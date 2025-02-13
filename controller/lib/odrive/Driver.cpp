@@ -28,12 +28,10 @@ ThreadWrap(Serial2, SerialXtra2);
 
 #define LOG_INTERVAL_MS 10
 #define COMMAND_INTERVAL_MS 1
-#define kill_handler()                \
-  int kill_reason = check_for_kill(); \
-  if (kill_reason != DONT_KILL) {     \
-    kill_response(kill_reason);       \
-    break;                            \
-  }
+
+#define CHECK_SERIAL_KILL // should check for 'k' on serial monitor to kill
+// #define ENABLE_ZUCROW_SAFETY // checks for zucrow ok before starting
+// #define ENABLE_ODRIVE_SAFETY_CHECKS // check if odrive disconnects or falls behind
 
 namespace Driver {
 
@@ -114,9 +112,11 @@ void kill_response(int kill_reason) {
 }
 
 int check_for_kill() {
+#ifdef ENABLE_ZUCROW_SAFETY
   if (ZucrowInterface::check_fault_from_zucrow()) {
     return KILLED_BY_ZUCROW;
   }
+#endif
 
 #ifdef CHECK_SERIAL_KILL
   if (COMMS_SERIAL.available() && COMMS_SERIAL.read() == 'k') {
@@ -124,6 +124,7 @@ int check_for_kill() {
   }
 #endif
 
+#ifdef ENABLE_ODRIVE_SAFETY_CHECKS
   if (abs(loxODrive.position - loxODrive.getLastPosCmd()) > ANGLE_OOR_THRESH) { // TODO RJN odrive - check both motors
     return KILLED_BY_ANGLE_OOR;
   }
@@ -131,6 +132,7 @@ int check_for_kill() {
   if (loxODrive.getState() != AXIS_STATE_CLOSED_LOOP_CONTROL) {
     return KILLED_BY_ODRIVE_FAULT;
   }
+#endif
 
   return DONT_KILL;
 }
@@ -140,7 +142,7 @@ int check_for_kill() {
  */
 void followAngleLerpCurve() {
   lerp_point_angle *lac = Loader::lerp_angle_curve;
-
+  int kill_reason = DONT_KILL;
   elapsedMillis timer = elapsedMillis();
   unsigned long lastlog = timer;
 
@@ -156,9 +158,16 @@ void followAngleLerpCurve() {
         lastlog = timer;
       }
 
-      ZucrowInterface::send_valve_angles_to_zucrow(loxODrive.position, 0);
-      kill_handler();
+      ZucrowInterface::send_valve_angles_to_zucrow(lox_pos, ipa_pos);
+      kill_reason = check_for_kill();
+      if (kill_reason != DONT_KILL) {
+        kill_response(kill_reason);
+        break;
+      }
       delay(COMMAND_INTERVAL_MS);
+    }
+    if (kill_reason != DONT_KILL) {
+      break;
     }
   }
 }
@@ -168,9 +177,9 @@ void followAngleLerpCurve() {
  */
 void followThrustLerpCurve() {
   lerp_point_thrust *ltc = Loader::lerp_thrust_curve;
+  int kill_reason = DONT_KILL;
   elapsedMillis timer = elapsedMillis();
   unsigned long lastlog = timer;
-  Serial.println(timer);
 
   for (int i = 0; i < Loader::header.num_points - 1; i++) {
     while (timer / 1000.0 < ltc[i + 1].time) {
@@ -183,8 +192,15 @@ void followThrustLerpCurve() {
       }
 
       ZucrowInterface::send_valve_angles_to_zucrow(loxODrive.position, 0);
-      kill_handler();
+      kill_reason = check_for_kill();
+      if (kill_reason != DONT_KILL) {
+        kill_response(kill_reason);
+        break;
+      }
       delay(COMMAND_INTERVAL_MS);
+    }
+    if (kill_reason != DONT_KILL) {
+      break;
     }
   }
 }
@@ -195,6 +211,8 @@ void basic_control_loop(float run_time, float min_p, float max_p) {
   loxODrive.setPos(45 / 360.0);
   delay(1000);
   Router::info("Starting control loop...");
+  int kill_reason = DONT_KILL;
+
   elapsedMillis timer = elapsedMillis();
   while (timer / 1000.0 < run_time) {
     float pres_dif = loxODrive.pressure_sensor_in->getPressure() - loxODrive.pressure_sensor_out->getPressure();
@@ -211,7 +229,12 @@ void basic_control_loop(float run_time, float min_p, float max_p) {
     }
 
     ZucrowInterface::send_valve_angles_to_zucrow(loxODrive.position, 0);
-    kill_handler();
+    ZucrowInterface::send_valve_angles_to_zucrow(loxODrive.position, 0);
+    kill_reason = check_for_kill();
+    if (kill_reason != DONT_KILL) {
+      kill_response(kill_reason);
+      break;
+    }
     delay(3);
   }
 }
@@ -250,6 +273,13 @@ void basic_control_loop_cmd() {
 }
 
 void begin() {
+#ifndef ENABLE_ZUCROW_SAFETY
+  Router::info("WARNING! Running without zucrow checks.");
+#endif
+#ifndef ENABLE_ODRIVE_SAFETY_CHECKS
+  Router::info("WARNING! Running without odrive safety.");
+#endif
+
   Router::add({Driver::followCurve, "follow_curve"});
   Router::add({Driver::printODriveInfo, "get_odrive_info"});
   // Router::add({Driver::setThrustCmd, "set_thrust"});
@@ -432,8 +462,10 @@ void followCurve() {
 
   ZucrowInterface::send_ok_to_zucrow(); // tell zucrow we are ready to go
 
+#ifdef ENABLE_ZUCROW_SAFETY
   while (ZucrowInterface::check_sync_from_zucrow() != ZUCROW_SYNC_RUNNING) {
   }; // wait until zucrow gives us the go
+#endif
 
   ZucrowInterface::send_sync_to_zucrow(TEENSY_SYNC_RUNNING);
   Loader::header.is_thrust ? followThrustLerpCurve() : followAngleLerpCurve();
