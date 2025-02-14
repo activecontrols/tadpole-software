@@ -189,7 +189,7 @@ void closed_loop_thrust_control(float thrust, sensor_data current_sensor_data, f
   float ol_angle_fuel = valve_angle(sub_critical_cv(ol_mass_flow_fuel, current_sensor_data.ipa_tank_pressure, ipa_valve_downstream_pressure_goal, ipa_from_temperature(current_sensor_data.ipa_valve_temperature)));
 
   *angle_ox = ol_angle_ox + ClosedLoopControllers::LOX_Angle_Controller.compute(err_mass_flow_ox);
-  *angle_fuel = ol_angle_fuel + ClosedLoopControllers::LOX_Angle_Controller.compute(err_mass_flow_ox);
+  *angle_fuel = ol_angle_fuel + ClosedLoopControllers::IPA_Angle_Controller.compute(err_mass_flow_fuel);
 }
 
 // void update_float_value(float *value, const char *prompt) {
