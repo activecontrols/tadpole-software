@@ -21,8 +21,7 @@ private:
   // used by comms
   static void ls();
   static void rm();
-
-  //    static void cat();
+  static void cat();
 };
 
 #endif // TADPOLE_SOFTWARE_SDCARD_H

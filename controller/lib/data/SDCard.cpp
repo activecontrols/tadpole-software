@@ -11,7 +11,7 @@ boolean SDCard::begin() {
     return false;
   Router::add({ls, "ls"});
   Router::add({rm, "rm"});
-  //    Router::add({cat, "cat"});
+  Router::add({cat, "cat"});
   return true;
 }
 
@@ -36,9 +36,9 @@ void SDCard::ls() {
 }
 
 void SDCard::rm() {
-  char filename[50];
-  Router::receive(filename, 50);
-  if (SD.remove(filename)) {
+  Router::info_no_newline("Enter filename: ");
+  String filename = Router::read(50);
+  if (SD.remove(filename.c_str())) {
     Router::info("File removed.");
   } else {
     Router::info("File not found.");
@@ -61,16 +61,16 @@ String SDCard::get_next_safe_name(const char *filename) {
 }
 
 // issue: receiver may not know when to stop reading. send size beforehand if absolutely needed.
-// void SDCard::cat() {
-//    char filename[50];
-//    Router::receive(filename, 50);
-//    File f = SD.open(filename, FILE_READ);
-//    if (f) {
-//        while (f.available()) {
-//            Router::send((char *) f.read(), 1);
-//        }
-//        f.close();
-//    } else {
-//        Router::send("File not found.");
-//    }
-//}
+void SDCard::cat() {
+  Router::info_no_newline("Enter filename: ");
+  String filename = Router::read(50);
+  File f = SD.open(filename.c_str(), FILE_READ);
+  if (f) {
+    while (f.available()) {
+      Router::info(f.readStringUntil('\n'));
+    }
+    f.close();
+  } else {
+    Router::info("File not found.");
+  }
+}
