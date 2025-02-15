@@ -16,7 +16,6 @@
 
 class Loader {
 public:
-    static control_config config;
     static curve_header header;
     static lerp_point_angle* lerp_angle_curve;
     static lerp_point_thrust* lerp_thrust_curve;
@@ -28,11 +27,8 @@ public:
 private:
     // triggered by comms
     static void load_curve_serial();
-    static void load_config_serial();
     static void load_curve_sd();
-    static void load_config_sd();
     static void write_curve_sd();
-    static void write_config_sd();
 
     static void load_curve_generic(bool serial, File* f);
 };
