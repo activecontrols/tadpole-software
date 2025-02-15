@@ -174,11 +174,12 @@ void closed_loop_thrust_control(float thrust, sensor_data current_sensor_data, f
 
   float ol_chamber_pressure = chamber_pressure(thrust);
   float err_chamber_pressure = current_sensor_data.chamber_pressure - ol_chamber_pressure;
-  float cl_chamber_pressure = ol_chamber_pressure + ClosedLoopControllers::Chamber_Pressure_Controller.compute(err_chamber_pressure);
+  float ol_mdot_total = mass_flow_rate(ol_chamber_pressure);
+  float cl_mdot_total = ol_mdot_total - ClosedLoopControllers::Chamber_Pressure_Controller.compute(err_chamber_pressure);
 
   float ol_mass_flow_ox;
   float ol_mass_flow_fuel;
-  mass_balance(mass_flow_rate(cl_chamber_pressure), &ol_mass_flow_ox, &ol_mass_flow_fuel);
+  mass_balance(cl_mdot_total, &ol_mass_flow_ox, &ol_mass_flow_fuel);
 
   float err_mass_flow_ox = estimate_mass_flow() - ol_mass_flow_ox;
   float err_mass_flow_fuel = estimate_mass_flow() - ol_mass_flow_fuel;
