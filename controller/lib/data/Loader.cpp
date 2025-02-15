@@ -10,11 +10,10 @@ curve_header Loader::header;
 lerp_point_angle *Loader::lerp_angle_curve;
 lerp_point_thrust *Loader::lerp_thrust_curve;
 bool Loader::loaded_curve;
-bool Loader::loaded_config;
 
 void Loader::begin() {
   Router::add({load_curve_serial, "load_curve_serial"});
-  Router::add({load_curve_sd, "load_curve_sd"});
+  Router::add({load_curve_sd_cmd, "load_curve_sd"});
   Router::add({write_curve_sd, "write_curve_sd"});
 }
 
@@ -79,7 +78,7 @@ void Loader::load_curve_serial() {
   Router::info("Loaded curve!");
 }
 
-void Loader::load_curve_sd() {
+void Loader::load_curve_sd_cmd() {
   // filenames use DOS 8.3 standard
   Router::info_no_newline("Enter filename: ");
   String filename = Router::read(50);
@@ -92,6 +91,18 @@ void Loader::load_curve_sd() {
     return;
   }
   Router::info("Loaded curve!");
+}
+
+bool Loader::load_curve_sd(const char *filename) {
+  File f = SDCard::open(filename, FILE_READ);
+  if (f) {
+    load_curve_generic(false, &f);
+    f.close();
+  } else {
+    Router::info("File not found.");
+    return false;
+  }
+  return loaded_curve;
 }
 
 void Loader::write_curve_sd() {

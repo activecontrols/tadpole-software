@@ -31,6 +31,17 @@ void print_all_sensors() {
   print_labeled_sensor("TC 1:        ", TC::example_tc.getTemperature(), " F");
 }
 
+void auto_seq() {
+  const char *curve_file_name = "AUTOCUR";
+  const char *tpl_log_file_name = "AUTOL"; // generates names like AUTOL#.CSV
+  Loader::load_curve_sd(curve_file_name);
+  const char *log_file_name = SDCard::get_next_safe_name(tpl_log_file_name);
+  Router::info_no_newline("Using log file: ");
+  Router::info(log_file_name);
+  Driver::createCurveLog(log_file_name);
+  Driver::followCurve();
+}
+
 void setup() {
   digitalWrite(LED_BUILTIN, HIGH);
   Router::init_comms();
@@ -61,6 +72,7 @@ void setup() {
   ZucrowInterface::begin(); // initializes the DAC
   Pressure::begin();        // initializes the PT Boards
   TC::begin();              // initializes the TC Boards
+  auto_seq();
 }
 
 void loop() {

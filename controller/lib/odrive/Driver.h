@@ -32,15 +32,11 @@
 namespace Driver {
 
 void begin();
-
-// void setThrust(float thrust);
-void setThrustOpenLoop(float thrust);
-// void setThrustCmd();
-void setThrustCmd_OPEN_LOOP();
-
 void printODriveInfo();
-
+void setThrustCmd();
 void followCurve();
+void followCurveCmd();
+void createCurveLog(const char *filename);
 
 }; // namespace Driver
 

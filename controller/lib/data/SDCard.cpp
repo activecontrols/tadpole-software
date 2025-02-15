@@ -7,45 +7,57 @@
 #include "Router.h"
 
 boolean SDCard::begin() {
-    if (!SD.begin(BUILTIN_SDCARD)) return false;
-    Router::add({ls, "ls"});
-    Router::add({rm, "rm"});
-//    Router::add({cat, "cat"});
-    return true;
+  if (!SD.begin(BUILTIN_SDCARD))
+    return false;
+  Router::add({ls, "ls"});
+  Router::add({rm, "rm"});
+  //    Router::add({cat, "cat"});
+  return true;
 }
 
-File SDCard::open(const char* filename, char mode) {
-    return SD.open(filename, mode);
+File SDCard::open(const char *filename, char mode) {
+  return SD.open(filename, mode);
 }
 
 void SDCard::ls() {
-    String result = "";
-    File root = SD.open("/");
-    while (true) {
-        File entry = root.openNextFile();
-        if (!entry) {
-            break;
-        }
-        result += entry.name();
-        result += " ";
-        entry.close();
+  String result = "";
+  File root = SD.open("/");
+  while (true) {
+    File entry = root.openNextFile();
+    if (!entry) {
+      break;
     }
-    root.close();
-    Router::info(result.c_str());
+    result += entry.name();
+    result += " ";
+    entry.close();
+  }
+  root.close();
+  Router::info(result.c_str());
 }
 
 void SDCard::rm() {
-    char filename[50];
-    Router::receive(filename, 50);
-    if (SD.remove(filename)) {
-        Router::info("File removed.");
-    } else {
-        Router::info("File not found.");
+  char filename[50];
+  Router::receive(filename, 50);
+  if (SD.remove(filename)) {
+    Router::info("File removed.");
+  } else {
+    Router::info("File not found.");
+  }
+}
+
+const char *SDCard::get_next_safe_name(const char *filename) {
+  int i = 0;
+  for (int i = 0; i < 100; i++) {
+    String filename_str = filename;
+    filename_str += i;
+    if (!SD.exists(filename_str.c_str())) {
+      return filename_str.c_str();
     }
+  }
 }
 
 // issue: receiver may not know when to stop reading. send size beforehand if absolutely needed.
-//void SDCard::cat() {
+// void SDCard::cat() {
 //    char filename[50];
 //    Router::receive(filename, 50);
 //    File f = SD.open(filename, FILE_READ);

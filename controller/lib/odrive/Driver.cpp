@@ -35,8 +35,6 @@ ThreadWrap(Serial2, SerialXtra2);
 
 namespace Driver {
 
-namespace { // private
-
 char loxName[4] = "LOX";
 // char ipaName[4] = "IPA";
 ODrive loxODrive(LOX_ODRIVE_SERIAL, loxName, &Pressure::lox_pressure_in, &Pressure::lox_pressure_out);
@@ -67,20 +65,9 @@ void logCurveTelemCSV(float time, int phase, float thrust) {
  * Creates a log file for the current curve.
  * @return The created log file.
  */
-File createCurveLog() {
-  // filenames use DOS 8.3 standard
-  Router::info_no_newline("Enter log filename (1-8 chars + '.' + 3 chars): ");
-  String filename = Router::read(50);
-  filename.toUpperCase(); // lower case files have issues on teensy
-  File odriveLogFile = SDCard::open(filename.c_str(), FILE_WRITE);
-
-  if (!odriveLogFile) { // Failed to create a log file
-    return odriveLogFile;
-  }
-
+void createCurveLog(const char *filename) {
+  odriveLogFile = SDCard::open(filename, FILE_WRITE);
   odriveLogFile.println(LOG_HEADER);
-
-  return odriveLogFile;
 }
 
 /**
@@ -185,7 +172,13 @@ void followThrustLerpCurve() {
     while (timer / 1000.0 < ltc[i + 1].time) {
       float seconds = timer / 1000.0;
       float thrust = lerp(ltc[i].thrust, ltc[i + 1].thrust, ltc[i].time, ltc[i + 1].time, seconds);
-      setThrustOpenLoop(thrust);
+
+      float angle_ox;
+      float angle_fuel;
+      open_loop_thrust_control_defaults(thrust, &angle_ox, &angle_fuel); // TODO CL - make this closed loop
+      loxODrive.setPos(angle_ox / 360);
+      // ipaODrive.setPos(angle_fuel / 360);
+
       if (timer - lastlog >= LOG_INTERVAL_MS) {
         logCurveTelemCSV(seconds, i, thrust);
         lastlog = timer;
@@ -205,73 +198,6 @@ void followThrustLerpCurve() {
   }
 }
 
-} // namespace
-
-void basic_control_loop(float run_time, float min_p, float max_p) {
-  loxODrive.setPos(45 / 360.0);
-  delay(1000);
-  Router::info("Starting control loop...");
-  int kill_reason = DONT_KILL;
-
-  elapsedMillis timer = elapsedMillis();
-  while (timer / 1000.0 < run_time) {
-    float pres_dif = loxODrive.pressure_sensor_in->getPressure() - loxODrive.pressure_sensor_out->getPressure();
-    Router::info_no_newline("Pres dif: ");
-    Router::info_no_newline(pres_dif);
-    Router::info_no_newline(" Angle: ");
-    Router::info(loxODrive.getLastPosCmd());
-    if (pres_dif < min_p) {
-      loxODrive.setPos(loxODrive.getLastPosCmd() - 0.0001);
-    }
-
-    if (pres_dif > max_p) {
-      loxODrive.setPos(loxODrive.getLastPosCmd() + 0.0001);
-    }
-
-    ZucrowInterface::send_valve_angles_to_zucrow(loxODrive.position, 0);
-    ZucrowInterface::send_valve_angles_to_zucrow(loxODrive.position, 0);
-    kill_reason = check_for_kill();
-    if (kill_reason != DONT_KILL) {
-      kill_response(kill_reason);
-      break;
-    }
-    delay(3);
-  }
-}
-
-void basic_control_loop_cmd() {
-  Router::info_no_newline("Time (seconds): ");
-  String respStr = Router::read(INT_BUFFER_SIZE);
-
-  float time = 0.0;
-  int result = std::sscanf(respStr.c_str(), "%f", &time);
-  if (result != 1) {
-    Router::info("Could not convert input to a float, not continuing");
-    return;
-  }
-
-  Router::info_no_newline("Target Min Pressure (0 - 3.3): ");
-  respStr = Router::read(INT_BUFFER_SIZE);
-
-  float min_p = 0.0;
-  result = std::sscanf(respStr.c_str(), "%f", &min_p);
-  if (result != 1) {
-    Router::info("Could not convert input to a float, not continuing");
-    return;
-  }
-
-  Router::info_no_newline("Target Max Pressure (0 - 3.3): ");
-  respStr = Router::read(INT_BUFFER_SIZE);
-
-  float max_p = 0.0;
-  result = std::sscanf(respStr.c_str(), "%f", &max_p);
-  if (result != 1) {
-    Router::info("Could not convert input to a float, not continuing");
-    return;
-  }
-  basic_control_loop(time, min_p, max_p);
-}
-
 void begin() {
 #ifndef ENABLE_ZUCROW_SAFETY
   Router::info("WARNING! Running without zucrow checks.");
@@ -280,10 +206,9 @@ void begin() {
   Router::info("WARNING! Running without odrive safety.");
 #endif
 
-  Router::add({Driver::followCurve, "follow_curve"});
+  Router::add({Driver::followCurveCmd, "follow_curve"});
   Router::add({Driver::printODriveInfo, "get_odrive_info"});
-  // Router::add({Driver::setThrustCmd, "set_thrust"});
-  Router::add({Driver::setThrustCmd_OPEN_LOOP, "set_thrust_open_loop"});
+  Router::add({Driver::setThrustCmd, "set_thrust"});
 
   /*
    * This syntax is slightly tricky. The add function only takes one argument: a func struct
@@ -331,8 +256,6 @@ void begin() {
 
   Router::add({[&]() { loxODrive.kill(); }, "kill"}); // TODO RJN odrive - ipaODrive kill
 
-  Router::add({[&]() { basic_control_loop_cmd(); }, "control_loop_bad"});
-
 #if (ENABLE_ODRIVE_COMM)
   LOX_ODRIVE_SERIAL.begin(LOX_ODRIVE_SERIAL_RATE);
   IPA_ODRIVE_SERIAL.begin(IPA_ODRIVE_SERIAL_RATE);
@@ -356,49 +279,10 @@ void printODriveInfo() {
   // Router::info(ipaODrive.getODriveInfo());
 }
 
-// /**
-//  * Command for the Router lib to change the thrust manually.
-//  */
-// void setThrustCmd() {
-//     Router::info_no_newline("Position?");
-//     String thrustString = Router::read(INT_BUFFER_SIZE);
-//     Router::info("Response: " + thrustString);
-
-//     float thrust;
-//     int result = std::sscanf(thrustString.c_str(), "%f", &thrust);
-//     if (result != 1) {
-//         Router::info("Could not convert input to a float, not continuing");
-//         return;
-//     }
-
-//     if (thrust < MIN_THRUST || thrust > MAX_THRUST) {
-//         Router::info("Thrust outside defined range in code, not continuing");
-//         return;
-//     }
-
-//     setThrust(thrust);
-
-//     printBuffer.clear();
-//     printBuffer << "Thrust set. LOX pos: " << loxODrive.getLastPosCmd() << " IPA pos: " << ipaODrive.getLastPosCmd();
-
-//     Router::info(printBuffer.str);
-// }
-
-/*
- * Sets the thrust
- * Uses a closed loop control to set the angle positions of the odrives
- * using feedback from the pressue sensor. The function will set the odrive positions itself, and
- * modify currentLOXPos and currentIPAPos to what it set the odrive positions to.
- */
-// void setThrust(float thrust) {
-//     // TODO: closed loop magic
-
-// }
-
 /**
  * Command for the Router lib to change the thrust manually.
  */
-void setThrustCmd_OPEN_LOOP() {
+void setThrustCmd() {
   Router::info_no_newline("Thrust?");
   String thrustString = Router::read(INT_BUFFER_SIZE);
   Router::info("Response: " + thrustString);
@@ -415,23 +299,16 @@ void setThrustCmd_OPEN_LOOP() {
     return;
   }
 
-  setThrustOpenLoop(thrust);
-
-  printBuffer.clear();
-  printBuffer << "Thrust set using open loop. LOX pos: " << loxODrive.getLastPosCmd(); // << " IPA pos: " << ipaODrive.getLastPosCmd();
-
-  Router::info(printBuffer.str);
-}
-
-/*
- * Sets the thrust using open loop control
- */
-void setThrustOpenLoop(float thrust) {
   float angle_ox;
   float angle_fuel;
   open_loop_thrust_control_defaults(thrust, &angle_ox, &angle_fuel);
   loxODrive.setPos(angle_ox / 360);
   // ipaODrive.setPos(angle_fuel / 360);
+
+  printBuffer.clear();
+  printBuffer << "Thrust set using open loop. LOX pos: " << loxODrive.getLastPosCmd(); // << " IPA pos: " << ipaODrive.getLastPosCmd();
+
+  Router::info(printBuffer.str);
 }
 
 /**
@@ -444,20 +321,8 @@ void followCurve() {
   }
 
   // checkConfig() function provides its own error message console logging
-  if (loxODrive.checkConfig()) {
+  if (loxODrive.checkConfig()) { // TODO - both valves
     return;
-  }
-
-  if (Router::logenabled) {
-    odriveLogFile = createCurveLog();
-
-    if (!odriveLogFile) {
-      Router::info_no_newline("Failed to create odrive log file. Send 'y' to continue anyway. ");
-      String resp = Router::read(50);
-      if (resp != "y") {
-        return;
-      }
-    }
   }
 
   ZucrowInterface::send_ok_to_zucrow(); // tell zucrow we are ready to go
@@ -477,5 +342,23 @@ void followCurve() {
   }
 
   Router::info("Finished following curve!");
+}
+
+void followCurveCmd() {
+  if (Router::logenabled) {
+    // filenames use DOS 8.3 standard
+    Router::info_no_newline("Enter log filename (1-8 chars + '.' + 3 chars): ");
+    String filename = Router::read(50);
+    createCurveLog(filename.toUpperCase().c_str()); // lower case files have issues on teensy
+
+    if (!odriveLogFile) {
+      Router::info_no_newline("Failed to create odrive log file. Send 'y' to continue anyway. ");
+      String resp = Router::read(50);
+      if (resp != "y") {
+        return;
+      }
+    }
+  }
+  followCurve();
 }
 } // namespace Driver
