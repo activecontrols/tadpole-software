@@ -35,10 +35,10 @@ void auto_seq() {
   const char *curve_file_name = "AUTOCUR";
   const char *tpl_log_file_name = "AUTOL"; // generates names like AUTOL#.CSV
   Loader::load_curve_sd(curve_file_name);
-  const char *log_file_name = SDCard::get_next_safe_name(tpl_log_file_name);
+  String log_file_name = SDCard::get_next_safe_name(tpl_log_file_name);
   Router::info_no_newline("Using log file: ");
   Router::info(log_file_name);
-  Driver::createCurveLog(log_file_name);
+  Driver::createCurveLog(log_file_name.c_str());
   Driver::followCurve();
 }
 
@@ -73,6 +73,7 @@ void setup() {
   Pressure::begin();        // initializes the PT Boards
   TC::begin();              // initializes the TC Boards
   auto_seq();
+  Router::add({auto_seq, "auto_seq"});
 }
 
 void loop() {

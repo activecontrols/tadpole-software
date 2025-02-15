@@ -45,15 +45,19 @@ void SDCard::rm() {
   }
 }
 
-const char *SDCard::get_next_safe_name(const char *filename) {
-  int i = 0;
+String SDCard::get_next_safe_name(const char *filename) {
   for (int i = 0; i < 100; i++) {
     String filename_str = filename;
     filename_str += i;
+    filename_str += ".CSV";
     if (!SD.exists(filename_str.c_str())) {
       return filename_str.c_str();
     }
   }
+
+  String filename_str = filename;
+  filename_str += "_E.CSV";
+  return filename_str;
 }
 
 // issue: receiver may not know when to stop reading. send size beforehand if absolutely needed.

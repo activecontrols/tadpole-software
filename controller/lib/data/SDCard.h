@@ -15,7 +15,7 @@ class SDCard {
 public:
   static boolean begin();
   static File open(const char *filename, char mode);
-  static const char *get_next_safe_name(const char *filename);
+  static String get_next_safe_name(const char *filename);
 
 private:
   // used by comms
