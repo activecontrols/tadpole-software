@@ -19,8 +19,8 @@
 #include "ODrive.h"
 #include "CString.h"
 
-#define LOX_ODRIVE_CAN_ID 0
-#define IPA_ODRIVE_CAN_ID 1
+#define LOX_ODRIVE_CAN_ID 1
+#define IPA_ODRIVE_CAN_ID 2
 
 #define LOG_INTERVAL_MS 10
 #define COMMAND_INTERVAL_MS 1

@@ -2,15 +2,13 @@
 
 #include <string>
 
-FlexCAN_T4<CAN1, RX_SIZE_256, TX_SIZE_16> can_intf; // can interface
+FlexCAN_T4<CAN3, RX_SIZE_256, TX_SIZE_16> can_intf; // can interface
 
 // pass in a handler that sends CAN messages to each odrive
 void setup_can(_MB_ptr handler) {
   can_intf.begin();
   can_intf.setBaudRate(CAN_BAUDRATE);
-  can_intf.setMaxMB(16);
-  can_intf.enableFIFO();
-  can_intf.enableFIFOInterrupt();
+  can_intf.enableMBInterrupts();
   can_intf.onReceive(handler);
 }
 
@@ -172,10 +170,10 @@ char *ODrive::getTelemetryCSV() {
   telemetryCSV.clear();
 
 #if (ENABLE_ODRIVE_COMM)
-  Get_Encoder_Estimates_msg_t enc_msg;
-  ODriveCAN::getFeedback(enc_msg);
-  position = 0.25 - enc_msg.Pos_Estimate;
-  velocity = enc_msg.Vel_Estimate;
+  // Get_Encoder_Estimates_msg_t enc_msg;
+  // ODriveCAN::getFeedback(enc_msg);
+  // position = 0.25 - enc_msg.Pos_Estimate;
+  // velocity = enc_msg.Vel_Estimate;
 
   Get_Bus_Voltage_Current_msg_t vc_msg;
   ODriveCAN::getBusVI(vc_msg);
