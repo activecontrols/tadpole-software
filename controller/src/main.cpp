@@ -72,7 +72,7 @@ void setup() {
   ZucrowInterface::begin(); // initializes the DAC
   Pressure::begin();        // initializes the PT Boards
   TC::begin();              // initializes the TC Boards
-  auto_seq();
+  // auto_seq();
   Router::add({auto_seq, "auto_seq"});
 }
 

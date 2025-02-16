@@ -176,6 +176,9 @@ char *ODrive::getTelemetryCSV() {
   // position = 0.25 - enc_msg.Pos_Estimate;
   // velocity = enc_msg.Vel_Estimate;
 
+  position = 0.25 - this->odrive_status.last_feedback.Pos_Estimate;
+  velocity = this->odrive_status.last_feedback.Vel_Estimate;
+
   Get_Bus_Voltage_Current_msg_t vc_msg;
   ODriveCAN::getBusVI(vc_msg);
   voltage = vc_msg.Bus_Voltage;
@@ -271,6 +274,8 @@ void ODrive::hardStopHoming() { // @ Xander
     Get_Iq_msg_t amp_msg;
     ODriveCAN::getCurrents(amp_msg); // update current reading
     current = amp_msg.Iq_Measured;
+    Router::info_no_newline("Current: ");
+    Router::info(current);
     delay(20);
   }
   ODriveCAN::setVelocity(0); // velocity [turn/s]
