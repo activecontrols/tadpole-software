@@ -15,9 +15,6 @@
 #include "Router.h"
 #include "valve_controller.hpp"
 
-#define LOX_ODRIVE_SERIAL_RATE (115200)
-#define IPA_ODRIVE_SERIAL_RATE (115200)
-
 #define DONT_KILL 0                     // continue loop
 #define KILLED_BY_ZUCROW 1              // zucrow panic line caused kill
 #define KILLED_BY_SERIAL 2              // serial cmd caused kill
