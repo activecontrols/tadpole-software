@@ -2,29 +2,21 @@
 #define ZUCROW_H
 
 #include <Arduino.h>
-
-// TODO - set pin numbers
+#include "MCP48xx.hpp"
 
 // INPUTS FROM ZUCROW
-#define ZUCROW_PANIC_PIN 14
 #define ZUCROW_PANIC false
 #define ZUCROW_NO_PANIC true
 
-#define ZUCROW_SYNC_PIN 15
 #define ZUCROW_SYNC_RUNNING true
 #define ZUCROW_SYNC_IDLE false
 
 // OUTPUTS FROM TEENSY
-#define TEENSY_PANIC_PIN 16
 #define TEENSY_PANIC false
 #define TEENSY_NO_PANIC true
 
-#define TEENSY_SYNC_PIN 17
 #define TEENSY_SYNC_RUNNING true
 #define TEENSY_SYNC_IDLE false
-
-// Analog output to send valve angle to zucrow
-// TODO - control over SPI
 
 namespace ZucrowInterface {
 

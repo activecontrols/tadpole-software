@@ -6,20 +6,15 @@
 #include "../serial_comms/Router.h"
 #include <SDCard.h>
 
-control_config Loader::config;
 curve_header Loader::header;
 lerp_point_angle *Loader::lerp_angle_curve;
 lerp_point_thrust *Loader::lerp_thrust_curve;
 bool Loader::loaded_curve;
-bool Loader::loaded_config;
 
 void Loader::begin() {
   Router::add({load_curve_serial, "load_curve_serial"});
-  Router::add({load_config_serial, "load_config_serial"});
-  Router::add({load_curve_sd, "load_curve_sd"});
-  Router::add({load_config_sd, "load_config_sd"});
+  Router::add({load_curve_sd_cmd, "load_curve_sd"});
   Router::add({write_curve_sd, "write_curve_sd"});
-  Router::add({write_config_sd, "write_config_sd"});
 }
 
 void Loader::load_curve_generic(bool serial, File *f) {
@@ -83,13 +78,7 @@ void Loader::load_curve_serial() {
   Router::info("Loaded curve!");
 }
 
-void Loader::load_config_serial() {
-  Router::receive((char *)&config, sizeof(config));
-  loaded_config = true;
-  Router::info("Loaded config!");
-}
-
-void Loader::load_curve_sd() {
+void Loader::load_curve_sd_cmd() {
   // filenames use DOS 8.3 standard
   Router::info_no_newline("Enter filename: ");
   String filename = Router::read(50);
@@ -104,20 +93,16 @@ void Loader::load_curve_sd() {
   Router::info("Loaded curve!");
 }
 
-void Loader::load_config_sd() {
-  // filenames use DOS 8.3 standard
-  Router::info_no_newline("Enter filename: ");
-  String filename = Router::read(50);
-  File f = SDCard::open(filename.c_str(), FILE_READ);
+bool Loader::load_curve_sd(const char *filename) {
+  File f = SDCard::open(filename, FILE_READ);
   if (f) {
-    f.read((char *)&config, sizeof(config));
+    load_curve_generic(false, &f);
     f.close();
   } else {
     Router::info("File not found.");
-    return;
+    return false;
   }
-  loaded_config = true;
-  Router::info("Loaded config!");
+  return loaded_curve;
 }
 
 void Loader::write_curve_sd() {
@@ -138,20 +123,4 @@ void Loader::write_curve_sd() {
 
   f.close();
   Router::info("Wrote curve!");
-}
-
-void Loader::write_config_sd() {
-  // filenames use DOS 8.3 standard
-  Router::info_no_newline("Enter filename: ");
-  String filename = Router::read(50);
-  File f = SDCard::open(filename.c_str(), FILE_WRITE);
-  if (!f) {
-    Router::info("File not found.");
-    return;
-  } else {
-    Router::info("File found.");
-  }
-  f.write((char *)&config, sizeof(config));
-  f.close();
-  Router::info("Wrote config!");
 }

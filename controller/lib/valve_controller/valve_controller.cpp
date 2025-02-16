@@ -4,9 +4,9 @@
 // #include <Router.h>
 // #include "CString.h"
 
-// TODO - efficiency coeff?
+// TODO RJN open loop valve - efficiency coeff?
 #define tadpole_AREA_OF_THROAT 1.69      // in^2
-#define tadpole_C_STAR 4998.0654         // ft / s // TODO - vary based on thrust
+#define tadpole_C_STAR 4998.0654         // ft / s // TODO RJN open loop valve - vary based on thrust
 #define tadpole_MASS_FLOW_RATIO 1.2      // #ox = 1.2 * fuel
 #define GRAVITY_FT_S 32.1740             // Gravity in (ft / s^2)
 #define GRAVITY_IN_S (GRAVITY_FT_S * 12) // Gravity in (in / s^2)
@@ -87,8 +87,8 @@ fluid ox_from_temperature(float temperature) {
 // get ipa properties using temperature in Kelvin
 fluid ipa_from_temperature(float temperature) {
   fluid ipa_data;
-  ipa_data.density = 0.02836;       // lb/in^3 // TODO - assume constant
-  ipa_data.vapour_pressure = 0.638; // psi // TODO - depends on temperature
+  ipa_data.density = 0.02836;       // lb/in^3 // TODO RJN open loop valve - assume constant
+  ipa_data.vapour_pressure = 0.638; // psi // TODO RJN open loop valve - depends on temperature
   return ipa_data;
 }
 
@@ -96,7 +96,7 @@ fluid ipa_from_temperature(float temperature) {
 // Lookup the thrust coefficient using linear interpolation
 // INPUT: thrust (lbf)
 // OUTPUT: thrust coefficient (unitless)
-float cf(float thrust) { // TODO - vary based on thrust
+float cf(float thrust) {
   return clamped_table_interplolation(thrust, cf_thrust_table, CF_THRUST_TABLE_LEN);
 }
 
