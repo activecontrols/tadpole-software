@@ -90,6 +90,11 @@ void kill_response(int kill_reason) {
   Router::info("Panic! Loop terminated.");
   Router::info_no_newline("Kill code: ");
   Router::info(kill_reason);
+  if (Router::logenabled) {
+    odriveLogFile.println("Panic! Loop terminated.");
+    odriveLogFile.print("Kill code: ");
+    odriveLogFile.println(kill_reason);
+  }
 }
 
 int check_for_kill() {

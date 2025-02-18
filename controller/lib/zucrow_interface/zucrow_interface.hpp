@@ -29,10 +29,10 @@ bool check_fault_from_zucrow();
 // returns ZUCROW_SYNC_RUNNING or ZUCROW_SYNC_IDLE depending on zucrow sync line state
 bool check_sync_from_zucrow();
 
-// sets zucrow panic line to panic state
+// sets teensy panic line to panic state
 void send_fault_to_zucrow();
 
-// sets zucrow panic line to non-panic state
+// sets teensy panic line to non-panic state
 void send_ok_to_zucrow();
 
 // send TEENSY_SYNC_RUNNING or TEENSY_SYNC_IDLE to zucrow
