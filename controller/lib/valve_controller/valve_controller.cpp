@@ -136,7 +136,9 @@ float cavitating_venturi(float mass_flow, cav_vent cvProperties, fluid cvFluid) 
 // OUTPUT: valve flow coefficient (assume this is unitless)
 // INPUT: mass_flow (lbm/s), downstream pressure (psi), fluid properties
 float sub_critical_cv(float mass_flow, float upstream_pressure, float downstream_pressure, fluid cvFluid) {
-  return mass_flow * IN3_TO_GAL * PER_SEC_TO_PER_MIN * sqrt(LB_TO_TON * PER_IN3_TO_PER_M3 / (upstream_pressure - downstream_pressure) / cvFluid.density);
+  float pressure_delta = upstream_pressure - downstream_pressure;
+  pressure_delta = pressure_delta > 0 ? pressure_delta : 0.0001; // block negative under sqrt and divide by 0
+  return mass_flow * IN3_TO_GAL * PER_SEC_TO_PER_MIN * sqrt(LB_TO_TON * PER_IN3_TO_PER_M3 / pressure_delta / cvFluid.density);
 }
 
 // Lookup the valve angle using linear interpolation
@@ -146,6 +148,7 @@ float valve_angle(float cv) {
   return clamped_table_interplolation(cv, valve_angle_table, VALVE_ANGLE_TABLE_LEN);
 }
 
+// TODO RJN OL - update to remove cavitating venturi stuff
 // get valve angles (degrees) given thrust
 void open_loop_thrust_control(float thrust, sensor_data current_sensor_data, float *angle_ox, float *angle_fuel) {
   float mass_flow_ox;
@@ -163,8 +166,11 @@ void open_loop_thrust_control_defaults(float thrust, float *angle_ox, float *ang
   open_loop_thrust_control(thrust, default_sensor_data, angle_ox, angle_fuel);
 }
 
-float estimate_mass_flow() {
-  // TODO RJN CL - mass flow estimator
+float estimate_mass_flow(float upstream_pressure, float downstream_pressure, venturi venturi_properties, fluid vFluid) {
+  float pressure_delta = upstream_pressure - downstream_pressure;
+  pressure_delta = pressure_delta > 0 ? pressure_delta : 0; // block negative under sqrt
+  float area_term = 1 - pow(venturi_properties.outlet_area / venturi_properties.inlet_area, 2);
+  return venturi_properties.outlet_area * sqrt(2 * vFluid.density * pressure_delta / (1 - area_term));
 }
 
 void closed_loop_thrust_control(float thrust, sensor_data current_sensor_data, float *angle_ox, float *angle_fuel) {

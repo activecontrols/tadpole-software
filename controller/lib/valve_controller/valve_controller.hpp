@@ -13,6 +13,11 @@ struct cav_vent {
   float cav_vent_cd;          // unitless
 };
 
+struct venturi {
+  float inlet_area;  // in^2
+  float outlet_area; // in^2
+};
+
 struct fluid {
   float vapour_pressure; // psi
   float density;         // lb / in^3
