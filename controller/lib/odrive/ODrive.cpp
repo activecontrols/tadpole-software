@@ -171,13 +171,13 @@ char *ODrive::getTelemetryCSV() {
   telemetryCSV.clear();
 
 #if (ENABLE_ODRIVE_COMM)
-  // Get_Encoder_Estimates_msg_t enc_msg;
-  // ODriveCAN::getFeedback(enc_msg);
-  // position = 0.25 - enc_msg.Pos_Estimate;
-  // velocity = enc_msg.Vel_Estimate;
+  Get_Encoder_Estimates_msg_t enc_msg;
+  ODriveCAN::getFeedback(enc_msg);
+  position = 0.25 - enc_msg.Pos_Estimate;
+  velocity = enc_msg.Vel_Estimate;
 
-  position = 0.25 - this->odrive_status.last_feedback.Pos_Estimate;
-  velocity = this->odrive_status.last_feedback.Vel_Estimate;
+  // position = 0.25 - this->odrive_status.last_feedback.Pos_Estimate;
+  // velocity = this->odrive_status.last_feedback.Vel_Estimate;
 
   Get_Bus_Voltage_Current_msg_t vc_msg;
   ODriveCAN::getBusVI(vc_msg);

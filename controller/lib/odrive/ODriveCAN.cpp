@@ -148,6 +148,11 @@ void ODriveCAN::onReceive(uint32_t id, uint8_t length, const uint8_t* data) {
 #endif // DEBUG
     if (node_id_ != (id >> ODriveCAN::kNodeIdShift))
         return;
+    if ((id & ODriveCAN::kCmdIdBits) == requested_msg_id_) {
+      memcpy(buffer_, data, length);
+      requested_msg_id_ = REQUEST_PENDING;
+    }
+    
     switch (id & ODriveCAN::kCmdIdBits) {
         case Get_Encoder_Estimates_msg_t::cmd_id: {
             Get_Encoder_Estimates_msg_t estimates;
@@ -172,10 +177,6 @@ void ODriveCAN::onReceive(uint32_t id, uint8_t length, const uint8_t* data) {
             Serial.print("waiting for: 0x");
             Serial.println(requested_msg_id_, HEX);
 #endif // DEBUG
-            if ((id & ODriveCAN::kCmdIdBits) != requested_msg_id_)
-                return;
-            memcpy(buffer_, data, length);
-            requested_msg_id_ = REQUEST_PENDING;
         }
     }
 }
