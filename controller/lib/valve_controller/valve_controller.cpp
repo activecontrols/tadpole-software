@@ -51,19 +51,20 @@ float ipa_manifold_table[2][INTERPOLATION_TABLE_LENGTH] = {
     {192.5, 210.556, 228.611, 246.667, 264.722, 282.778, 300.833, 318.889, 336.944, 355.0, 373.056, 391.111, 409.167, 427.222, 445.278, 463.333, 481.389, 499.444, 517.5, 535.556, 550.0},
     {120.844, 130.535, 140.262, 150.16, 159.99, 170.243, 180.67, 191.054, 201.631, 212.408, 223.382, 234.368, 245.752, 257.017, 268.529, 280.3, 292.062, 304.129, 316.095, 328.466, 338.509}};
 
-Sensor_Data default_sensor_data{.chamber_pressure = 100, // psi
-                                .ox = {
-                                    .tank_pressure = 820,           // psi
-                                    .venturi_upstream_pressure = 0, // psi - not needed for OL
-                                    .venturi_throat_pressure = 0,   // psi - not needed for OL
-                                    .temperature = 90,              // Kelvin
-                                },
-                                .ipa = {
-                                    .tank_pressure = 820,           // psi
-                                    .venturi_upstream_pressure = 0, // psi - not needed for OL
-                                    .venturi_throat_pressure = 0,   // psi - not needed for OL
-                                    .temperature = 280,             // Kelvin
-                                }};
+Sensor_Data default_sensor_data{
+    .chamber_pressure = 100, // psi
+    .ox = {
+        .tank_pressure = 820,           // psi
+        .venturi_upstream_pressure = 0, // psi - not needed for OL
+        .venturi_throat_pressure = 0,   // psi - not needed for OL
+        .temperature = 90,              // Kelvin
+    },
+    .ipa = {
+        .tank_pressure = 820,           // psi
+        .venturi_upstream_pressure = 0, // psi - not needed for OL
+        .venturi_throat_pressure = 0,   // psi - not needed for OL
+        .temperature = 280,             // Kelvin
+    }};
 
 Venturi ox_venturi{.inlet_area = 0.127, .throat_area = 0.0204};  // in^2 for both
 Venturi ipa_venturi{.inlet_area = 0.127, .throat_area = 0.0204}; // in^2 for both
