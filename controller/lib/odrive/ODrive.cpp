@@ -57,6 +57,7 @@ void ODrive::checkConnection() {
     ODriveCAN::setState(AXIS_STATE_CLOSED_LOOP_CONTROL);
     delay(10);
   }
+  ODriveCAN::setControllerMode(CONTROL_MODE_POSITION_CONTROL, INPUT_MODE_POS_FILTER);
 #endif
 }
 

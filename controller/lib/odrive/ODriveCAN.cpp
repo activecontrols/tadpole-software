@@ -185,8 +185,10 @@ bool ODriveCAN::awaitMsg(uint16_t timeout) {
     uint64_t start_time = millis();
     while (requested_msg_id_ != REQUEST_PENDING) {
         can_intf_.pump_events(); // pump event loop while waiting
-        if ((millis() - start_time) > 1000 * timeout)
+        if ((millis() - start_time) > timeout) {
+            Serial.println("waiting for can timeout");
             return false;
+        }
     }
     return true;
 }
