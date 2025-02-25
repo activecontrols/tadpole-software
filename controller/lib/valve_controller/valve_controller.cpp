@@ -183,7 +183,7 @@ float estimate_mass_flow(Fluid_Line fluid_line, Venturi venturi, float fluid_den
   float pressure_delta = fluid_line.venturi_upstream_pressure - fluid_line.venturi_throat_pressure;
   pressure_delta = pressure_delta > 0 ? pressure_delta : 0; // block negative under sqrt
   float area_term = 1 - pow(venturi.throat_area / venturi.inlet_area, 2);
-  return venturi.throat_area * sqrt(2 * fluid_density * pressure_delta / (1 - area_term)) * venturi.cd;
+  return venturi.throat_area * sqrt(2 * fluid_density * pressure_delta * GRAVITY_FT_S / (1 - area_term)) * venturi.cd;
 }
 
 void closed_loop_thrust_control(float thrust, Sensor_Data sensor_data, float *angle_ox, float *angle_ipa) {
