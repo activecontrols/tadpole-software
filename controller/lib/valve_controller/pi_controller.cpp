@@ -12,7 +12,7 @@ float PI_Controller::compute(float input_error) {
     this->last_compute_time = this_compute_time; // zeroes out the delta on the first iteration
   }
 
-  this->err_sum += input_error * (this_compute_time - last_compute_time);
+  this->err_sum += input_error * (this_compute_time - last_compute_time) * 0.001;
   this->last_compute_time = this_compute_time;
   return this->kp * input_error + this->ki * this->err_sum;
 }

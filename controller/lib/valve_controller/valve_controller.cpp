@@ -159,9 +159,7 @@ float ipa_manifold_pressure(float thrust) {
   return clamped_table_interplolation(thrust, ipa_manifold_table, IPA_MANIFOLD_TABLE_LEN);
 }
 
-// add back other TC
-
-// get valve angles (degrees) given thrust
+// get valve angles (degrees) given thrust (lbf) and current sensor data
 void open_loop_thrust_control(float thrust, Sensor_Data sensor_data, float *angle_ox, float *angle_ipa) {
   float mass_flow_ox;
   float mass_flow_ipa;
@@ -174,6 +172,7 @@ void open_loop_thrust_control(float thrust, Sensor_Data sensor_data, float *angl
   *angle_ipa = valve_angle(sub_critical_cv(mass_flow_ipa, sensor_data.ipa.tank_pressure, ipa_valve_downstream_pressure_goal, ipa_density()));
 }
 
+// get valve angles (degrees) given thrust (lbf)
 void open_loop_thrust_control_defaults(float thrust, float *angle_ox, float *angle_ipa) {
   open_loop_thrust_control(thrust, default_sensor_data, angle_ox, angle_ipa);
 }
@@ -186,6 +185,7 @@ float estimate_mass_flow(Fluid_Line fluid_line, Venturi venturi, float fluid_den
   return venturi.throat_area * sqrt(2 * fluid_density * pressure_delta * GRAVITY_FT_S / (1 - area_term)) * venturi.cd;
 }
 
+// get valve angles (degrees) given thrust (lbf) and current sensor data using PID controllers
 void closed_loop_thrust_control(float thrust, Sensor_Data sensor_data, float *angle_ox, float *angle_ipa) {
   // ol_ for open loop computations
   // err_ for err between ol and sensor
