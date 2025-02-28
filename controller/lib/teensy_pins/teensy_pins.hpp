@@ -11,9 +11,11 @@
 #define TEENSY_SYNC_PIN 17
 
 // Demux System
-#define SPI_DEMUX_BIT_0 41
-#define SPI_DEMUX_BIT_1 40
-#define SPI_DEMUX_BIT_2 39
-#define SPI_DEMUX_BIT_3 38
+
+#define SPI_DEMUX_BIT_0 37
+#define SPI_DEMUX_BIT_1 36
+#define SPI_DEMUX_BIT_2 35
+#define SPI_DEMUX_BIT_3 34
+#define SPI_DEMUX_BIT_4 33
 
 #endif

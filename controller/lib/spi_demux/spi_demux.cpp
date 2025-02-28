@@ -12,10 +12,11 @@ void SPI_Demux::begin() {
 }
 
 void SPI_Demux::select_chip(int chip_id) {
-  digitalWrite(SPI_DEMUX_BIT_0, chip_id & 0b0001);
-  digitalWrite(SPI_DEMUX_BIT_1, chip_id & 0b0010);
-  digitalWrite(SPI_DEMUX_BIT_2, chip_id & 0b0100);
-  digitalWrite(SPI_DEMUX_BIT_3, chip_id & 0b1000);
+  digitalWrite(SPI_DEMUX_BIT_0, (bool)(chip_id & 0b00001));
+  digitalWrite(SPI_DEMUX_BIT_1, (bool)(chip_id & 0b00010));
+  digitalWrite(SPI_DEMUX_BIT_2, (bool)(chip_id & 0b00100));
+  digitalWrite(SPI_DEMUX_BIT_3, (bool)(chip_id & 0b01000));
+  digitalWrite(SPI_DEMUX_BIT_4, (bool)(chip_id & 0b10000));
 }
 
 void SPI_Demux::deselect_chip() {

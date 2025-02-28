@@ -12,8 +12,14 @@
 #define SPI_DEVICE_TC_2 6
 #define SPI_DEVICE_TC_3 7
 
-#define SPI_DEVICE_ZUCROW_DAC 14
-#define SPI_DEVICE_NULL 15
+#define SPI_DEVICE_ZUCROW_DAC 24
+//      SPI_DEVICE_ZUCROW_DAC 25 // either works
+//      SPI_DEVICE_NULL 26
+//      SPI_DEVICE_NULL 27
+//      SPI_DEVICE_NULL 28
+//      SPI_DEVICE_NULL 29
+//      SPI_DEVICE_NULL 30
+#define SPI_DEVICE_NULL 31
 
 namespace SPI_Demux {
 

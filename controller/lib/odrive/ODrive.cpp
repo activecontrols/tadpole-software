@@ -251,7 +251,6 @@ void ODrive::setPosConsoleCmd() {
   Router::info("Position set");
 }
 
-// TODO RJN CAN - verify that this works
 void ODrive::hardStopHoming() { // @ Xander
 
   float current = 0;
