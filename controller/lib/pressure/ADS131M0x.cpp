@@ -16,7 +16,7 @@ int32_t ADS131M0x::val32Ch0 = 0x7FFFFF;
  *
  */
 ADS131M0x::ADS131M0x(int demuxAddr) {
-  demuxAddr = demuxAddr;
+  this->demuxAddr = demuxAddr;
 }
 
 /**
@@ -32,9 +32,9 @@ uint8_t ADS131M0x::writeRegister(uint8_t address, uint16_t value) {
   uint8_t bytesRcv;
   uint16_t cmd = 0;
 
-  SPI.beginTransaction(SPISettings(20000000, MSBFIRST, SPI_MODE1));
+  SPI.beginTransaction(SPISettings(1000000, MSBFIRST, SPI_MODE1));
   SPI_Demux::select_chip(demuxAddr);
-  delayMicroseconds(1);
+  delayMicroseconds(2);
 
   cmd = (CMD_WRITE_REG) | (address << 7) | 0;
 
@@ -76,7 +76,8 @@ uint8_t ADS131M0x::writeRegister(uint8_t address, uint16_t value) {
   SPI.transfer16(0x0000);
   SPI.transfer(0x00);
 #endif
-  delayMicroseconds(1);
+
+  delayMicroseconds(2);
   SPI_Demux::deselect_chip();
   SPI.endTransaction();
 
@@ -101,9 +102,9 @@ uint16_t ADS131M0x::readRegister(uint8_t address) {
 
   cmd = CMD_READ_REG | (address << 7 | 0);
 
-  SPI.beginTransaction(SPISettings(20000000, MSBFIRST, SPI_MODE1));
+  SPI.beginTransaction(SPISettings(1000000, MSBFIRST, SPI_MODE1));
   SPI_Demux::select_chip(demuxAddr);
-  delayMicroseconds(1);
+  delayMicroseconds(2);
 
   SPI.transfer16(cmd);
   SPI.transfer(0x00);
@@ -141,7 +142,8 @@ uint16_t ADS131M0x::readRegister(uint8_t address) {
   SPI.transfer16(0x0000);
   SPI.transfer(0x00);
 #endif
-  delayMicroseconds(1);
+
+  delayMicroseconds(2);
   SPI_Demux::deselect_chip();
   SPI.endTransaction();
 
@@ -457,11 +459,9 @@ bool ADS131M0x::resetDevice(void) {
   uint8_t x2 = 0;
   uint16_t ris = 0;
 
-  SPI.beginTransaction(SPISettings(20000000, MSBFIRST, SPI_MODE1));
+  SPI.beginTransaction(SPISettings(1000000, MSBFIRST, SPI_MODE1));
   SPI_Demux::select_chip(demuxAddr);
-#ifndef NO_CS_DELAY
-  delayMicroseconds(1);
-#endif
+  delayMicroseconds(2);
 
   x = SPI.transfer(0x00);
   x2 = SPI.transfer(0x11);
@@ -469,10 +469,9 @@ bool ADS131M0x::resetDevice(void) {
 
   ris = ((x << 8) | x2);
 
+  delayMicroseconds(2);
   SPI_Demux::deselect_chip();
-#ifndef NO_CS_DELAY
-  delayMicroseconds(1);
-#endif
+  SPI.endTransaction();
 
   if (RSP_RESET_OK == ris) {
     return true;
@@ -490,11 +489,10 @@ adcOutput ADS131M0x::readADC(void) {
   int32_t aux;
   adcOutput res;
 
-  SPI.beginTransaction(SPISettings(20000000, MSBFIRST, SPI_MODE1));
+  SPI.beginTransaction(SPISettings(1000000, MSBFIRST, SPI_MODE1));
   SPI_Demux::select_chip(demuxAddr);
-#ifndef NO_CS_DELAY
-  delayMicroseconds(1);
-#endif
+  delayMicroseconds(2);
+
   x = SPI.transfer(0x00);
   x2 = SPI.transfer(0x00);
   SPI.transfer(0x00);
@@ -552,9 +550,8 @@ adcOutput ADS131M0x::readADC(void) {
   SPI.transfer(0x00);
   SPI.transfer(0x00);
   SPI.transfer(0x00);
-#ifndef NO_CS_DELAY
-  delayMicroseconds(1);
-#endif
+
+  delayMicroseconds(2);
   SPI_Demux::deselect_chip();
   SPI.endTransaction();
 

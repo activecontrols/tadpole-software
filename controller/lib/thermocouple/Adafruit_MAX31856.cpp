@@ -287,7 +287,7 @@ void Adafruit_MAX31856::readRegisterN(uint8_t addr, uint8_t buffer[],
 
   SPI.beginTransaction(SPISettings(1000000, MSBFIRST, SPI_MODE1));
   SPI_Demux::select_chip(demuxAddr);
-  delayMicroseconds(1);
+  delayMicroseconds(2);
 
   SPI.transfer(addr);
 
@@ -295,7 +295,7 @@ void Adafruit_MAX31856::readRegisterN(uint8_t addr, uint8_t buffer[],
     buffer[i] = SPI.transfer(0xFF);
   }
 
-  delayMicroseconds(1);
+  delayMicroseconds(2);
   SPI_Demux::deselect_chip();
   SPI.endTransaction();
 }
@@ -307,13 +307,13 @@ void Adafruit_MAX31856::writeRegister8(uint8_t addr, uint8_t data) {
 
   SPI.beginTransaction(SPISettings(1000000, MSBFIRST, SPI_MODE1));
   SPI_Demux::select_chip(demuxAddr);
-  delayMicroseconds(1);
+  delayMicroseconds(2);
 
   for (size_t i = 0; i < 2; i++) {
     SPI.transfer(buffer[i]);
   }
 
-  delayMicroseconds(1);
+  delayMicroseconds(2);
   SPI_Demux::deselect_chip();
   SPI.endTransaction();
 }

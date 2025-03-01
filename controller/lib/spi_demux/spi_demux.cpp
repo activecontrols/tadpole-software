@@ -9,6 +9,7 @@ void SPI_Demux::begin() {
   pinMode(SPI_DEMUX_BIT_1, OUTPUT);
   pinMode(SPI_DEMUX_BIT_2, OUTPUT);
   pinMode(SPI_DEMUX_BIT_3, OUTPUT);
+  pinMode(SPI_DEMUX_BIT_4, OUTPUT);
 }
 
 void SPI_Demux::select_chip(int chip_id) {

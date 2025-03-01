@@ -156,16 +156,20 @@ void MCP48xx<BITS_RES>::setGainB(Gain gain) {
 template <uint8_t BITS_RES>
 void MCP48xx<BITS_RES>::updateDAC() {
 
-  /* begin transaction using maximum clock frequency of 20MHz */
-  SPI.beginTransaction(SPISettings(20000000, MSBFIRST, SPI_MODE0));
+  /* begin transaction using maximum clock frequency of 1MHz */
+  SPI.beginTransaction(SPISettings(1000000, MSBFIRST, SPI_MODE0));
   if (isAActive) {
     SPI_Demux::select_chip(demuxAddr);
+    delayMicroseconds(2);
     SPI.transfer16(command[Channel::A]); // sent command for the A channel
+    delayMicroseconds(2);
     SPI_Demux::deselect_chip();
   }
   if (isBActive) {
     SPI_Demux::select_chip(demuxAddr);
+    delayMicroseconds(2);
     SPI.transfer16(command[Channel::B]); // sent command for the B channel
+    delayMicroseconds(2);
     SPI_Demux::deselect_chip();
   }
   SPI.endTransaction();
