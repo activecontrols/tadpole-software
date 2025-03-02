@@ -4,7 +4,7 @@
 // modified by @RobertJN64 to support the tadpole multi-device SPI system
 
 #include <Arduino.h>
-#include <SPI.h>
+#include "SPI_Fixed.h"
 #include "spi_demux.hpp"
 
 template <uint8_t BITS_RES>

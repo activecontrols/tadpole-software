@@ -40,7 +40,7 @@
 #include <pgmspace.h>
 #endif
 
-#include <SPI.h>
+#include "SPI_Fixed.h"
 #include <stdlib.h>
 #include "spi_demux.hpp"
 

@@ -4,7 +4,7 @@
 // based on https://github.com/nikiGagliardi/ADS131M0x/tree/master
 
 #include "Arduino.h"
-#include "SPI.h"
+#include "SPI_Fixed.h"
 
 // define for 2-channel version ADS131M02
 #define IS_M02

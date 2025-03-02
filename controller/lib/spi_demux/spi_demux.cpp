@@ -1,6 +1,6 @@
 #include "spi_demux.hpp"
 #include "teensy_pins.hpp"
-#include "SPI.h"
+#include "SPI_Fixed.h"
 
 void SPI_Demux::begin() {
   SPI.begin();

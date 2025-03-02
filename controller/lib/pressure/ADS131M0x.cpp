@@ -1,6 +1,6 @@
 #include "Arduino.h"
 #include "ADS131M0x.h"
-#include "SPI.h"
+#include "SPI_Fixed.h"
 #include "spi_demux.hpp"
 
 #ifdef IS_M02
