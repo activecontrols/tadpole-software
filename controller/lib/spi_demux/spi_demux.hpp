@@ -3,14 +3,10 @@
 
 #include <Arduino.h>
 
-#define SPI_DEVICE_PT_0 0
-#define SPI_DEVICE_PT_1 1
-#define SPI_DEVICE_PT_2 2
-#define SPI_DEVICE_PT_3 3
-#define SPI_DEVICE_TC_0 4
-#define SPI_DEVICE_TC_1 5
-#define SPI_DEVICE_TC_2 6
-#define SPI_DEVICE_TC_3 7
+#define SPI_DEVICE_TC_0 0
+#define SPI_DEVICE_TC_1 1
+#define SPI_DEVICE_PT_0 4
+#define SPI_DEVICE_PT_1 5
 
 #define SPI_DEVICE_ZUCROW_DAC 24
 //      SPI_DEVICE_ZUCROW_DAC 25 // either works

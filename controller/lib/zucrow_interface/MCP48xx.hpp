@@ -165,6 +165,7 @@ void MCP48xx<BITS_RES>::updateDAC() {
     delayMicroseconds(2);
     SPI_Demux::deselect_chip();
   }
+  delayMicroseconds(5);
   if (isBActive) {
     SPI_Demux::select_chip(demuxAddr);
     delayMicroseconds(2);
