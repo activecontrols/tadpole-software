@@ -74,6 +74,8 @@ void setup() {
   TC::begin();              // initializes the TC Boards
   // auto_seq();
   Router::add({auto_seq, "auto_seq"});
+  Router::add({SPI_Demux::select_chip_cmd, "spi_select"});
+  Router::add({SPI_Demux::deselect_chip_cmd, "spi_deselect"});
 }
 
 void loop() {

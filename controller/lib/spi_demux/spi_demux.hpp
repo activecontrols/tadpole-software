@@ -22,6 +22,8 @@ namespace SPI_Demux {
 void begin();
 void select_chip(int chip_id);
 void deselect_chip();
+void select_chip_cmd();
+void deselect_chip_cmd();
 
 } // namespace SPI_Demux
 
