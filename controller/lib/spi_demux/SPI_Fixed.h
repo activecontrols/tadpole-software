@@ -279,20 +279,15 @@ public:
     port().CFGR1 = LPSPI_CFGR1_MASTER | LPSPI_CFGR1_SAMPLE;
     port().CCR = _ccr;
     port().TCR = settings.tcr;
-    port().CR = LPSPI_CR_MEN;
+    port().CR = LPSPI_CR_MEN | LPSPI_CR_RRF; // fixed by robert to reset FIFO reg
   }
 
   // Write to the SPI bus (MOSI pin) and also receive (MISO pin)
   uint8_t transfer(uint8_t data) {
-    uint32_t fifo = (port().FSR >> 16) & 0x1F; // fix by Robert Nies to dump buffer
-    while (fifo > 0) {
-      port().RDR;
-      fifo = (port().FSR >> 16) & 0x1F;
-    }
-
+    // TODO: check for space in fifo?
     port().TDR = data;
     while (1) {
-      fifo = (port().FSR >> 16) & 0x1F;
+      uint32_t fifo = (port().FSR >> 16) & 0x1F;
       if (fifo > 0)
         return port().RDR;
     }
