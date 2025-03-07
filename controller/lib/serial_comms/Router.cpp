@@ -94,8 +94,7 @@ void init_comms() {
   add({setLog, "set_log"});
 }
 
-[[noreturn]] void run() {         // attribute here enables dead-code warning & compiler optimization
-  digitalWrite(LED_BUILTIN, LOW); // led indication that software is waiting for command
+[[noreturn]] void run() { // attribute here enables dead-code warning & compiler optimization
 
   while (true) {
     readCommand();
@@ -105,9 +104,7 @@ void init_comms() {
     bool cmd_found = false;
     for (auto &f : funcs) {
       if (commandBuffer.equals(f.name)) {
-        digitalWrite(LED_BUILTIN, HIGH); // led indication that command is running
-        f.f();                           // call the function. it can decide to send, receive or whatever.
-        digitalWrite(LED_BUILTIN, LOW);
+        f.f(); // call the function. it can decide to send, receive or whatever.
         cmd_found = true;
         break;
       }

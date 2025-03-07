@@ -43,7 +43,6 @@ void auto_seq() {
 }
 
 void setup() {
-  digitalWrite(LED_BUILTIN, HIGH);
   Router::init_comms();
   Router::info("Controller started.");
 

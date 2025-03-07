@@ -255,7 +255,6 @@ void ODrive::hardStopHoming() { // @ Xander
 
   float current = 0;
 
-  digitalWrite(LED_BUILTIN, HIGH);                 // visual that homing is occuring
   Router::info("Configuring Hard Stop Homing..."); // print statement
 
   // WARNING how does odrive decide which direction to move to reach the desired position???????????????? ----desired position is absolute in refdrance to the inital startup position
