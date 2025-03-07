@@ -1,4 +1,5 @@
 // Updated by Robert to fix empty FIFO buffer before transfering data out
+#define USE_ROBERT_SPI_FIX (true)
 
 /*
  * Copyright (c) 2010 by Cristian Maglie <c.maglie@bug.st>
@@ -279,12 +280,20 @@ public:
     port().CFGR1 = LPSPI_CFGR1_MASTER | LPSPI_CFGR1_SAMPLE;
     port().CCR = _ccr;
     port().TCR = settings.tcr;
-    port().CR = LPSPI_CR_MEN | LPSPI_CR_RRF; // fixed by robert to reset FIFO reg
+    port().CR = LPSPI_CR_MEN;
   }
 
   // Write to the SPI bus (MOSI pin) and also receive (MISO pin)
   uint8_t transfer(uint8_t data) {
-    // TODO: check for space in fifo?
+#if USE_ROBERT_SPI_FIX
+    while (1) {
+      uint32_t fifo = (port().FSR >> 16) & 0x1F;
+      if (fifo == 0)
+        break;
+      port().RDR;
+    }
+#endif
+
     port().TDR = data;
     while (1) {
       uint32_t fifo = (port().FSR >> 16) & 0x1F;
@@ -297,6 +306,15 @@ public:
     // return port().POPR;
   }
   uint16_t transfer16(uint16_t data) {
+#if USE_ROBERT_SPI_FIX
+    while (1) {
+      uint32_t fifo = (port().FSR >> 16) & 0x1F;
+      if (fifo == 0)
+        break;
+      port().RDR;
+    }
+#endif
+
     uint32_t tcr = port().TCR;
     port().TCR = (tcr & 0xfffff000) | LPSPI_TCR_FRAMESZ(15); // turn on 16 bit mode
     port().TDR = data;                                       // output 16 bit data.
@@ -306,6 +324,15 @@ public:
     return port().RDR;
   }
   uint32_t transfer32(uint32_t data) {
+#if USE_ROBERT_SPI_FIX
+    while (1) {
+      uint32_t fifo = (port().FSR >> 16) & 0x1F;
+      if (fifo == 0)
+        break;
+      port().RDR;
+    }
+#endif
+
     uint32_t tcr = port().TCR;
     port().TCR = (tcr & 0xfffff000) | LPSPI_TCR_FRAMESZ(31); // turn on 32 bit mode
     port().TDR = data;                                       // output 32 bit data.
