@@ -285,9 +285,8 @@ void Adafruit_MAX31856::readRegisterN(uint8_t addr, uint8_t buffer[],
                                       uint8_t n) {
   addr &= 0x7F; // MSB=0 for read, make sure top bit is not set
 
-  SPI.beginTransaction(SPISettings(1000000, MSBFIRST, SPI_MODE1));
+  SPI.beginTransaction(SPISettings(5000000, MSBFIRST, SPI_MODE1));
   SPI_Demux::select_chip(demuxAddr);
-  delayMicroseconds(2);
 
   SPI.transfer(addr);
 
@@ -295,7 +294,6 @@ void Adafruit_MAX31856::readRegisterN(uint8_t addr, uint8_t buffer[],
     buffer[i] = SPI.transfer(0xFF);
   }
 
-  delayMicroseconds(2);
   SPI_Demux::deselect_chip();
   SPI.endTransaction();
 }
