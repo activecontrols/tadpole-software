@@ -21,9 +21,10 @@ void PressureSensor::begin() {
 float PressureSensor::getPressure() {
   adcOutput out = this->readADC();
   if (!(out.status & 0b1)) {
-    Serial.println("no data");
+    Serial.print(out.status, HEX);
+    Serial.print(" err ");
   }
-  float voltage = out.ch0;
+  float voltage = out.ch1;
   voltage *= 2.4 / 1;
   voltage /= pow(2, 24);
   return map(voltage, 0, 1, 0, 10) * slope + offset;

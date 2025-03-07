@@ -489,9 +489,8 @@ adcOutput ADS131M0x::readADC(void) {
   int32_t aux;
   adcOutput res;
 
-  SPI.beginTransaction(SPISettings(1000000, MSBFIRST, SPI_MODE1));
+  SPI.beginTransaction(SPISettings(5000000, MSBFIRST, SPI_MODE1));
   SPI_Demux::select_chip(demuxAddr);
-  delayMicroseconds(2);
 
   x = SPI.transfer(0x00);
   x2 = SPI.transfer(0x00);
@@ -510,10 +509,12 @@ adcOutput ADS131M0x::readADC(void) {
     res.ch0 = aux;
   }
 
-  // faster!!!
-  SPI.transfer(0x00);
-  SPI.transfer(0x00);
-  SPI.transfer(0x00);
+  // NOTE - THIS SHOULD NOT BE HERE! - Robert Nies
+  // // faster!!!
+  // SPI.transfer(0x00);
+  // SPI.transfer(0x00);
+  // SPI.transfer(0x00);
+
   // read CH1 --------
   x = SPI.transfer(0x00);
   x2 = SPI.transfer(0x00);
@@ -551,7 +552,6 @@ adcOutput ADS131M0x::readADC(void) {
   SPI.transfer(0x00);
   SPI.transfer(0x00);
 
-  delayMicroseconds(2);
   SPI_Demux::deselect_chip();
   SPI.endTransaction();
 
