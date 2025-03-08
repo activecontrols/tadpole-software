@@ -25,12 +25,21 @@ void print_labeled_sensor(const char *msg, float sensor_value, const char *unit)
 
 void print_all_sensors() {
   Router::info("\n Sensor Status ");
-  print_labeled_sensor("PT LOX In:   ", Pressure::lox_pressure_in.getPressure(), " psi");
-  print_labeled_sensor("PT LOX Out:  ", Pressure::lox_pressure_out.getPressure(), " psi");
-  print_labeled_sensor("TC 1:        ", TC::example_tc.getTemperature(), " F");
+  print_labeled_sensor("            PT LOX Tank: ", PT::lox_tank.getPressure(), " psi");
+  print_labeled_sensor("PT LOX Venturi Upstream: ", PT::lox_venturi_upstream.getPressure(), " psi");
+  print_labeled_sensor("  PT LOX Venturi Throat: ", PT::lox_venturi_throat.getPressure(), " psi");
+
+  print_labeled_sensor("            PT IPA Tank: ", PT::ipa_tank.getPressure(), " psi");
+  print_labeled_sensor("PT IPA Venturi Upstream: ", PT::ipa_venturi_upstream.getPressure(), " psi");
+  print_labeled_sensor("  PT IPA Venturi Throat: ", PT::ipa_venturi_throat.getPressure(), " psi");
+
+  print_labeled_sensor("             PT Chamber: ", PT::chamber.getPressure(), " psi");
+
+  print_labeled_sensor("           TC LOX Valve: ", TC::lox_valve_temperature.getTemperature_F(), " F");
+  print_labeled_sensor("         TC LOX Venturi: ", TC::lox_venturi_temperature.getTemperature_F(), " F");
 }
 
-void auto_seq() {
+void auto_seq() { // TODO - home valves?
   const char *curve_file_name = "AUTOCUR";
   const char *tpl_log_file_name = "AUTOL"; // generates names like AUTOL#.CSV
   Loader::load_curve_sd(curve_file_name);
@@ -60,12 +69,10 @@ void setup() {
   Driver::begin(); // initializes the odrives and functions to start curves
 
   ZucrowInterface::begin(); // initializes the DAC
-  Pressure::begin();        // initializes the PT Boards
+  PT::begin();              // initializes the PT Boards
   TC::begin();              // initializes the TC Boards
   // auto_seq();
   Router::add({auto_seq, "auto_seq"});
-  // Router::add({SPI_Demux::select_chip_cmd, "spi_select"});
-  // Router::add({SPI_Demux::deselect_chip_cmd, "spi_deselect"});
 }
 
 void loop() {

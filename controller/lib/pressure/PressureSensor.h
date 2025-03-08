@@ -1,15 +1,9 @@
 #ifndef PRESSURE_SENSOR_H
 #define PRESSURE_SENSOR_H
 
-#include "ADS131M0x.h"
+// See docs/Sensor File.md for info
 
-/*
- * PressureSensor.h
- *
- *  Created on: 2024-6-19 by Vincent Palmerio
- *  Description: This file contains the declaration of the PressureSensor class,
- *  in which each object is used to read from a specific pressure sensor.
- */
+#include "ADS131M0x.h"
 
 class PressureSensor : ADS131M0x {
 
@@ -23,13 +17,18 @@ public:
   float getPressure();
 };
 
-namespace Pressure {
+namespace PT {
 void begin();
 
-extern PressureSensor lox_pressure_in;
-extern PressureSensor lox_pressure_out;
-// extern PressureSensor ipa_pressure_in;
-// extern PressureSensor ipa_pressure_out;
-} // namespace Pressure
+extern PressureSensor lox_tank;
+extern PressureSensor lox_venturi_upstream;
+extern PressureSensor lox_venturi_throat;
+
+extern PressureSensor ipa_tank;
+extern PressureSensor ipa_venturi_upstream;
+extern PressureSensor ipa_venturi_throat;
+
+extern PressureSensor chamber;
+} // namespace PT
 
 #endif // PRESSURE_SENSOR_H

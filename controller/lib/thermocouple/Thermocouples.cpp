@@ -21,14 +21,20 @@ void Thermocouple::begin(max31856_thermocoupletype_t tc_type) {
   setConversionMode(MAX31856_CONTINUOUS);
 }
 
-float Thermocouple::getTemperature() {
+float Thermocouple::getTemperature_F() {
   return readThermocoupleTemperature() * 9.0 / 5.0 + 32;
 }
 
+float Thermocouple::getTemperature_Kelvin() {
+  return readThermocoupleTemperature() + 273.15;
+}
+
 namespace TC {
-Thermocouple example_tc(SPI_DEVICE_TC_0);
+Thermocouple lox_venturi_temperature(SPI_DEVICE_TC_LOX_VENTURI);
+Thermocouple lox_valve_temperature(SPI_DEVICE_TC_LOX_VALVE);
 
 void begin() {
-  example_tc.begin(MAX31856_TCTYPE_K);
+  lox_venturi_temperature.begin(MAX31856_TCTYPE_K);
+  lox_valve_temperature.begin(MAX31856_TCTYPE_K);
 }
 } // namespace TC

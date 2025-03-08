@@ -3,10 +3,21 @@
 
 #include <Arduino.h>
 
-#define SPI_DEVICE_TC_0 0
-#define SPI_DEVICE_TC_1 1
-#define SPI_DEVICE_PT_0 4
-#define SPI_DEVICE_PT_1 5
+// only even numbers on PT boards
+#define SPI_DEVICE_PT_LOX_TANK 0
+#define SPI_DEVICE_PT_LOX_VENTURI_UPSTREAM 2
+#define SPI_DEVICE_PT_LOX_VENTURI_THROAT 4
+
+#define SPI_DEVICE_PT_IPA_TANK 6
+#define SPI_DEVICE_PT_IPA_VENTURI_UPSTREAM 8
+#define SPI_DEVICE_PT_IPA_VENTURI_THROAT 10
+
+#define SPI_DEVICE_PT_CHAMBER 12
+
+#define SPI_DEVICE_TC_LOX_VENTURI 14
+#define SPI_DEVICE_TC_LOX_VALVE 15
+
+// 15 - 23 unusued
 
 #define SPI_DEVICE_ZUCROW_DAC 24
 //      SPI_DEVICE_ZUCROW_DAC 25 // either works

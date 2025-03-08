@@ -1,5 +1,3 @@
-#include <Arduino.h>
-
 #include "PressureSensor.h"
 #include "spi_demux.hpp"
 
@@ -30,14 +28,26 @@ float PressureSensor::getPressure() {
   return map(voltage, 0, 1, 0, 10) * slope + offset;
 }
 
-namespace Pressure {
-PressureSensor lox_pressure_in(SPI_DEVICE_PT_0, 9.38, 2.3);
-PressureSensor lox_pressure_out(SPI_DEVICE_PT_1, 9.38, 2.3);
-// PressureSensor ipa_pressure_in(21);
-// PressureSensor ipa_pressure_out(22);
+namespace PT {
+PressureSensor lox_tank(SPI_DEVICE_PT_LOX_TANK, 9.38, 2.3);
+PressureSensor lox_venturi_upstream(SPI_DEVICE_PT_LOX_VENTURI_UPSTREAM, 9.38, 2.3);
+PressureSensor lox_venturi_throat(SPI_DEVICE_PT_LOX_VENTURI_THROAT, 9.38, 2.3);
+
+PressureSensor ipa_tank(SPI_DEVICE_PT_IPA_TANK, 9.38, 2.3);
+PressureSensor ipa_venturi_upstream(SPI_DEVICE_PT_IPA_VENTURI_UPSTREAM, 9.38, 2.3);
+PressureSensor ipa_venturi_throat(SPI_DEVICE_PT_IPA_VENTURI_THROAT, 9.38, 2.3);
+
+PressureSensor chamber(SPI_DEVICE_PT_CHAMBER, 9.38, 2.3);
 
 void begin() {
-  lox_pressure_in.begin();
-  lox_pressure_out.begin();
+  lox_tank.begin();
+  lox_venturi_upstream.begin();
+  lox_venturi_throat.begin();
+
+  ipa_tank.begin();
+  ipa_venturi_upstream.begin();
+  ipa_venturi_throat.begin();
+
+  chamber.begin();
 }
-} // namespace Pressure
+} // namespace PT

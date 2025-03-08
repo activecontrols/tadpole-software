@@ -7,7 +7,6 @@
 #include <FlexCAN_T4.h>
 #include "ODriveFlexCAN.hpp"
 #define CAN_BAUDRATE 250000
-#include "PressureSensor.h"
 
 struct ODriveUserData {
   Heartbeat_msg_t last_heartbeat;
@@ -26,7 +25,7 @@ struct ODriveUserData {
 #define ODRIVE_BAD_STATE (-5)
 #define ODRIVE_THREAD_ENDED_PREMATURELY (-6)
 
-#define ODRIVE_TELEM_HEADER ("position,velocity,voltage,current,temperature,pressure_in,pressure_out")
+#define ODRIVE_TELEM_HEADER ("position,velocity,voltage,current,temperature")
 
 #define INT_BUFFER_SIZE (50)
 #define MAX_THRUST (600)
@@ -100,11 +99,7 @@ private:
   int fwVersionMinor;
 
 public:
-  ODrive(uint32_t can_id, char[4], PressureSensor *, PressureSensor *);
-
-  // refrences to releveant pressure sensors for each valve
-  PressureSensor *pressure_sensor_in;
-  PressureSensor *pressure_sensor_out;
+  ODrive(uint32_t can_id, char[4]);
 
   /*
    * The last known position, velocity, voltage, and current of the ODrive
@@ -115,8 +110,6 @@ public:
   float voltage;
   float current;
   float temperature;
-  float pressure_in;
-  float pressure_out;
 
   // stores data sent back from the odrive - modified by onHeartbeat() and onFeedback()
   ODriveUserData odrive_status;
@@ -148,7 +141,6 @@ public:
   void printODriveInfo() { odriveInfo.print(); }
   void hardStopHoming();
   void indexHoming();
-  void printPressure();
   void kill();
 };
 

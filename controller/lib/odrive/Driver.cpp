@@ -9,7 +9,6 @@
  */
 
 #include <Arduino.h>
-#include <TeensyThreads.h>
 
 #include "zucrow_interface.hpp"
 #include "SDCard.h"
@@ -31,8 +30,8 @@ namespace Driver {
 
 char loxName[4] = "LOX";
 // char ipaName[4] = "IPA";
-ODrive loxODrive(LOX_ODRIVE_CAN_ID, loxName, &Pressure::lox_pressure_in, &Pressure::lox_pressure_out);
-// ODrive loxODrive(IPA_ODRIVE_CAN_ID, ipaName, &Pressure::ipa_pressure_in, &Pressure::ipa_pressure_out);
+ODrive loxODrive(LOX_ODRIVE_CAN_ID, loxName);
+// ODrive loxODrive(IPA_ODRIVE_CAN_ID, ipaName);
 
 File odriveLogFile;
 
@@ -174,7 +173,7 @@ void followThrustLerpCurve() {
 
       float angle_ox;
       float angle_fuel;
-      open_loop_thrust_control_defaults(thrust, &angle_ox, &angle_fuel); // TODO CL - make this closed loop
+      open_loop_thrust_control_defaults(thrust, &angle_ox, &angle_fuel); // TODO CL - make this closed loop, send sensor values
       loxODrive.setPos(angle_ox / 360);
       // ipaODrive.setPos(angle_fuel / 360);
 
@@ -255,9 +254,6 @@ void begin() {
 
   Router::add({[&]() { loxODrive.indexHoming(); }, "lox_idx_homing"});
   // Router::add({[&]() { ipaODrive.indexHoming(); }, "ipa_idx_homing"});
-
-  Router::add({[&]() { loxODrive.printPressure(); }, "lox_print_pressure"});
-  // Router::add({[&]() { ipaODrive.printPressure(); }, "lox_print_pressure"});
 
   Router::add({[&]() { loxODrive.kill(); }, "kill"}); // TODO RJN odrive - ipaODrive kill
 

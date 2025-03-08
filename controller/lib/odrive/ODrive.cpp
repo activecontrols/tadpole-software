@@ -12,7 +12,7 @@ void setup_can(_MB_ptr handler) {
   can_intf.onReceive(handler);
 }
 
-ODrive::ODrive(uint32_t can_id, char name[4], PressureSensor *pressure_sensor_in, PressureSensor *pressure_sensor_out)
+ODrive::ODrive(uint32_t can_id, char name[4])
     : ODriveCAN(wrap_can_intf(can_intf), can_id) {
 
   ODriveCAN::onFeedback(onFeedbackCB, &this->odrive_status);
@@ -23,8 +23,6 @@ ODrive::ODrive(uint32_t can_id, char name[4], PressureSensor *pressure_sensor_in
   this->name[1] = name[1];
   this->name[2] = name[2];
   this->name[3] = '\0';
-  this->pressure_sensor_in = pressure_sensor_in;
-  this->pressure_sensor_out = pressure_sensor_out;
 }
 
 // Called every time a Heartbeat message arrives from the ODrive
@@ -198,9 +196,6 @@ char *ODrive::getTelemetryCSV() {
                << "V" << "," << "A" << "," << "T";
 #endif
 
-  pressure_in = pressure_sensor_in->getPressure();
-  pressure_out = pressure_sensor_out->getPressure();
-  telemetryCSV << "," << pressure_in << "," << pressure_out;
   return telemetryCSV.str;
 }
 
@@ -312,13 +307,6 @@ void ODrive::hardStopHoming() { // @ Xander
 }
 
 void ODrive::indexHoming() {
-}
-
-void ODrive::printPressure() {
-  Router::info_no_newline("Pressure in = ");
-  Router::info(pressure_sensor_in->getPressure());
-  Router::info_no_newline("Pressure out = ");
-  Router::info(pressure_sensor_out->getPressure());
 }
 
 void ODrive::kill() {
