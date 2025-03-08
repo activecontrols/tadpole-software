@@ -1,8 +1,6 @@
 #ifndef SPI_DEMUX_H
 #define SPI_DEMUX_H
 
-#include <Arduino.h>
-
 // only even numbers on PT boards
 #define SPI_DEVICE_PT_LOX_TANK 0
 #define SPI_DEVICE_PT_LOX_VENTURI_UPSTREAM 2
@@ -33,8 +31,8 @@ namespace SPI_Demux {
 void begin();
 void select_chip(int chip_id);
 void deselect_chip();
-// void select_chip_cmd();
-// void deselect_chip_cmd();
+void select_chip_cmd();
+void deselect_chip_cmd();
 
 } // namespace SPI_Demux
 
