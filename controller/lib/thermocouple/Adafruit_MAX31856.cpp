@@ -285,17 +285,17 @@ void Adafruit_MAX31856::readRegisterN(uint8_t addr, uint8_t buffer[],
                                       uint8_t n) {
   addr &= 0x7F; // MSB=0 for read, make sure top bit is not set
 
-  SPI.beginTransaction(SPISettings(5000000, MSBFIRST, SPI_MODE1));
+  SPI1.beginTransaction(SPISettings(5000000, MSBFIRST, SPI_MODE1));
   SPI_Demux::select_chip(demuxAddr);
 
-  SPI.transfer(addr);
+  SPI1.transfer(addr);
 
   for (size_t i = 0; i < n; i++) {
-    buffer[i] = SPI.transfer(0xFF);
+    buffer[i] = SPI1.transfer(0xFF);
   }
 
   SPI_Demux::deselect_chip();
-  SPI.endTransaction();
+  SPI1.endTransaction();
 }
 
 void Adafruit_MAX31856::writeRegister8(uint8_t addr, uint8_t data) {
@@ -303,15 +303,15 @@ void Adafruit_MAX31856::writeRegister8(uint8_t addr, uint8_t data) {
 
   uint8_t buffer[2] = {addr, data};
 
-  SPI.beginTransaction(SPISettings(1000000, MSBFIRST, SPI_MODE1));
+  SPI1.beginTransaction(SPISettings(1000000, MSBFIRST, SPI_MODE1));
   SPI_Demux::select_chip(demuxAddr);
   delayMicroseconds(2);
 
   for (size_t i = 0; i < 2; i++) {
-    SPI.transfer(buffer[i]);
+    SPI1.transfer(buffer[i]);
   }
 
   delayMicroseconds(2);
   SPI_Demux::deselect_chip();
-  SPI.endTransaction();
+  SPI1.endTransaction();
 }

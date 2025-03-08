@@ -32,54 +32,54 @@ uint8_t ADS131M0x::writeRegister(uint8_t address, uint16_t value) {
   uint8_t bytesRcv;
   uint16_t cmd = 0;
 
-  SPI.beginTransaction(SPISettings(1000000, MSBFIRST, SPI_MODE1));
+  SPI1.beginTransaction(SPISettings(1000000, MSBFIRST, SPI_MODE1));
   SPI_Demux::select_chip(demuxAddr);
   delayMicroseconds(2);
 
   cmd = (CMD_WRITE_REG) | (address << 7) | 0;
 
-  SPI.transfer16(cmd);
-  SPI.transfer(0x00);
+  SPI1.transfer16(cmd);
+  SPI1.transfer(0x00);
 
-  SPI.transfer16(value);
-  SPI.transfer(0x00);
+  SPI1.transfer16(value);
+  SPI1.transfer(0x00);
 
-  SPI.transfer16(0x0000);
-  SPI.transfer(0x00);
+  SPI1.transfer16(0x0000);
+  SPI1.transfer(0x00);
 
-  SPI.transfer16(0x0000);
-  SPI.transfer(0x00);
+  SPI1.transfer16(0x0000);
+  SPI1.transfer(0x00);
 
 #ifndef IS_M02
-  SPI.transfer16(0x0000);
-  SPI.transfer(0x00);
+  SPI1.transfer16(0x0000);
+  SPI1.transfer(0x00);
 
-  SPI.transfer16(0x0000);
-  SPI.transfer(0x00);
+  SPI1.transfer16(0x0000);
+  SPI1.transfer(0x00);
 #endif
 
-  res = SPI.transfer16(0x0000);
-  SPI.transfer(0x00);
+  res = SPI1.transfer16(0x0000);
+  SPI1.transfer(0x00);
 
-  SPI.transfer16(0x0000);
-  SPI.transfer(0x00);
+  SPI1.transfer16(0x0000);
+  SPI1.transfer(0x00);
 
-  SPI.transfer16(0x0000);
-  SPI.transfer(0x00);
+  SPI1.transfer16(0x0000);
+  SPI1.transfer(0x00);
 
-  SPI.transfer16(0x0000);
-  SPI.transfer(0x00);
+  SPI1.transfer16(0x0000);
+  SPI1.transfer(0x00);
 #ifndef IS_M02
-  SPI.transfer16(0x0000);
-  SPI.transfer(0x00);
+  SPI1.transfer16(0x0000);
+  SPI1.transfer(0x00);
 
-  SPI.transfer16(0x0000);
-  SPI.transfer(0x00);
+  SPI1.transfer16(0x0000);
+  SPI1.transfer(0x00);
 #endif
 
   delayMicroseconds(2);
   SPI_Demux::deselect_chip();
-  SPI.endTransaction();
+  SPI1.endTransaction();
 
   addressRcv = (res & REGMASK_CMD_READ_REG_ADDRESS) >> 7;
   bytesRcv = (res & REGMASK_CMD_READ_REG_BYTES);
@@ -102,50 +102,50 @@ uint16_t ADS131M0x::readRegister(uint8_t address) {
 
   cmd = CMD_READ_REG | (address << 7 | 0);
 
-  SPI.beginTransaction(SPISettings(1000000, MSBFIRST, SPI_MODE1));
+  SPI1.beginTransaction(SPISettings(1000000, MSBFIRST, SPI_MODE1));
   SPI_Demux::select_chip(demuxAddr);
   delayMicroseconds(2);
 
-  SPI.transfer16(cmd);
-  SPI.transfer(0x00);
+  SPI1.transfer16(cmd);
+  SPI1.transfer(0x00);
 
-  SPI.transfer16(0x0000);
-  SPI.transfer(0x00);
+  SPI1.transfer16(0x0000);
+  SPI1.transfer(0x00);
 
-  SPI.transfer16(0x0000);
-  SPI.transfer(0x00);
+  SPI1.transfer16(0x0000);
+  SPI1.transfer(0x00);
 
-  SPI.transfer16(0x0000);
-  SPI.transfer(0x00);
+  SPI1.transfer16(0x0000);
+  SPI1.transfer(0x00);
 #ifndef IS_M02
-  SPI.transfer16(0x0000);
-  SPI.transfer(0x00);
+  SPI1.transfer16(0x0000);
+  SPI1.transfer(0x00);
 
-  SPI.transfer16(0x0000);
-  SPI.transfer(0x00);
+  SPI1.transfer16(0x0000);
+  SPI1.transfer(0x00);
 #endif
-  data = SPI.transfer16(0x0000);
-  SPI.transfer(0x00);
+  data = SPI1.transfer16(0x0000);
+  SPI1.transfer(0x00);
 
-  SPI.transfer16(0x0000);
-  SPI.transfer(0x00);
+  SPI1.transfer16(0x0000);
+  SPI1.transfer(0x00);
 
-  SPI.transfer16(0x0000);
-  SPI.transfer(0x00);
+  SPI1.transfer16(0x0000);
+  SPI1.transfer(0x00);
 
-  SPI.transfer16(0x0000);
-  SPI.transfer(0x00);
+  SPI1.transfer16(0x0000);
+  SPI1.transfer(0x00);
 #ifndef IS_M02
-  SPI.transfer16(0x0000);
-  SPI.transfer(0x00);
+  SPI1.transfer16(0x0000);
+  SPI1.transfer(0x00);
 
-  SPI.transfer16(0x0000);
-  SPI.transfer(0x00);
+  SPI1.transfer16(0x0000);
+  SPI1.transfer(0x00);
 #endif
 
   delayMicroseconds(2);
   SPI_Demux::deselect_chip();
-  SPI.endTransaction();
+  SPI1.endTransaction();
 
   return data;
 }
@@ -459,19 +459,19 @@ bool ADS131M0x::resetDevice(void) {
   uint8_t x2 = 0;
   uint16_t ris = 0;
 
-  SPI.beginTransaction(SPISettings(1000000, MSBFIRST, SPI_MODE1));
+  SPI1.beginTransaction(SPISettings(1000000, MSBFIRST, SPI_MODE1));
   SPI_Demux::select_chip(demuxAddr);
   delayMicroseconds(2);
 
-  x = SPI.transfer(0x00);
-  x2 = SPI.transfer(0x11);
-  SPI.transfer(0x00);
+  x = SPI1.transfer(0x00);
+  x2 = SPI1.transfer(0x11);
+  SPI1.transfer(0x00);
 
   ris = ((x << 8) | x2);
 
   delayMicroseconds(2);
   SPI_Demux::deselect_chip();
-  SPI.endTransaction();
+  SPI1.endTransaction();
 
   if (RSP_RESET_OK == ris) {
     return true;
@@ -489,19 +489,19 @@ adcOutput ADS131M0x::readADC(void) {
   int32_t aux;
   adcOutput res;
 
-  SPI.beginTransaction(SPISettings(5000000, MSBFIRST, SPI_MODE1));
+  SPI1.beginTransaction(SPISettings(5000000, MSBFIRST, SPI_MODE1));
   SPI_Demux::select_chip(demuxAddr);
 
-  x = SPI.transfer(0x00);
-  x2 = SPI.transfer(0x00);
-  SPI.transfer(0x00);
+  x = SPI1.transfer(0x00);
+  x2 = SPI1.transfer(0x00);
+  SPI1.transfer(0x00);
 
   res.status = ((x << 8) | x2);
 
   // read CH0 --------
-  x = SPI.transfer(0x00);
-  x2 = SPI.transfer(0x00);
-  x3 = SPI.transfer(0x00);
+  x = SPI1.transfer(0x00);
+  x2 = SPI1.transfer(0x00);
+  x3 = SPI1.transfer(0x00);
   aux = (((x << 16) | (x2 << 8) | x3) & 0x00FFFFFF);
   if (aux > 0x7FFFFF) {
     res.ch0 = ((~(aux) & 0x00FFFFFF) + 1) * -1;
@@ -511,14 +511,14 @@ adcOutput ADS131M0x::readADC(void) {
 
   // NOTE - THIS SHOULD NOT BE HERE! - Robert Nies
   // // faster!!!
-  // SPI.transfer(0x00);
-  // SPI.transfer(0x00);
-  // SPI.transfer(0x00);
+  // SPI1.transfer(0x00);
+  // SPI1.transfer(0x00);
+  // SPI1.transfer(0x00);
 
   // read CH1 --------
-  x = SPI.transfer(0x00);
-  x2 = SPI.transfer(0x00);
-  x3 = SPI.transfer(0x00);
+  x = SPI1.transfer(0x00);
+  x2 = SPI1.transfer(0x00);
+  x3 = SPI1.transfer(0x00);
   aux = (((x << 16) | (x2 << 8) | x3) & 0x00FFFFFF);
   if (aux > 0x7FFFFF) {
     res.ch1 = ((~(aux) & 0x00FFFFFF) + 1) * -1;
@@ -527,9 +527,9 @@ adcOutput ADS131M0x::readADC(void) {
   }
 
 #ifndef IS_M02
-  x = SPI.transfer(0x00);
-  x2 = SPI.transfer(0x00);
-  x3 = SPI.transfer(0x00);
+  x = SPI1.transfer(0x00);
+  x2 = SPI1.transfer(0x00);
+  x3 = SPI1.transfer(0x00);
   aux = (((x << 16) | (x2 << 8) | x3) & 0x00FFFFFF);
   if (aux > 0x7FFFFF) {
     res.ch2 = ((~(aux) & 0x00FFFFFF) + 1) * -1;
@@ -537,9 +537,9 @@ adcOutput ADS131M0x::readADC(void) {
     res.ch2 = aux;
   }
 
-  x = SPI.transfer(0x00);
-  x2 = SPI.transfer(0x00);
-  x3 = SPI.transfer(0x00);
+  x = SPI1.transfer(0x00);
+  x2 = SPI1.transfer(0x00);
+  x3 = SPI1.transfer(0x00);
   aux = (((x << 16) | (x2 << 8) | x3) & 0x00FFFFFF);
   if (aux > 0x7FFFFF) {
     res.ch3 = ((~(aux) & 0x00FFFFFF) + 1) * -1;
@@ -548,12 +548,12 @@ adcOutput ADS131M0x::readADC(void) {
   }
 #endif
 
-  SPI.transfer(0x00);
-  SPI.transfer(0x00);
-  SPI.transfer(0x00);
+  SPI1.transfer(0x00);
+  SPI1.transfer(0x00);
+  SPI1.transfer(0x00);
 
   SPI_Demux::deselect_chip();
-  SPI.endTransaction();
+  SPI1.endTransaction();
 
   return res;
 }

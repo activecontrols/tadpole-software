@@ -4,7 +4,7 @@
 #include "Router.h"
 
 void SPI_Demux::begin() {
-  SPI.begin();
+  SPI1.begin();
 
   pinMode(SPI_DEMUX_BIT_0, OUTPUT);
   pinMode(SPI_DEMUX_BIT_1, OUTPUT);
