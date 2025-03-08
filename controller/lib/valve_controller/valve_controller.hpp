@@ -8,25 +8,27 @@
  *  Description: Code for open loop valve control
  */
 
-struct cav_vent {
-  float cav_vent_throat_area; // in^2
-  float cav_vent_cd;          // unitless
+struct Venturi {
+  float inlet_area;  // in^2
+  float throat_area; // in^2
+  float cd;
 };
 
-struct fluid {
-  float vapour_pressure; // psi
-  float density;         // lb / in^3
+struct Fluid_Line {
+  float tank_pressure;             // psi
+  float venturi_upstream_pressure; // psi
+  float venturi_throat_pressure;   // psi
+  float venturi_temperature;       // K
+  float valve_temperature;         // K
 };
 
-struct sensor_data {
-  float ox_tank_pressure;      // psi
-  float ipa_tank_pressure;     // psi
-  float ox_valve_temperature;  // K
-  float ipa_valve_temperature; // K
-  float ox_cv_temperature;     // K
-  float ipa_cv_temperature;    // K
+struct Sensor_Data {
+  float chamber_pressure; // psi
+  Fluid_Line ox;
+  Fluid_Line ipa;
 };
 
-void open_loop_thrust_control(float thrust, sensor_data current_sensor_data, float *angle_ox, float *angle_fuel);
-void open_loop_thrust_control_defaults(float thrust, float *angle_ox, float *angle_fuel);
+void open_loop_thrust_control(float thrust, Sensor_Data sensor_data, float *angle_ox, float *angle_ipa);
+void open_loop_thrust_control_defaults(float thrust, float *angle_ox, float *angle_ipa);
+void closed_loop_thrust_control(float thrust, Sensor_Data sensor_data, float *angle_ox, float *angle_ipa);
 #endif
