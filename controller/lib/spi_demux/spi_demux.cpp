@@ -1,7 +1,7 @@
 #include "spi_demux.hpp"
 #include "teensy_pins.hpp"
 #include "SPI_Fixed.h"
-#include "Router.h"
+// #include "Router.h"
 
 void SPI_Demux::begin() {
   SPI.begin();
@@ -25,21 +25,21 @@ void SPI_Demux::deselect_chip() {
   select_chip(SPI_DEVICE_NULL);
 }
 
-void SPI_Demux::select_chip_cmd() {
-  Router::info_no_newline("Enter #: ");
-  String respStr = Router::read(10);
+// void SPI_Demux::select_chip_cmd() {
+//   Router::info_no_newline("Enter #: ");
+//   String respStr = Router::read(10);
 
-  int cid;
-  int result = std::sscanf(respStr.c_str(), "%d", &cid);
-  if (result != 1) {
-    Router::info("Could not convert input to a int, not continuing");
-    return;
-  }
+//   int cid;
+//   int result = std::sscanf(respStr.c_str(), "%d", &cid);
+//   if (result != 1) {
+//     Router::info("Could not convert input to a int, not continuing");
+//     return;
+//   }
 
-  SPI_Demux::select_chip(cid);
-  Router::info("chip selected");
-}
+//   SPI_Demux::select_chip(cid);
+//   Router::info("chip selected");
+// }
 
-void SPI_Demux::deselect_chip_cmd() {
-  SPI_Demux::deselect_chip();
-}
+// void SPI_Demux::deselect_chip_cmd() {
+//   SPI_Demux::deselect_chip();
+// }
