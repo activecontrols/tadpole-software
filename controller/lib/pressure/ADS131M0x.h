@@ -20,6 +20,7 @@ struct adcOutput {
   int32_t ch2;
   int32_t ch3;
 #endif
+  bool crc_ok;
 };
 
 #define DRDY_STATE_LOGIC_HIGH 0 // DEFAULS

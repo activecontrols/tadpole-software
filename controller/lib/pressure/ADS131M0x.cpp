@@ -489,12 +489,17 @@ adcOutput ADS131M0x::readADC(void) {
   int32_t aux;
   adcOutput res;
 
+  uint8_t crc_buf[9];
+
   SPI1.beginTransaction(SPISettings(5000000, MSBFIRST, SPI_MODE1));
   SPI_Demux::select_chip(demuxAddr);
 
   x = SPI1.transfer(0x00);
   x2 = SPI1.transfer(0x00);
-  SPI1.transfer(0x00);
+  x3 = SPI1.transfer(0x00);
+  crc_buf[0] = x;
+  crc_buf[1] = x2;
+  crc_buf[2] = x3;
 
   res.status = ((x << 8) | x2);
 
@@ -502,6 +507,10 @@ adcOutput ADS131M0x::readADC(void) {
   x = SPI1.transfer(0x00);
   x2 = SPI1.transfer(0x00);
   x3 = SPI1.transfer(0x00);
+  crc_buf[3] = x;
+  crc_buf[4] = x2;
+  crc_buf[5] = x3;
+
   aux = (((x << 16) | (x2 << 8) | x3) & 0x00FFFFFF);
   if (aux > 0x7FFFFF) {
     res.ch0 = ((~(aux) & 0x00FFFFFF) + 1) * -1;
@@ -519,6 +528,10 @@ adcOutput ADS131M0x::readADC(void) {
   x = SPI1.transfer(0x00);
   x2 = SPI1.transfer(0x00);
   x3 = SPI1.transfer(0x00);
+  crc_buf[6] = x;
+  crc_buf[7] = x2;
+  crc_buf[8] = x3;
+
   aux = (((x << 16) | (x2 << 8) | x3) & 0x00FFFFFF);
   if (aux > 0x7FFFFF) {
     res.ch1 = ((~(aux) & 0x00FFFFFF) + 1) * -1;
@@ -548,9 +561,24 @@ adcOutput ADS131M0x::readADC(void) {
   }
 #endif
 
-  SPI1.transfer(0x00);
-  SPI1.transfer(0x00);
-  SPI1.transfer(0x00);
+  x = SPI1.transfer(0x00);
+  x2 = SPI1.transfer(0x00);
+  x3 = SPI1.transfer(0x00);
+  aux = (x << 16) | (x2 << 8) | x3;
+
+  uint16_t crc = 0xFFFF;
+  for (int i = 0; i < 9; i++) {
+    crc ^= crc_buf[i];
+    for (int j = 0; j < 8; j++) {
+      if (crc & 1) {
+        crc >>= 1;
+        crc ^= 0x1021;
+      } else {
+        crc >>= 1;
+      }
+    }
+  }
+  res.crc_ok = crc == aux;
 
   SPI_Demux::deselect_chip();
   SPI1.endTransaction();

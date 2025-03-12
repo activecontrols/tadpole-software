@@ -18,9 +18,14 @@ void PressureSensor::begin() {
 // plot as voltage on x and pressure on y, and find the line of best fit
 float PressureSensor::getPressure() {
   adcOutput out = this->readADC();
+  if (!out.crc_ok) {
+    Serial.print(" crc err ");
+    return -1;
+  }
+
   if (!(out.status & 0b1)) {
     Serial.print(out.status, HEX);
-    Serial.print(" err ");
+    Serial.print(" rdy err ");
   }
   float voltage = out.ch1;
   voltage *= 2.4 / 1;
