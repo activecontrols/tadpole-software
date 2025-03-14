@@ -55,7 +55,7 @@ void ODrive::checkConnection() {
     ODriveCAN::setState(AXIS_STATE_CLOSED_LOOP_CONTROL);
     delay(10);
   }
-  ODriveCAN::setControllerMode(CONTROL_MODE_POSITION_CONTROL, INPUT_MODE_POS_FILTER);
+  ODriveCAN::setControllerMode(CONTROL_MODE_POSITION_CONTROL, INPUT_MODE_PASSTHROUGH);
 #endif
 }
 
@@ -292,18 +292,14 @@ void ODrive::hardStopHoming() { // @ Xander
   // set the control mode
   // input mode config: position filter / velocity ramp / trap trajectory
   // InputMode.POS_FILTER         //Activate the setpoint filter
-  ODriveCAN::setControllerMode(CONTROL_MODE_POSITION_CONTROL, INPUT_MODE_POS_FILTER);
+  ODriveCAN::setControllerMode(CONTROL_MODE_POSITION_CONTROL, INPUT_MODE_PASSTHROUGH);
 
   // ODriveCAN::setParameter("axis0.controller.input_pos", 0); // position [turns]
 
   delay(300);
 
-  Router::info_no_newline("Standby Current = "); // prints without a new line
-  Get_Iq_msg_t amp_msg;
-  ODriveCAN::getCurrents(amp_msg);             // update current reading
-  Router::info(current = amp_msg.Iq_Measured); // axis0.motor.current_control.Iq_measured
-
   Router::info("Home Set");
+  kill();
 }
 
 void ODrive::indexHoming() {
@@ -313,5 +309,6 @@ void ODrive::kill() {
   ODriveCAN::setState(AXIS_STATE_IDLE); // stop movement attempt
   delay(1000);
   ODriveCAN::setState(AXIS_STATE_CLOSED_LOOP_CONTROL); // resume taking movement commands
+  ODriveCAN::setControllerMode(CONTROL_MODE_POSITION_CONTROL, INPUT_MODE_PASSTHROUGH);
   Router::info("State Reset");
 }
