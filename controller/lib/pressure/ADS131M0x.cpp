@@ -564,17 +564,16 @@ adcOutput ADS131M0x::readADC(void) {
   x = SPI1.transfer(0x00);
   x2 = SPI1.transfer(0x00);
   x3 = SPI1.transfer(0x00);
-  aux = (x << 16) | (x2 << 8) | x3;
+  aux = (x << 8) | x2;
 
   uint16_t crc = 0xFFFF;
   for (int i = 0; i < 9; i++) {
-    crc ^= crc_buf[i];
+    crc ^= (crc_buf[i] << 8);
     for (int j = 0; j < 8; j++) {
-      if (crc & 1) {
-        crc >>= 1;
-        crc ^= 0x1021;
+      if (crc & 0x8000) {
+        crc = (crc << 1) ^ 0x1021;
       } else {
-        crc >>= 1;
+        crc <<= 1;
       }
     }
   }
