@@ -29,9 +29,9 @@
 namespace Driver {
 
 char loxName[4] = "LOX";
-// char ipaName[4] = "IPA";
+char ipaName[4] = "IPA";
 ODrive loxODrive(LOX_ODRIVE_CAN_ID, loxName);
-// ODrive loxODrive(IPA_ODRIVE_CAN_ID, ipaName);
+ODrive ipaODrive(IPA_ODRIVE_CAN_ID, ipaName);
 
 File odriveLogFile;
 
@@ -46,8 +46,8 @@ CString<100> printBuffer;
  */
 void logCurveTelemCSV(float time, int phase, float thrust) {
   curveTelemCSV.clear();
-  curveTelemCSV << time << "," << phase << "," << thrust << "," << loxODrive.getLastPosCmd() << "," << "ipa_pos_cmd" << ","
-                << loxODrive.getTelemetryCSV() << "," << " , , , , , "; // TODO RJN odrive - enable telem from 2 valves
+  curveTelemCSV << time << "," << phase << "," << thrust << "," << loxODrive.getLastPosCmd() << "," << ipaODrive.getLastPosCmd() << ","
+                << loxODrive.getTelemetryCSV() << "," << ipaODrive.getTelemetryCSV();
   curveTelemCSV.print();
   if (Router::logenabled) {
     odriveLogFile.println(curveTelemCSV.str);
@@ -110,11 +110,17 @@ int check_for_kill() {
 #endif
 
 #ifdef ENABLE_ODRIVE_SAFETY_CHECKS
-  if (abs(loxODrive.position - loxODrive.getLastPosCmd()) > ANGLE_OOR_THRESH) { // TODO RJN odrive - check both motors
+  if (abs(loxODrive.position - loxODrive.getLastPosCmd()) > ANGLE_OOR_THRESH) {
+    return KILLED_BY_ANGLE_OOR;
+  }
+  if (abs(ipaODrive.position - ipaODrive.getLastPosCmd()) > ANGLE_OOR_THRESH) {
     return KILLED_BY_ANGLE_OOR;
   }
 
   if (loxODrive.odrive_status.last_heartbeat.Axis_State != AXIS_STATE_CLOSED_LOOP_CONTROL) {
+    return KILLED_BY_ODRIVE_FAULT;
+  }
+  if (ipaODrive.odrive_status.last_heartbeat.Axis_State != AXIS_STATE_CLOSED_LOOP_CONTROL) {
     return KILLED_BY_ODRIVE_FAULT;
   }
 #endif
@@ -235,27 +241,27 @@ void begin() {
    */
 
   Router::add({[&]() { loxODrive.clear(); }, "clear_lox_odrive_errors"});
-  // Router::add({[&]() {ipaODrive.clear(); }, "clear_ipa_odrive_errors"});
+  Router::add({[&]() { ipaODrive.clear(); }, "clear_ipa_odrive_errors"});
 
   Router::add({[&]() { loxODrive.setPosConsoleCmd(); }, "set_lox_odrive_pos"});
-  // Router::add({[&]() {ipaODrive.setPosConsoleCmd(); }, "set_ipa_odrive_pos"});
+  Router::add({[&]() { ipaODrive.setPosConsoleCmd(); }, "set_ipa_odrive_pos"});
 
   Router::add({[&]() { loxODrive.printCmdPos(); }, "get_lox_cmd_pos"});
-  // Router::add({[&]() {ipaODrive.printCmdPos(); }, "get_ipa_cmd_pos"});
+  Router::add({[&]() { ipaODrive.printCmdPos(); }, "get_ipa_cmd_pos"});
 
   Router::add({[&]() { loxODrive.identify(); }, "identify_lox_odrive"});
-  // Router::add({[&]() {ipaODrive.identify(); }, "identify_ipa_odrive"});
+  Router::add({[&]() { ipaODrive.identify(); }, "identify_ipa_odrive"});
 
   Router::add({[&]() { loxODrive.printTelemetryCSV(); }, "get_lox_odrive_telem"});
-  // Router::add({[&]() {ipaODrive.printTelemetryCSV(); }, "get_ipa_odrive_telem"});
+  Router::add({[&]() { ipaODrive.printTelemetryCSV(); }, "get_ipa_odrive_telem"});
 
   Router::add({[&]() { loxODrive.hardStopHoming(); }, "lox_hard_stop_home"});
-  // Router::add({[&]() { ipaODrive.hardStopHoming(); }, "ipa_hard_stop_home"});
+  Router::add({[&]() { ipaODrive.hardStopHoming(); }, "ipa_hard_stop_home"});
 
   Router::add({[&]() { loxODrive.indexHoming(); }, "lox_idx_homing"});
-  // Router::add({[&]() { ipaODrive.indexHoming(); }, "ipa_idx_homing"});
+  Router::add({[&]() { ipaODrive.indexHoming(); }, "ipa_idx_homing"});
 
-  Router::add({[&]() { loxODrive.kill(); }, "kill"}); // TODO RJN odrive - ipaODrive kill
+  Router::add({[&]() { loxODrive.kill(); ipaODrive.kill(); }, "kill"});
 
 #if (ENABLE_ODRIVE_COMM)
   Router::info("Connecting to lox odrive...");
@@ -319,7 +325,7 @@ void followCurve() {
   }
 
   // checkConfig() function provides its own error message console logging
-  if (loxODrive.checkConfig()) { // TODO - both valves
+  if (loxODrive.checkConfig() || ipaODrive.checkConfig()) {
     return;
   }
 

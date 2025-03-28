@@ -307,7 +307,7 @@ void ODrive::indexHoming() {
 
 void ODrive::kill() {
   ODriveCAN::setState(AXIS_STATE_IDLE); // stop movement attempt
-  delay(1000);
+  delay(100);
   ODriveCAN::setState(AXIS_STATE_CLOSED_LOOP_CONTROL); // resume taking movement commands
   ODriveCAN::setControllerMode(CONTROL_MODE_POSITION_CONTROL, INPUT_MODE_PASSTHROUGH);
   Router::info("State Reset");
