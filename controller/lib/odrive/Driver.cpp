@@ -84,7 +84,7 @@ float lerp(float a, float b, float t0, float t1, float t) {
 
 void kill_response(int kill_reason) {
   loxODrive.setState(AXIS_STATE_IDLE);
-  // ipaODrive.setState(AXIS_STATE_IDLE);
+  ipaODrive.setState(AXIS_STATE_IDLE);
   ZucrowInterface::send_fault_to_zucrow();
   Router::info("Panic! Loop terminated.");
   Router::info_no_newline("Kill code: ");
@@ -141,15 +141,15 @@ void followAngleLerpCurve() {
     while (timer / 1000.0 < lac[i + 1].time) {
       float seconds = timer / 1000.0;
       float lox_pos = lerp(lac[i].lox_angle, lac[i + 1].lox_angle, lac[i].time, lac[i + 1].time, seconds) / 360;
-      // float ipa_pos = lerp(lac[i].ipa_angle, lac[i + 1].ipa_angle, lac[i].time, lac[i + 1].time, seconds) / 360;
+      float ipa_pos = lerp(lac[i].ipa_angle, lac[i + 1].ipa_angle, lac[i].time, lac[i + 1].time, seconds) / 360;
       loxODrive.setPos(lox_pos);
-      // ipaODrive.setPos(ipa_pos);
+      ipaODrive.setPos(ipa_pos);
       if (timer - lastlog > LOG_INTERVAL_MS) {
         logCurveTelemCSV(seconds, i, -1);
         lastlog = timer;
       }
 
-      ZucrowInterface::send_valve_angles_to_zucrow(lox_pos, 0);
+      ZucrowInterface::send_valve_angles_to_zucrow(loxODrive.position, ipaODrive.position);
       kill_reason = check_for_kill();
       if (kill_reason != DONT_KILL) {
         kill_response(kill_reason);
@@ -181,14 +181,14 @@ void followThrustLerpCurve() {
       float angle_fuel;
       open_loop_thrust_control_defaults(thrust, &angle_ox, &angle_fuel); // TODO CL - make this closed loop, send sensor values
       loxODrive.setPos(angle_ox / 360);
-      // ipaODrive.setPos(angle_fuel / 360);
+      ipaODrive.setPos(angle_fuel / 360);
 
       if (timer - lastlog >= LOG_INTERVAL_MS) {
         logCurveTelemCSV(seconds, i, thrust);
         lastlog = timer;
       }
 
-      ZucrowInterface::send_valve_angles_to_zucrow(loxODrive.position, 0);
+      ZucrowInterface::send_valve_angles_to_zucrow(loxODrive.position, ipaODrive.position);
       kill_reason = check_for_kill();
       if (kill_reason != DONT_KILL) {
         kill_response(kill_reason);
@@ -204,7 +204,7 @@ void followThrustLerpCurve() {
 
 void onCanMessage(const CanMsg &msg) {
   onReceive(msg, loxODrive);
-  // onReceive(msg, ipaODrive);
+  onReceive(msg, ipaODrive);
 }
 
 void begin() {
@@ -268,9 +268,9 @@ void begin() {
   loxODrive.checkConnection();
   loxODrive.checkConfig();
 
-  // Router::info("Connecting to ipa odrive...");
-  // ipaODrive.checkConnection();
-  // ipaODrive.checkConfig();
+  Router::info("Connecting to ipa odrive...");
+  ipaODrive.checkConnection();
+  ipaODrive.checkConfig();
 
   printODriveInfo();
 #endif
@@ -279,8 +279,8 @@ void begin() {
 void printODriveInfo() {
   Router::info("LOX ODrive: ");
   Router::info(loxODrive.getODriveInfo());
-  // Router::info("IPA ODrive: ");
-  // Router::info(ipaODrive.getODriveInfo());
+  Router::info("IPA ODrive: ");
+  Router::info(ipaODrive.getODriveInfo());
 }
 
 /**
@@ -307,7 +307,7 @@ void setThrustCmd() {
   float angle_fuel;
   open_loop_thrust_control_defaults(thrust, &angle_ox, &angle_fuel);
   loxODrive.setPos(angle_ox / 360);
-  // ipaODrive.setPos(angle_fuel / 360);
+  ipaODrive.setPos(angle_fuel / 360);
 
   printBuffer.clear();
   printBuffer << "Thrust set using open loop. LOX pos: " << loxODrive.getLastPosCmd(); // << " IPA pos: " << ipaODrive.getLastPosCmd();

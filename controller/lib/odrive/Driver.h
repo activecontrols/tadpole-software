@@ -22,9 +22,9 @@
 #define ANGLE_OOR_THRESH (10.0 / 360.0) // if angle is 10 degrees off, instantly kill
 #define KILLED_BY_ODRIVE_FAULT 4        // odrive exits closed loop control
 
-#define LOG_HEADER ("time,phase,thrust_cmd,lox_pos_cmd,ipa_pos_cmd," \
-                    "lox_pos,lox_vel,lox_voltage,lox_current,"       \
-                    "ipa_pos,ipa_vel,ipa_voltage,ipa_current")
+#define LOG_HEADER ("time,phase,thrust_cmd,lox_pos_cmd,ipa_pos_cmd,"          \
+                    "lox_pos,lox_vel,lox_voltage,lox_current,lox_temperature" \
+                    "ipa_pos,ipa_vel,ipa_voltage,ipa_current,ipa_temperature")
 
 namespace Driver {
 
