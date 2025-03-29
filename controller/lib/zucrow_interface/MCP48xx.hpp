@@ -157,7 +157,7 @@ template <uint8_t BITS_RES>
 void MCP48xx<BITS_RES>::updateDAC() {
 
   /* begin transaction using maximum clock frequency of 1MHz */
-  SPI1.beginTransaction(SPISettings(1000000, MSBFIRST, SPI_MODE0));
+  SPI1.beginTransaction(SPISettings(4000000, MSBFIRST, SPI_MODE0));
   if (isAActive) {
     SPI_Demux::select_chip(demuxAddr);
     delayMicroseconds(2);

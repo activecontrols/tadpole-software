@@ -3,6 +3,8 @@
 #include "SPI_Fixed.h"
 #include "spi_demux.hpp"
 
+// #define DEBUG_PRESSURE_CRC
+
 #ifdef IS_M02
 #define DO_PRAGMA(x) _Pragma(#x)
 #define INFO(x) DO_PRAGMA(message("\nREMARK: " #x))
@@ -32,7 +34,7 @@ uint8_t ADS131M0x::writeRegister(uint8_t address, uint16_t value) {
   uint8_t bytesRcv;
   uint16_t cmd = 0;
 
-  SPI1.beginTransaction(SPISettings(1000000, MSBFIRST, SPI_MODE1));
+  SPI1.beginTransaction(SPISettings(4000000, MSBFIRST, SPI_MODE1));
   SPI_Demux::select_chip(demuxAddr);
   delayMicroseconds(2);
 
@@ -102,7 +104,7 @@ uint16_t ADS131M0x::readRegister(uint8_t address) {
 
   cmd = CMD_READ_REG | (address << 7 | 0);
 
-  SPI1.beginTransaction(SPISettings(1000000, MSBFIRST, SPI_MODE1));
+  SPI1.beginTransaction(SPISettings(4000000, MSBFIRST, SPI_MODE1));
   SPI_Demux::select_chip(demuxAddr);
   delayMicroseconds(2);
 
@@ -459,7 +461,7 @@ bool ADS131M0x::resetDevice(void) {
   uint8_t x2 = 0;
   uint16_t ris = 0;
 
-  SPI1.beginTransaction(SPISettings(1000000, MSBFIRST, SPI_MODE1));
+  SPI1.beginTransaction(SPISettings(4000000, MSBFIRST, SPI_MODE1));
   SPI_Demux::select_chip(demuxAddr);
   delayMicroseconds(2);
 
@@ -491,7 +493,7 @@ adcOutput ADS131M0x::readADC(void) {
 
   uint8_t crc_buf[9];
 
-  SPI1.beginTransaction(SPISettings(5000000, MSBFIRST, SPI_MODE1));
+  SPI1.beginTransaction(SPISettings(4000000, MSBFIRST, SPI_MODE1));
   SPI_Demux::select_chip(demuxAddr);
 
   x = SPI1.transfer(0x00);
@@ -578,6 +580,25 @@ adcOutput ADS131M0x::readADC(void) {
     }
   }
   res.crc_ok = crc == aux;
+
+#ifdef DEBUG_PRESSURE_CRC
+  if (!res.crc_ok) {
+    for (int i = 0; i < 9; i++) {
+      Serial.print(crc_buf[i], HEX);
+      Serial.print("-");
+    }
+    Serial.print(aux, HEX);
+
+    Serial.print(" <-> ");
+    Serial.print(crc, HEX);
+  } else {
+    for (int i = 0; i < 9; i++) {
+      Serial.print(crc_buf[i], HEX);
+      Serial.print("-");
+    }
+    Serial.print(aux, HEX);
+  }
+#endif
 
   SPI_Demux::deselect_chip();
   SPI1.endTransaction();
