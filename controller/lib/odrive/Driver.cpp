@@ -11,6 +11,7 @@
 #include <Arduino.h>
 
 #include "zucrow_interface.hpp"
+#include "WindowComparator.h"
 #include "SDCard.h"
 #include "Driver.h"
 #include "ODrive.h"
@@ -25,6 +26,7 @@
 #define CHECK_SERIAL_KILL // should check for 'k' on serial monitor to kill
 // #define ENABLE_ZUCROW_SAFETY // checks for zucrow ok before starting
 // #define ENABLE_ODRIVE_SAFETY_CHECKS // check if odrive disconnects or falls behind
+#define ENABLE_WC_SAFETY_CHECKS // check window comparator values
 
 namespace Driver {
 
@@ -89,10 +91,43 @@ void kill_response(int kill_reason) {
   Router::info("Panic! Loop terminated.");
   Router::info_no_newline("Kill code: ");
   Router::info(kill_reason);
+
+  if (kill_reason == KILLED_BY_WC) {
+    Router::info_no_newline("Windows comparator ");
+    Router::info_no_newline(WindowComparators::WC_ERROR.causeID);
+    if (WindowComparators::WC_ERROR.causeReason == WC_CAUSE_OVERFLOW) {
+      Router::info_no_newline(" overflow ");
+      Router::info_no_newline(WindowComparators::WC_ERROR.causeValue);
+      Router::info_no_newline(" > ");
+      Router::info(WindowComparators::WC_ERROR.compValue);
+    } else {
+      Router::info_no_newline(" underflow ");
+      Router::info_no_newline(WindowComparators::WC_ERROR.causeValue);
+      Router::info_no_newline(" < ");
+      Router::info(WindowComparators::WC_ERROR.compValue);
+    }
+  }
+
   if (Router::logenabled) {
     odriveLogFile.println("Panic! Loop terminated.");
     odriveLogFile.print("Kill code: ");
     odriveLogFile.println(kill_reason);
+
+    if (kill_reason == KILLED_BY_WC) {
+      odriveLogFile.print("Windows comparator ");
+      odriveLogFile.print(WindowComparators::WC_ERROR.causeID);
+      if (WindowComparators::WC_ERROR.causeReason == WC_CAUSE_OVERFLOW) {
+        odriveLogFile.print(" overflow ");
+        odriveLogFile.print(WindowComparators::WC_ERROR.causeValue);
+        odriveLogFile.print(" > ");
+        odriveLogFile.println(WindowComparators::WC_ERROR.compValue);
+      } else {
+        odriveLogFile.print(" underflow ");
+        odriveLogFile.print(WindowComparators::WC_ERROR.causeValue);
+        odriveLogFile.print(" < ");
+        odriveLogFile.println(WindowComparators::WC_ERROR.compValue);
+      }
+    }
   }
 }
 
@@ -122,6 +157,12 @@ int check_for_kill() {
   }
   if (ipaODrive.odrive_status.last_heartbeat.Axis_State != AXIS_STATE_CLOSED_LOOP_CONTROL) {
     return KILLED_BY_ODRIVE_FAULT;
+  }
+#endif
+
+#ifdef ENABLE_WC_SAFETY_CHECKS
+  if (WindowComparators::WC_ERROR.isError) {
+    return KILLED_BY_WC;
   }
 #endif
 

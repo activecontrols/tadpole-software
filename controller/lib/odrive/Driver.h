@@ -21,6 +21,7 @@
 #define KILLED_BY_ANGLE_OOR 3           // angle compare caused kill
 #define ANGLE_OOR_THRESH (10.0 / 360.0) // if angle is 10 degrees off, instantly kill
 #define KILLED_BY_ODRIVE_FAULT 4        // odrive exits closed loop control
+#define KILLED_BY_WC 5                  // window comparator checks
 
 #define LOG_HEADER ("time,phase,thrust_cmd,lox_pos_cmd,ipa_pos_cmd,"           \
                     "lox_pos,lox_vel,lox_voltage,lox_current,lox_temperature," \
