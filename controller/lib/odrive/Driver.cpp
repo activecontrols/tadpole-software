@@ -107,28 +107,6 @@ void kill_response(int kill_reason) {
       Router::info(WindowComparators::WC_ERROR.compValue);
     }
   }
-
-  if (Router::logenabled) {
-    odriveLogFile.println("Panic! Loop terminated.");
-    odriveLogFile.print("Kill code: ");
-    odriveLogFile.println(kill_reason);
-
-    if (kill_reason == KILLED_BY_WC) {
-      odriveLogFile.print("Windows comparator ");
-      odriveLogFile.print(WindowComparators::WC_ERROR.causeID);
-      if (WindowComparators::WC_ERROR.causeReason == WC_CAUSE_OVERFLOW) {
-        odriveLogFile.print(" overflow ");
-        odriveLogFile.print(WindowComparators::WC_ERROR.causeValue);
-        odriveLogFile.print(" > ");
-        odriveLogFile.println(WindowComparators::WC_ERROR.compValue);
-      } else {
-        odriveLogFile.print(" underflow ");
-        odriveLogFile.print(WindowComparators::WC_ERROR.causeValue);
-        odriveLogFile.print(" < ");
-        odriveLogFile.println(WindowComparators::WC_ERROR.compValue);
-      }
-    }
-  }
 }
 
 int check_for_kill() {

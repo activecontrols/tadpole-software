@@ -51,16 +51,12 @@ void auto_seq() { // TODO - home valves?
 }
 
 void setup() {
-  Router::init_comms();
+  Router::begin();
   Router::info("Controller started.");
 
   Router::add({ping, "ping"}); // example registration
   Router::add({help, "help"});
   Router::add({print_all_sensors, "print_sensors"});
-  if (!SDCard::begin()) {
-    Router::logenabled = false;
-    Router::info("SD card not found. SD logging disabled.");
-  }
 
   SPI_Demux::begin(); // initializes the SPI backplane
 

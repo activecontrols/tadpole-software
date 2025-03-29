@@ -12,20 +12,13 @@
 #define COMMAND_BUFFER_SIZE (200)
 
 namespace Router {
-bool logenabled = true;
+bool logenabled = false;
+File comms_log_file;
 
 CString<COMMAND_BUFFER_SIZE> commandBuffer;
 
 namespace {
 vector<func> funcs;
-char logfilename[50] = "log.txt";
-File logfile;
-bool logopen = false;
-
-void setLog() {
-  receive(logfilename, 49);
-  logfilename[49] = '\0';
-}
 
 void readCommand() {
   // read until newline char or 200 characters (hopefully none of our funcs have names that long lol)
@@ -35,34 +28,30 @@ void readCommand() {
 }
 } // namespace
 
-// assumes sd inited fine.
-void log(const char *msg) {
-  if (!logenabled) {
-    if (logopen) {
-      logfile.close();
-      logopen = false;
-    }
-    return;
+void begin() {
+  COMMS_SERIAL.begin(COMMS_RATE);
+  COMMS_SERIAL.setTimeout((unsigned long)-1); // wrap around to max long so we never time out
+
+  if (SDCard::begin()) {
+    Router::logenabled = true;
+    comms_log_file = SDCard::open("log.txt", FILE_WRITE);
+  } else {
+    Router::info("SD card not found. SD logging disabled.");
   }
-  if (!logopen) {
-    logfile = SD.open(logfilename, FILE_WRITE);
-    if (!logfile) {
-      info("COULDN'T OPEN LOG FILE. LOGGING DISABLED.");
-      logenabled = false;
-      log(""); // trigger the close asap
-      return;
-    }
-    logopen = true;
-  }
-  logfile.println(msg);
 }
 
 void info(const char *msg) {
   COMMS_SERIAL.println(msg);
+  if (logenabled) {
+    comms_log_file.println(msg);
+  }
 }
 
 void info_no_newline(const char *msg) {
   COMMS_SERIAL.print(msg);
+  if (logenabled) {
+    comms_log_file.print(msg);
+  }
 }
 
 void send(char msg[], unsigned int len) {
@@ -73,25 +62,21 @@ void receive(char msg[], unsigned int len) {
   COMMS_SERIAL.readBytes(msg, len);
 }
 
-void receive_prompt(const char *prompt, char msg[], unsigned int len) {
-  info(prompt);
-  receive(msg, len);
-}
-
 String read(unsigned int len) {
   String s = COMMS_SERIAL.readStringUntil('\n', len);
   s.trim(); // remove leading/trailing whitespace or newline
+
+  if (logenabled) {
+    comms_log_file.print("<");
+    comms_log_file.print(s);
+    comms_log_file.print(">");
+  }
+
   return s;
 }
 
 void add(func f) {
   funcs.push_back(f);
-}
-
-void init_comms() {
-  COMMS_SERIAL.begin(COMMS_RATE);
-  COMMS_SERIAL.setTimeout((unsigned long)-1); // wrap around to max long so we never time out
-  add({setLog, "set_log"});
 }
 
 [[noreturn]] void run() { // attribute here enables dead-code warning & compiler optimization
