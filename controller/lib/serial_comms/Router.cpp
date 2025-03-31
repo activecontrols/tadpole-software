@@ -25,6 +25,12 @@ void readCommand() {
   COMMS_SERIAL.readBytesUntil('\n', commandBuffer.str, COMMAND_BUFFER_SIZE - 1);
   commandBuffer.str[COMMAND_BUFFER_SIZE - 1] = '\0'; // null terminate
   commandBuffer.trim();                              // remove leading/trailing whitespace or newline
+  if (logenabled) {
+    comms_log_file.print("<");
+    comms_log_file.print(commandBuffer.str);
+    comms_log_file.print(">\n");
+    comms_log_file.flush();
+  }
 }
 } // namespace
 
@@ -44,6 +50,7 @@ void info(const char *msg) {
   COMMS_SERIAL.println(msg);
   if (logenabled) {
     comms_log_file.println(msg);
+    comms_log_file.flush();
   }
 }
 
@@ -51,6 +58,7 @@ void info_no_newline(const char *msg) {
   COMMS_SERIAL.print(msg);
   if (logenabled) {
     comms_log_file.print(msg);
+    comms_log_file.flush();
   }
 }
 
@@ -69,7 +77,8 @@ String read(unsigned int len) {
   if (logenabled) {
     comms_log_file.print("<");
     comms_log_file.print(s);
-    comms_log_file.print(">");
+    comms_log_file.print(">\n");
+    comms_log_file.flush();
   }
 
   return s;
