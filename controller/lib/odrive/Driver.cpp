@@ -93,7 +93,7 @@ void kill_response(int kill_reason) {
   Router::info(kill_reason);
 
   if (kill_reason == KILLED_BY_WC) {
-    Router::info_no_newline("Windows comparator ");
+    Router::info_no_newline("Window comparator ");
     Router::info_no_newline(WindowComparators::WC_ERROR.causeID);
     if (WindowComparators::WC_ERROR.causeReason == WC_CAUSE_OVERFLOW) {
       Router::info_no_newline(" overflow ");
@@ -232,6 +232,9 @@ void begin() {
 #endif
 #ifndef ENABLE_ODRIVE_SAFETY_CHECKS
   Router::info("WARNING! Running without odrive safety.");
+#endif
+#ifndef ENABLE_WC_SAFETY_CHECKS
+  Router::info("WARNING! Running without wc safety.");
 #endif
 
   setup_can(onCanMessage);
