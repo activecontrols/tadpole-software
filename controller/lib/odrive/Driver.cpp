@@ -88,8 +88,8 @@ void kill_response(int kill_reason) {
   loxODrive.setState(AXIS_STATE_IDLE);
   ipaODrive.setState(AXIS_STATE_IDLE);
   ZucrowInterface::send_fault_to_zucrow();
-  Router::info("Panic! Loop terminated.");
-  Router::info_no_newline("Kill code: ");
+  Router::info("Fault detected! Curve following terminated, odrives disabled, fault signal sent to Zucrow.");
+  Router::info_no_newline("Fault cause #: ");
   Router::info(kill_reason);
 
   if (kill_reason == KILLED_BY_WC) {
