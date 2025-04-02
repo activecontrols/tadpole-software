@@ -21,4 +21,5 @@ namespace ClosedLoopControllers {
 PI_Controller Chamber_Pressure_Controller(1, 1); // TODO RJN CL - PID constants
 PI_Controller LOX_Angle_Controller(1, 1);
 PI_Controller IPA_Angle_Controller(1, 1);
+PI_Controller Water_Angle_Controller(1, 1);
 } // namespace ClosedLoopControllers
