@@ -12,6 +12,7 @@
 
 #include "zucrow_interface.hpp"
 #include "WindowComparator.h"
+#include "PressureSensor.h"
 #include "SDCard.h"
 #include "Driver.h"
 #include "ODrive.h"
@@ -221,6 +222,55 @@ void followThrustLerpCurve() {
   }
 }
 
+void waterFlow() {
+  Router::info_no_newline("Mass Flow Rate?");
+  String mfr_str = Router::read(INT_BUFFER_SIZE);
+  Router::info("Response: " + mfr_str);
+
+  float mfr;
+  int result = std::sscanf(mfr_str.c_str(), "%f", &mfr);
+  if (result != 1) {
+    Router::info("Could not convert input to a float, not continuing");
+    return;
+  }
+
+  Router::info_no_newline("Time (seconds)?");
+  String time_str = Router::read(INT_BUFFER_SIZE);
+  Router::info("Response: " + time_str);
+
+  float time_sec;
+  result = std::sscanf(time_str.c_str(), "%f", &time_sec);
+  if (result != 1) {
+    Router::info("Could not convert input to a float, not continuing");
+    return;
+  }
+
+  int kill_reason = DONT_KILL;
+  elapsedMillis timer = elapsedMillis();
+  unsigned long lastlog = timer;
+
+  while (timer / 1000.0 < time_sec) {
+    Sensor_Data sd;
+    sd.water.tank_pressure = PT::lox_tank.getPressure();
+    sd.water.venturi_throat_pressure = PT::lox_venturi_throat.getPressure();
+    sd.water.venturi_upstream_pressure = PT::lox_venturi_upstream.getPressure();
+    loxODrive.setPos(open_loop_water_flow(mfr, sd) / 360);
+
+    if (timer - lastlog >= LOG_INTERVAL_MS) {
+      logCurveTelemCSV(timer / 1000.0, 0, 0);
+      lastlog = timer;
+    }
+
+    ZucrowInterface::send_valve_angles_to_zucrow(loxODrive.position, 0);
+    kill_reason = check_for_kill();
+    if (kill_reason != DONT_KILL) {
+      kill_response(kill_reason);
+      break;
+    }
+    delay(COMMAND_INTERVAL_MS);
+  }
+}
+
 void onCanMessage(const CanMsg &msg) {
   onReceive(msg, loxODrive);
   onReceive(msg, ipaODrive);
@@ -284,6 +334,8 @@ void begin() {
   Router::add({[&]() { ipaODrive.indexHoming(); }, "ipa_idx_homing"});
 
   Router::add({[&]() { loxODrive.kill(); ipaODrive.kill(); }, "kill"});
+
+  Router::add({[&]() { waterFlow(); }, "waterflow"});
 
 #if (ENABLE_ODRIVE_COMM)
   Router::info("Connecting to lox odrive...");
