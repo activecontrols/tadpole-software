@@ -17,12 +17,7 @@ CString<400> curveTelemCSV;
                     "lox_venturi_temperature,lox_valve_temperature,"                               \
                     "ipa_tank_pressure,ipa_venturi_upstream_pressure,ipa_venturi_throat_pressure")
 
-/**
- * Logs the telemetry data for a curve in CSV format.
- * @param time The elapsed time in seconds.
- * @param phase The current phase of the curve.
- * @param thrust The thrust value (for closed lerp curves) or -1 (for other curve types).
- */
+// logs time, phase, thrust, and sensor data in .csv format
 void log_curve_csv(float time, int phase, float thrust, Sensor_Data sd) {
   curveTelemCSV.clear();
   curveTelemCSV << time << "," << phase << "," << thrust << "," << Driver::loxODrive.getLastPosCmd() << "," << Driver::ipaODrive.getLastPosCmd() << ","
@@ -35,15 +30,13 @@ void log_curve_csv(float time, int phase, float thrust, Sensor_Data sd) {
   odriveLogFile.println(curveTelemCSV.str);
 }
 
-/**
- * Creates a log file for the current curve.
- * @return The created log file.
- */
+// creates a log file for the current curve and prints csv header
 void create_curve_log(const char *filename) {
   odriveLogFile = SDCard::open(filename, FILE_WRITE);
   odriveLogFile.println(LOG_HEADER);
 }
 
+// close and flush the log file
 void close_curve_log() {
   odriveLogFile.flush();
   odriveLogFile.close();

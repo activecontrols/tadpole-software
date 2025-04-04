@@ -37,6 +37,7 @@ float lerp(float a, float b, float t0, float t1, float t) {
   return a + (b - a) * ((t - t0) / (t1 - t0));
 }
 
+// gets sensor data from PTs and TCs and performs safety checks
 Sensor_Data get_sensor_data() {
   Sensor_Data sd;
 
@@ -150,6 +151,7 @@ void followThrustLerpCurve() {
   }
 }
 
+// init CurveFollower and add relevant router cmds
 void begin() {
   Router::add({follow_curve_cmd, "follow_curve"});
   Router::add({auto_seq, "auto_seq"});
@@ -180,17 +182,17 @@ void follow_curve() {
   Loader::header.is_thrust ? followThrustLerpCurve() : followAngleLerpCurve();
   ZucrowInterface::send_sync_to_zucrow(TEENSY_SYNC_IDLE);
 
-  CurveLogger::close_curve_log();
-
   Router::info("Finished following curve!");
 }
 
+// prompt user for log file name, then follow curve
 void follow_curve_cmd() {
   // filenames use DOS 8.3 standard
   Router::info_no_newline("Enter log filename (1-8 chars + '.' + 3 chars): ");
   String filename = Router::read(50);
   CurveLogger::create_curve_log(filename.toUpperCase().c_str()); // lower case files have issues on teensy
   follow_curve();
+  CurveLogger::close_curve_log();
 }
 
 void auto_seq() { // TODO - home valves?
@@ -202,6 +204,7 @@ void auto_seq() { // TODO - home valves?
   Router::info(log_file_name);
   CurveLogger::create_curve_log(log_file_name.c_str());
   follow_curve();
+  CurveLogger::close_curve_log();
 }
 
 } // namespace CurveFollower

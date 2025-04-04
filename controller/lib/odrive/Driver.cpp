@@ -74,9 +74,6 @@ void begin() {
   Router::add({[&]() { loxODrive.hardStopHoming(); }, "lox_hard_stop_home"});
   Router::add({[&]() { ipaODrive.hardStopHoming(); }, "ipa_hard_stop_home"});
 
-  Router::add({[&]() { loxODrive.indexHoming(); }, "lox_idx_homing"});
-  Router::add({[&]() { ipaODrive.indexHoming(); }, "ipa_idx_homing"});
-
   Router::add({[&]() { loxODrive.kill(); ipaODrive.kill(); }, "kill"});
 
 #if (ENABLE_ODRIVE_COMM)

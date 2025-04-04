@@ -302,9 +302,6 @@ void ODrive::hardStopHoming() { // @ Xander
   kill();
 }
 
-void ODrive::indexHoming() {
-}
-
 void ODrive::kill() {
   ODriveCAN::setState(AXIS_STATE_IDLE); // stop movement attempt
   delay(100);

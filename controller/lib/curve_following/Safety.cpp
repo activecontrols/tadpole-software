@@ -5,6 +5,7 @@
 #include "Driver.h"
 #include "Router.h"
 
+// prints which safety features are active
 void Safety::begin() {
 #ifndef ENABLE_ZUCROW_SAFETY
   Router::info("WARNING! Running without zucrow checks.");
@@ -17,6 +18,7 @@ void Safety::begin() {
 #endif
 }
 
+// prints debug information after a kill
 void Safety::kill_response(int kill_reason) {
   Driver::loxODrive.setState(AXIS_STATE_IDLE);
   Driver::ipaODrive.setState(AXIS_STATE_IDLE);
@@ -42,6 +44,7 @@ void Safety::kill_response(int kill_reason) {
   }
 }
 
+// checks various kill conditions, returns the first one found, or DONT_KILL
 int Safety::check_for_kill() {
 #ifdef ENABLE_ZUCROW_SAFETY
   if (ZucrowInterface::check_fault_from_zucrow()) {
