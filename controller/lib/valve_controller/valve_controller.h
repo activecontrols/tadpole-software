@@ -26,9 +26,13 @@ struct Sensor_Data {
   float chamber_pressure; // psi
   Fluid_Line ox;
   Fluid_Line ipa;
+  Fluid_Line water;
 };
 
 void open_loop_thrust_control(float thrust, Sensor_Data sensor_data, float *angle_ox, float *angle_ipa);
 void open_loop_thrust_control_defaults(float thrust, float *angle_ox, float *angle_ipa);
 void closed_loop_thrust_control(float thrust, Sensor_Data sensor_data, float *angle_ox, float *angle_ipa);
+
+float open_loop_water_flow(float mass_flow_water, Sensor_Data sensor_data);
+float closed_loop_water_flow(float mass_flow_water, Sensor_Data sensor_data);
 #endif

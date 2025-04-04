@@ -22,6 +22,7 @@ void reset();
 extern PI_Controller Chamber_Pressure_Controller;
 extern PI_Controller LOX_Angle_Controller;
 extern PI_Controller IPA_Angle_Controller;
+extern PI_Controller Water_Angle_Controller;
 } // namespace ClosedLoopControllers
 
 #endif

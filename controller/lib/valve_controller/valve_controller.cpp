@@ -62,10 +62,16 @@ Sensor_Data default_sensor_data{
         .tank_pressure = 820,           // psi
         .venturi_upstream_pressure = 0, // psi - not needed for OL
         .venturi_throat_pressure = 0,   // psi - not needed for OL
+    },
+    .water = {
+        .tank_pressure = 820,           // psi
+        .venturi_upstream_pressure = 0, // psi - not needed for OL
+        .venturi_throat_pressure = 0,   // psi - not needed for OL
     }};
 
-Venturi ox_venturi{.inlet_area = 0.127, .throat_area = 0.0204, .cd = 0.8};  // in^2 for both
-Venturi ipa_venturi{.inlet_area = 0.127, .throat_area = 0.0204, .cd = 0.8}; // in^2 for both
+Venturi ox_venturi{.inlet_area = 0.127, .throat_area = 0.0204, .cd = 0.8};    // in^2 for both
+Venturi ipa_venturi{.inlet_area = 0.127, .throat_area = 0.0204, .cd = 0.8};   // in^2 for both
+Venturi water_venturi{.inlet_area = 0.127, .throat_area = 0.0204, .cd = 0.8}; // in^2 for both
 
 // maps v from (min_in, max_in) to (min_out, max_out)
 float linear_interpolation(float v, float min_in, float max_in, float min_out, float max_out) {
@@ -96,6 +102,10 @@ float ox_density_from_temperature(float temperature) {
 // get ipa properties using temperature in Kelvin
 float ipa_density() {
   return 0.02836; // lb/in^3
+}
+
+float water_density() {
+  return 0.0360724; // lb/in^3
 }
 
 // The thrust coefficient (Cf) varies based on thrust
@@ -210,4 +220,18 @@ void closed_loop_thrust_control(float thrust, Sensor_Data sensor_data, float *an
 
   *angle_ox = ol_angle_ox - ClosedLoopControllers::LOX_Angle_Controller.compute(err_mass_flow_ox);
   *angle_ipa = ol_angle_ipa - ClosedLoopControllers::IPA_Angle_Controller.compute(err_mass_flow_ipa);
+}
+
+// get valve angles (degrees) given thrust (lbf) and current sensor data
+float open_loop_water_flow(float mass_flow_water, Sensor_Data sensor_data) {
+  float downstream_pressure_goal = 14.3;
+  return valve_angle(sub_critical_cv(mass_flow_water, sensor_data.water.tank_pressure, downstream_pressure_goal, water_density()));
+}
+
+// get valve angles (degrees) given thrust (lbf) and current sensor data
+float closed_loop_water_flow(float mass_flow_water, Sensor_Data sensor_data) {
+  float downstream_pressure_goal = 14.3;
+  float err_mass_flow_water = estimate_mass_flow(sensor_data.water, water_venturi, water_density()) - mass_flow_water;
+  float ol_angle_water = valve_angle(sub_critical_cv(mass_flow_water, sensor_data.water.tank_pressure, downstream_pressure_goal, water_density()));
+  return ol_angle_water - ClosedLoopControllers::Water_Angle_Controller.compute(err_mass_flow_water);
 }

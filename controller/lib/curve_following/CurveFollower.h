@@ -7,6 +7,7 @@ void begin();
 void follow_curve();
 void follow_curve_cmd();
 void auto_seq();
+void waterflow();
 
 }; // namespace CurveFollower
 
