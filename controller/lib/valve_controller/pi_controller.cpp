@@ -38,6 +38,7 @@ namespace ClosedLoopControllers {
 PI_Controller Chamber_Pressure_Controller(1, 1, INFINITY); // TODO RJN CL - PID constants
 PI_Controller LOX_Angle_Controller(1, 1, INFINITY);
 PI_Controller IPA_Angle_Controller(1, 1, INFINITY);
+PI_Controller Water_Angle_Controller(1, 1, INFINITY);
 
 void reset() {
   Chamber_Pressure_Controller.reset();
@@ -53,6 +54,9 @@ Controller_State getState() {
   cs.lox_angle_controller_i_component = LOX_Angle_Controller.i_component;
   cs.ipa_angle_controller_p_component = IPA_Angle_Controller.p_component;
   cs.ipa_angle_controller_i_component = IPA_Angle_Controller.i_component;
+
+  cs.water_angle_controller_p_component = Water_Angle_Controller.p_component;
+  cs.water_angle_controller_i_component = Water_Angle_Controller.i_component;
   return cs;
 }
 } // namespace ClosedLoopControllers

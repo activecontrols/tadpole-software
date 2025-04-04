@@ -25,6 +25,9 @@ struct Controller_State {
   float lox_angle_controller_i_component;
   float ipa_angle_controller_p_component;
   float ipa_angle_controller_i_component;
+
+  float water_angle_controller_p_component;
+  float water_angle_controller_i_component;
 };
 
 namespace ClosedLoopControllers {
@@ -34,6 +37,7 @@ Controller_State getState();
 extern PI_Controller Chamber_Pressure_Controller;
 extern PI_Controller LOX_Angle_Controller;
 extern PI_Controller IPA_Angle_Controller;
+extern PI_Controller Water_Angle_Controller;
 } // namespace ClosedLoopControllers
 
 #endif

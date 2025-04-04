@@ -151,10 +151,60 @@ void followThrustLerpCurve() {
   }
 }
 
+void waterFlow() {
+  Router::info_no_newline("Mass Flow Rate?");
+  String mfr_str = Router::read(INT_BUFFER_SIZE);
+  Router::info("Response: " + mfr_str);
+
+  float mfr;
+  int result = std::sscanf(mfr_str.c_str(), "%f", &mfr);
+  if (result != 1) {
+    Router::info("Could not convert input to a float, not continuing");
+    return;
+  }
+
+  Router::info_no_newline("Time (seconds)?");
+  String time_str = Router::read(INT_BUFFER_SIZE);
+  Router::info("Response: " + time_str);
+
+  float time_sec;
+  result = std::sscanf(time_str.c_str(), "%f", &time_sec);
+  if (result != 1) {
+    Router::info("Could not convert input to a float, not continuing");
+    return;
+  }
+
+  int kill_reason = DONT_KILL;
+  elapsedMillis timer = elapsedMillis();
+  unsigned long lastlog = timer;
+
+  ClosedLoopControllers::reset();
+
+  while (timer / 1000.0 < time_sec) {
+    Sensor_Data sd = get_sensor_data();
+
+    Driver::loxODrive.setPos(open_loop_water_flow(mfr, sd) / 360);
+
+    if (timer - lastlog >= LOG_INTERVAL_MS) {
+      CurveLogger::log_curve_csv(timer / 1000.0, 0, 0, sd);
+      lastlog = timer;
+    }
+
+    ZucrowInterface::send_valve_angles_to_zucrow(Driver::loxODrive.position, 0);
+    kill_reason = Safety::check_for_kill();
+    if (kill_reason != DONT_KILL) {
+      Safety::kill_response(kill_reason);
+      break;
+    }
+    delay(COMMAND_INTERVAL_MS);
+  }
+}
+
 // init CurveFollower and add relevant router cmds
 void begin() {
   Router::add({follow_curve_cmd, "follow_curve"});
   Router::add({auto_seq, "auto_seq"});
+  Router::add({waterFlow, "waterflow"});
 }
 
 /**
