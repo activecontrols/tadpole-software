@@ -1,5 +1,7 @@
-#include "zucrow_interface.hpp"
-#include "teensy_pins.hpp"
+#include "ZucrowInterface.h"
+
+#include "teensy_pins.h"
+#include "MCP48xx.hpp"
 
 MCP4822 dac(SPI_DEVICE_ZUCROW_DAC);
 

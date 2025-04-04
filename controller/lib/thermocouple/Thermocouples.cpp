@@ -1,5 +1,5 @@
 #include "Thermocouples.h"
-#include "spi_demux.hpp"
+#include "SPI_Demux.h"
 
 Thermocouple::Thermocouple(int demuxAddr) : Adafruit_MAX31856(demuxAddr) {
 }

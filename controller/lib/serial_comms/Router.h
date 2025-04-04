@@ -24,8 +24,6 @@ struct func;
 
 namespace Router {
 
-extern bool logenabled;
-
 // initializes the serial port and configures logs
 void begin();
 

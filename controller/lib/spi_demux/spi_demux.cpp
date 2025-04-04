@@ -1,5 +1,6 @@
-#include "spi_demux.hpp"
-#include "teensy_pins.hpp"
+#include "SPI_Demux.h"
+
+#include "teensy_pins.h"
 #include "SPI_Fixed.h"
 #include "Router.h"
 

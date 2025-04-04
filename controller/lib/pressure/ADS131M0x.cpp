@@ -1,7 +1,7 @@
 #include "Arduino.h"
 #include "ADS131M0x.h"
 #include "SPI_Fixed.h"
-#include "spi_demux.hpp"
+#include "SPI_Demux.h"
 
 // #define DEBUG_PRESSURE_CRC
 

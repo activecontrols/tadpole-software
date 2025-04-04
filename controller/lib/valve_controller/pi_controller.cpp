@@ -1,4 +1,4 @@
-#include "pi_controller.hpp"
+#include "pi_controller.h"
 #include <Arduino.h>
 
 PI_Controller::PI_Controller(float kp, float ki, float max_output) {
@@ -26,9 +26,9 @@ float PI_Controller::compute(float input_error) {
   return raw_output;
 }
 
-float PI_Controller::reset() {
-  long long last_compute_time = -1;
-  float err_sum = 0;
+void PI_Controller::reset() {
+  last_compute_time = -1;
+  err_sum = 0;
 }
 
 namespace ClosedLoopControllers {

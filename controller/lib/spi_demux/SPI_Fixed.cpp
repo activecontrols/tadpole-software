@@ -405,7 +405,6 @@ void SPIClass::setDataMode(uint8_t dataMode) {
   hardware().clock_gate_register |= hardware().clock_gate_mask;
   // uint32_t ctar = port().CTAR0;
 
-  // TODO: implement with native code
   // SPCR = (SPCR & ~SPI_MODE_MASK) | dataMode;
 }
 

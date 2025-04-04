@@ -1,9 +1,6 @@
 #ifndef ZUCROW_H
 #define ZUCROW_H
 
-#include <Arduino.h>
-#include "MCP48xx.hpp"
-
 // INPUTS FROM ZUCROW
 #define ZUCROW_PANIC false
 #define ZUCROW_NO_PANIC true

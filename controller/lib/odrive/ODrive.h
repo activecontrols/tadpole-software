@@ -15,7 +15,7 @@ struct ODriveUserData {
   bool received_feedback = false;
 };
 
-#define ENABLE_ODRIVE_COMM (true)
+#define ENABLE_ODRIVE_COMM (false)
 
 #define ODRIVE_NO_ERROR (0)
 #define ODRIVE_ACTIVE_ERROR (-1)

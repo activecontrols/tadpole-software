@@ -1,9 +1,6 @@
-#include <valve_controller.hpp>
-#include <pi_controller.hpp>
-#include <math.h>
-
-// #include <Router.h>
-// #include "CString.h"
+#include "valve_controller.h"
+#include "pi_controller.h"
+#include "math.h"
 
 #define tadpole_AREA_OF_THROAT 1.69 // in^2
 #define tadpole_C_STAR 4998.0654    // ft / s // TODO RJN OL - replace with data from testing
@@ -214,39 +211,3 @@ void closed_loop_thrust_control(float thrust, Sensor_Data sensor_data, float *an
   *angle_ox = ol_angle_ox - ClosedLoopControllers::LOX_Angle_Controller.compute(err_mass_flow_ox);
   *angle_ipa = ol_angle_ipa - ClosedLoopControllers::IPA_Angle_Controller.compute(err_mass_flow_ipa);
 }
-
-// void update_float_value(float *value, const char *prompt) {
-//   Router::info(prompt);
-//   String data_str = Router::read(50); // int buffer size
-//   Router::info("Response: " + data_str);
-//   float new_value;
-//   int result = std::sscanf(data_str.c_str(), "%f", &new_value);
-//   if (result != 1) {
-//     Router::info("Could not convert input to a float, not continuing");
-//     return;
-//   }
-//   *value = new_value;
-// }
-
-// CString<200> fluid_info;
-// void print_fluid_info() {
-//   Router::info("OX Info:");
-//   fluid_info.clear();
-//   fluid_info << "CV Throat Area (in^2): " << ox.cav_vent_throat_area << "\n"
-//              << "CV CD (unitless): " << ox.cav_vent_cd << "\n"
-//              << "Vapour Pressure (psi): " << ox.vapour_pressure << "\n"
-//              << "Density (lb / in^3): " << ox.density << "\n"
-//              << "Upstream Pressure (psi): " << ox.upstream_pressure << "\n";
-//   Router::info(fluid_info.str);
-//   Router::info("\n");
-
-//   Router::info("IPA Info:");
-//   fluid_info.clear();
-//   fluid_info << "CV Throat Area (in^2): " << ipa.cav_vent_throat_area << "\n"
-//              << "CV CD (unitless): " << ipa.cav_vent_cd << "\n"
-//              << "Vapour Pressure (psi): " << ipa.vapour_pressure << "\n"
-//              << "Density (lb / in^3): " << ipa.density << "\n"
-//              << "Upstream Pressure (psi): " << ipa.upstream_pressure << "\n";
-//   Router::info(fluid_info.str);
-//   Router::info("\n");
-// }

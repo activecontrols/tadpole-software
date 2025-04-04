@@ -1,13 +1,14 @@
 #include <Arduino.h>
 
+#include "ZucrowInterface.h"
+#include "CurveFollower.h"
+#include "PressureSensor.h"
+#include "Thermocouples.h"
+#include "SPI_Demux.h"
 #include "Driver.h"
 #include "Router.h"
 #include "Loader.h"
-#include "SDCard.h"
-#include "spi_demux.hpp"
-#include "zucrow_interface.hpp"
-#include "PressureSensor.h"
-#include "Thermocouples.h"
+#include "Safety.h"
 
 void ping() {
   Router::info("pong");
@@ -39,17 +40,6 @@ void print_all_sensors() {
   print_labeled_sensor("         TC LOX Venturi: ", TC::lox_venturi_temperature.getTemperature_F(), " F");
 }
 
-void auto_seq() { // TODO - home valves?
-  const char *curve_file_name = "AUTOCUR";
-  const char *tpl_log_file_name = "AUTOL"; // generates names like AUTOL#.CSV
-  Loader::load_curve_sd(curve_file_name);
-  String log_file_name = SDCard::get_next_safe_name(tpl_log_file_name);
-  Router::info_no_newline("Using log file: ");
-  Router::info(log_file_name);
-  Driver::createCurveLog(log_file_name.c_str());
-  Driver::followCurve();
-}
-
 void setup() {
   Router::begin();
   Router::info("Controller started.");
@@ -58,17 +48,16 @@ void setup() {
   Router::add({help, "help"});
   Router::add({print_all_sensors, "print_sensors"});
 
-  SPI_Demux::begin(); // initializes the SPI backplane
-
-  Loader::begin(); // registers data loader functions with the router
-
-  Driver::begin(); // initializes the odrives and functions to start curves
-
+  Safety::begin();          // prints safety info
+  SPI_Demux::begin();       // initializes the SPI backplane
+  Loader::begin();          // registers data loader functions with the router
+  Driver::begin();          // initializes the odrives
   ZucrowInterface::begin(); // initializes the DAC
   PT::begin();              // initializes the PT Boards
   TC::begin();              // initializes the TC Boards
-  // auto_seq();
-  Router::add({auto_seq, "auto_seq"});
+  CurveFollower::begin();   // creates curve following commands
+
+  // CurveFollower::auto_seq();
 }
 
 void loop() {

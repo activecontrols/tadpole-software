@@ -26,6 +26,16 @@ void WindowComparator::check(float v) {
 namespace WindowComparators {
 wc_error_info WC_ERROR = {.isError = false};
 
-WindowComparator example_wc(EXAMPLE_WC_ID, 10, 20); // id, min, max
+WindowComparator lox_tank_pressure(WC_LOX_TANK_PRESSURE_ID, -1, 2000);
+WindowComparator lox_venturi_upstream_pressure(WC_LOX_VENTURI_UPSTREAM_PRESSURE_ID, -1, 2000);
+WindowComparator lox_venturi_throat_pressure(WC_LOX_VENTURI_THROAT_PRESSURE_ID, -1, 2000);
+WindowComparator lox_venturi_temperature(WC_LOX_VENTURI_TEMPERATURE, -1, 2000);
+WindowComparator lox_valve_temperature(WC_LOX_VALVE_TEMPERATURE, -1, 2000);
+
+WindowComparator ipa_tank_pressure(WC_IPA_TANK_PRESSURE_ID, -1, 2000);
+WindowComparator ipa_venturi_upstream_pressure(WC_IPA_VENUTRI_UPSTREAM_PRESSURE_ID, -1, 2000);
+WindowComparator ipa_venturi_throat_pressure(WC_IPA_VENUTRI_THROAT_PRESSURE_ID, -1, 2000);
+
+WindowComparator chamber_pressure(WC_CHAMBER_PRESSURE_ID, -1, 2000);
 
 } // namespace WindowComparators

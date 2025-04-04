@@ -42,7 +42,7 @@
 
 #include "SPI_Fixed.h"
 #include <stdlib.h>
-#include "spi_demux.hpp"
+#include "SPI_Demux.h"
 
 /**************************************************************************/
 /*!

@@ -5,7 +5,7 @@
 
 #include <Arduino.h>
 #include "SPI_Fixed.h"
-#include "spi_demux.hpp"
+#include "SPI_Demux.h"
 
 template <uint8_t BITS_RES>
 class MCP48xx {

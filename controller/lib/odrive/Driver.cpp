@@ -8,239 +8,33 @@
  *               The curves supported are lerp (linear interpolation), sine, and chirp.
  */
 
-#include <Arduino.h>
-
-#include "zucrow_interface.hpp"
-#include "WindowComparator.h"
-#include "SDCard.h"
 #include "Driver.h"
-#include "ODrive.h"
-#include "CString.h"
+
+namespace Driver {
 
 #define LOX_ODRIVE_CAN_ID 1
 #define IPA_ODRIVE_CAN_ID 2
-
-#define LOG_INTERVAL_MS 10
-#define COMMAND_INTERVAL_MS 1
-
-#define CHECK_SERIAL_KILL // should check for 'k' on serial monitor to kill
-// #define ENABLE_ZUCROW_SAFETY // checks for zucrow ok before starting
-// #define ENABLE_ODRIVE_SAFETY_CHECKS // check if odrive disconnects or falls behind
-#define ENABLE_WC_SAFETY_CHECKS // check window comparator values
-
-namespace Driver {
 
 char loxName[4] = "LOX";
 char ipaName[4] = "IPA";
 ODrive loxODrive(LOX_ODRIVE_CAN_ID, loxName);
 ODrive ipaODrive(IPA_ODRIVE_CAN_ID, ipaName);
 
-File odriveLogFile;
-
-CString<200> curveTelemCSV;
-CString<100> printBuffer;
-
-/**
- * Logs the telemetry data for a curve in CSV format.
- * @param time The elapsed time in seconds.
- * @param phase The current phase of the curve.
- * @param thrust The thrust value (for closed lerp curves) or -1 (for other curve types).
- */
-void logCurveTelemCSV(float time, int phase, float thrust) {
-  curveTelemCSV.clear();
-  curveTelemCSV << time << "," << phase << "," << thrust << "," << loxODrive.getLastPosCmd() << "," << ipaODrive.getLastPosCmd() << ","
-                << loxODrive.getTelemetryCSV() << "," << ipaODrive.getTelemetryCSV();
-  curveTelemCSV.print();
-  if (Router::logenabled) {
-    odriveLogFile.println(curveTelemCSV.str);
-  }
-}
-
-/**
- * Creates a log file for the current curve.
- * @return The created log file.
- */
-void createCurveLog(const char *filename) {
-  odriveLogFile = SDCard::open(filename, FILE_WRITE);
-  odriveLogFile.println(LOG_HEADER);
-}
-
-/**
- * Performs linear interpolation between two values.
- * @param a The starting value.
- * @param b The ending value.
- * @param t0 The starting time.
- * @param t1 The ending time.
- * @param t The current time.
- * @return The interpolated value at the current time.
- */
-float lerp(float a, float b, float t0, float t1, float t) {
-  if (t <= t0)
-    return a;
-  if (t >= t1)
-    return b;
-  if (t0 == t1)
-    return b; // immediately get to b
-  return a + (b - a) * ((t - t0) / (t1 - t0));
-}
-
-void kill_response(int kill_reason) {
-  loxODrive.setState(AXIS_STATE_IDLE);
-  ipaODrive.setState(AXIS_STATE_IDLE);
-  ZucrowInterface::send_fault_to_zucrow();
-  Router::info("Fault detected! Curve following terminated, odrives disabled, fault signal sent to Zucrow.");
-  Router::info_no_newline("Fault cause #: ");
-  Router::info(kill_reason);
-
-  if (kill_reason == KILLED_BY_WC) {
-    Router::info_no_newline("Window comparator ");
-    Router::info_no_newline(WindowComparators::WC_ERROR.causeID);
-    if (WindowComparators::WC_ERROR.causeReason == WC_CAUSE_OVERFLOW) {
-      Router::info_no_newline(" overflow ");
-      Router::info_no_newline(WindowComparators::WC_ERROR.causeValue);
-      Router::info_no_newline(" > ");
-      Router::info(WindowComparators::WC_ERROR.compValue);
-    } else {
-      Router::info_no_newline(" underflow ");
-      Router::info_no_newline(WindowComparators::WC_ERROR.causeValue);
-      Router::info_no_newline(" < ");
-      Router::info(WindowComparators::WC_ERROR.compValue);
-    }
-  }
-}
-
-int check_for_kill() {
-#ifdef ENABLE_ZUCROW_SAFETY
-  if (ZucrowInterface::check_fault_from_zucrow()) {
-    return KILLED_BY_ZUCROW;
-  }
-#endif
-
-#ifdef CHECK_SERIAL_KILL
-  if (COMMS_SERIAL.available() && COMMS_SERIAL.read() == 'k') {
-    return KILLED_BY_SERIAL;
-  }
-#endif
-
-#ifdef ENABLE_ODRIVE_SAFETY_CHECKS
-  if (abs(loxODrive.position - loxODrive.getLastPosCmd()) > ANGLE_OOR_THRESH) {
-    return KILLED_BY_ANGLE_OOR;
-  }
-  if (abs(ipaODrive.position - ipaODrive.getLastPosCmd()) > ANGLE_OOR_THRESH) {
-    return KILLED_BY_ANGLE_OOR;
-  }
-
-  if (loxODrive.odrive_status.last_heartbeat.Axis_State != AXIS_STATE_CLOSED_LOOP_CONTROL) {
-    return KILLED_BY_ODRIVE_FAULT;
-  }
-  if (ipaODrive.odrive_status.last_heartbeat.Axis_State != AXIS_STATE_CLOSED_LOOP_CONTROL) {
-    return KILLED_BY_ODRIVE_FAULT;
-  }
-#endif
-
-#ifdef ENABLE_WC_SAFETY_CHECKS
-  if (WindowComparators::WC_ERROR.isError) {
-    return KILLED_BY_WC;
-  }
-#endif
-
-  return DONT_KILL;
-}
-
-/**
- * Follows an open lerp curve by interpolating between LOX and IPA positions.
- */
-void followAngleLerpCurve() {
-  lerp_point_angle *lac = Loader::lerp_angle_curve;
-  int kill_reason = DONT_KILL;
-  elapsedMillis timer = elapsedMillis();
-  unsigned long lastlog = timer;
-
-  for (int i = 0; i < Loader::header.num_points - 1; i++) {
-    while (timer / 1000.0 < lac[i + 1].time) {
-      float seconds = timer / 1000.0;
-      float lox_pos = lerp(lac[i].lox_angle, lac[i + 1].lox_angle, lac[i].time, lac[i + 1].time, seconds) / 360;
-      float ipa_pos = lerp(lac[i].ipa_angle, lac[i + 1].ipa_angle, lac[i].time, lac[i + 1].time, seconds) / 360;
-      loxODrive.setPos(lox_pos);
-      ipaODrive.setPos(ipa_pos);
-      if (timer - lastlog > LOG_INTERVAL_MS) {
-        logCurveTelemCSV(seconds, i, -1);
-        lastlog = timer;
-      }
-
-      ZucrowInterface::send_valve_angles_to_zucrow(loxODrive.position, ipaODrive.position);
-      kill_reason = check_for_kill();
-      if (kill_reason != DONT_KILL) {
-        kill_response(kill_reason);
-        break;
-      }
-      delay(COMMAND_INTERVAL_MS);
-    }
-    if (kill_reason != DONT_KILL) {
-      break;
-    }
-  }
-}
-
-/**
- * Follows a closed lerp curve by interpolating between thrust values.
- */
-void followThrustLerpCurve() {
-  lerp_point_thrust *ltc = Loader::lerp_thrust_curve;
-  int kill_reason = DONT_KILL;
-  elapsedMillis timer = elapsedMillis();
-  unsigned long lastlog = timer;
-
-  for (int i = 0; i < Loader::header.num_points - 1; i++) {
-    while (timer / 1000.0 < ltc[i + 1].time) {
-      float seconds = timer / 1000.0;
-      float thrust = lerp(ltc[i].thrust, ltc[i + 1].thrust, ltc[i].time, ltc[i + 1].time, seconds);
-
-      float angle_ox;
-      float angle_fuel;
-      open_loop_thrust_control_defaults(thrust, &angle_ox, &angle_fuel); // TODO CL - make this closed loop, send sensor values
-      loxODrive.setPos(angle_ox / 360);
-      ipaODrive.setPos(angle_fuel / 360);
-
-      if (timer - lastlog >= LOG_INTERVAL_MS) {
-        logCurveTelemCSV(seconds, i, thrust);
-        lastlog = timer;
-      }
-
-      ZucrowInterface::send_valve_angles_to_zucrow(loxODrive.position, ipaODrive.position);
-      kill_reason = check_for_kill();
-      if (kill_reason != DONT_KILL) {
-        kill_response(kill_reason);
-        break;
-      }
-      delay(COMMAND_INTERVAL_MS);
-    }
-    if (kill_reason != DONT_KILL) {
-      break;
-    }
-  }
-}
-
 void onCanMessage(const CanMsg &msg) {
   onReceive(msg, loxODrive);
   onReceive(msg, ipaODrive);
 }
 
-void begin() {
-#ifndef ENABLE_ZUCROW_SAFETY
-  Router::info("WARNING! Running without zucrow checks.");
-#endif
-#ifndef ENABLE_ODRIVE_SAFETY_CHECKS
-  Router::info("WARNING! Running without odrive safety.");
-#endif
-#ifndef ENABLE_WC_SAFETY_CHECKS
-  Router::info("WARNING! Running without wc safety.");
-#endif
+void printODriveInfo() {
+  Router::info("LOX ODrive: ");
+  Router::info(loxODrive.getODriveInfo());
+  Router::info("IPA ODrive: ");
+  Router::info(ipaODrive.getODriveInfo());
+}
 
+void begin() {
   setup_can(onCanMessage);
-  Router::add({Driver::followCurveCmd, "follow_curve"});
-  Router::add({Driver::printODriveInfo, "get_odrive_info"});
-  Router::add({Driver::setThrustCmd, "set_thrust"});
+  Router::add({printODriveInfo, "get_odrive_info"});
 
   /*
    * This syntax is slightly tricky. The add function only takes one argument: a func struct
@@ -298,93 +92,4 @@ void begin() {
 #endif
 }
 
-void printODriveInfo() {
-  Router::info("LOX ODrive: ");
-  Router::info(loxODrive.getODriveInfo());
-  Router::info("IPA ODrive: ");
-  Router::info(ipaODrive.getODriveInfo());
-}
-
-/**
- * Command for the Router lib to change the thrust manually.
- */
-void setThrustCmd() {
-  Router::info_no_newline("Thrust?");
-  String thrustString = Router::read(INT_BUFFER_SIZE);
-  Router::info("Response: " + thrustString);
-
-  float thrust;
-  int result = std::sscanf(thrustString.c_str(), "%f", &thrust);
-  if (result != 1) {
-    Router::info("Could not convert input to a float, not continuing");
-    return;
-  }
-
-  if (thrust < MIN_THRUST || thrust > MAX_THRUST) {
-    Router::info("Thrust outside defined range in code, not continuing");
-    return;
-  }
-
-  float angle_ox;
-  float angle_fuel;
-  open_loop_thrust_control_defaults(thrust, &angle_ox, &angle_fuel);
-  loxODrive.setPos(angle_ox / 360);
-  ipaODrive.setPos(angle_fuel / 360);
-
-  printBuffer.clear();
-  printBuffer << "Thrust set using open loop. LOX pos: " << loxODrive.getLastPosCmd(); // << " IPA pos: " << ipaODrive.getLastPosCmd();
-
-  Router::info(printBuffer.str);
-}
-
-/**
- * Initiates curve following based on the curve header loaded in Loader.cpp.
- */
-void followCurve() {
-  if (!Loader::loaded_curve) {
-    Router::info("No curve loaded.");
-    return;
-  }
-
-  // checkConfig() function provides its own error message console logging
-  if (loxODrive.checkConfig() || ipaODrive.checkConfig()) {
-    return;
-  }
-
-  ZucrowInterface::send_ok_to_zucrow(); // tell zucrow we are ready to go
-
-#ifdef ENABLE_ZUCROW_SAFETY
-  while (ZucrowInterface::check_sync_from_zucrow() != ZUCROW_SYNC_RUNNING) {
-  }; // wait until zucrow gives us the go
-#endif
-
-  ZucrowInterface::send_sync_to_zucrow(TEENSY_SYNC_RUNNING);
-  Loader::header.is_thrust ? followThrustLerpCurve() : followAngleLerpCurve();
-  ZucrowInterface::send_sync_to_zucrow(TEENSY_SYNC_IDLE);
-
-  if (Router::logenabled) {
-    odriveLogFile.flush();
-    odriveLogFile.close();
-  }
-
-  Router::info("Finished following curve!");
-}
-
-void followCurveCmd() {
-  if (Router::logenabled) {
-    // filenames use DOS 8.3 standard
-    Router::info_no_newline("Enter log filename (1-8 chars + '.' + 3 chars): ");
-    String filename = Router::read(50);
-    createCurveLog(filename.toUpperCase().c_str()); // lower case files have issues on teensy
-
-    if (!odriveLogFile) {
-      Router::info_no_newline("Failed to create odrive log file. Send 'y' to continue anyway. ");
-      String resp = Router::read(50);
-      if (resp != "y") {
-        return;
-      }
-    }
-  }
-  followCurve();
-}
 } // namespace Driver

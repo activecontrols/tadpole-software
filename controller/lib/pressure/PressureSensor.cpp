@@ -1,5 +1,5 @@
 #include "PressureSensor.h"
-#include "spi_demux.hpp"
+#include "SPI_Demux.h"
 
 PressureSensor::PressureSensor(int demuxAddr, float slope, float offset) : ADS131M0x(demuxAddr) {
   this->slope = slope;
