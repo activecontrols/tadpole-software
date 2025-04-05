@@ -21,8 +21,7 @@ public:
 namespace TC {
 void begin();
 
-extern Thermocouple lox_venturi_temperature;
-extern Thermocouple lox_valve_temperature;
+extern Thermocouple water;
 } // namespace TC
 
 #endif // TC_SENSOR_H

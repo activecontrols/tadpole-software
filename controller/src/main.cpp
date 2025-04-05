@@ -26,18 +26,10 @@ void print_labeled_sensor(const char *msg, float sensor_value, const char *unit)
 
 void print_all_sensors() {
   Router::info("\n Sensor Status ");
-  print_labeled_sensor("            PT LOX Tank: ", PT::lox_tank.getPressure(), " psi");
-  print_labeled_sensor("PT LOX Venturi Upstream: ", PT::lox_venturi_upstream.getPressure(), " psi");
-  print_labeled_sensor("  PT LOX Venturi Throat: ", PT::lox_venturi_throat.getPressure(), " psi");
-
-  print_labeled_sensor("            PT IPA Tank: ", PT::ipa_tank.getPressure(), " psi");
-  print_labeled_sensor("PT IPA Venturi Upstream: ", PT::ipa_venturi_upstream.getPressure(), " psi");
-  print_labeled_sensor("  PT IPA Venturi Throat: ", PT::ipa_venturi_throat.getPressure(), " psi");
-
-  print_labeled_sensor("             PT Chamber: ", PT::chamber.getPressure(), " psi");
-
-  print_labeled_sensor("           TC LOX Valve: ", TC::lox_valve_temperature.getTemperature_F(), " F");
-  print_labeled_sensor("         TC LOX Venturi: ", TC::lox_venturi_temperature.getTemperature_F(), " F");
+  print_labeled_sensor("            PT WATER Tank: ", PT::water_tank.getPressure(), " psi");
+  print_labeled_sensor("PT WATER Venturi Upstream: ", PT::water_venturi_upstream.getPressure(), " psi");
+  print_labeled_sensor("  PT WATER Venturi Throat: ", PT::water_venturi_throat.getPressure(), " psi");
+  print_labeled_sensor("                 TC WATER: ", TC::water.getTemperature_F(), " F");
 }
 
 void setup() {

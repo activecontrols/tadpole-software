@@ -23,7 +23,7 @@ void log_curve_csv(float time, int phase, float thrust, Sensor_Data sd) {
   curveTelemCSV.clear();
   curveTelemCSV << time << "," << phase << "," << thrust << "," << Driver::loxODrive.getLastPosCmd() << "," << Driver::ipaODrive.getLastPosCmd() << ","
                 << Driver::loxODrive.getTelemetryCSV() << "," << Driver::ipaODrive.getTelemetryCSV() << ","
-                << sd.water.tank_pressure << "," << sd.water.venturi_upstream_pressure << "," << sd.water.venturi_throat_pressure
+                << sd.water.tank_pressure << "," << sd.water.venturi_upstream_pressure << "," << sd.water.venturi_throat_pressure << ","
                 << cs.water_angle_controller_p_component << "," << cs.water_angle_controller_i_component << "," << ff_state.ol_water_angle;
 
   curveTelemCSV.print();

@@ -18,30 +18,18 @@ struct Fluid_Line {
   float tank_pressure;             // psi
   float venturi_upstream_pressure; // psi
   float venturi_throat_pressure;   // psi
-  float venturi_temperature;       // K
-  float valve_temperature;         // K
+  float temperature;               // K
 };
 
 struct Sensor_Data {
-  float chamber_pressure; // psi
-  Fluid_Line ox;
-  Fluid_Line ipa;
   Fluid_Line water;
 };
 
 struct FF_State {
-  float ol_mdot;
-  float ol_lox_angle;
-  float ol_ipa_angle;
-
   float ol_water_angle;
 };
 
 extern FF_State ff_state;
-void open_loop_thrust_control(float thrust, Sensor_Data sensor_data, float *angle_ox, float *angle_ipa);
-void open_loop_thrust_control_defaults(float thrust, float *angle_ox, float *angle_ipa);
-void closed_loop_thrust_control(float thrust, Sensor_Data sensor_data, float *angle_ox, float *angle_ipa);
-
 float open_loop_water_flow(float mass_flow_water, Sensor_Data sensor_data);
 float closed_loop_water_flow(float mass_flow_water, Sensor_Data sensor_data);
 #endif

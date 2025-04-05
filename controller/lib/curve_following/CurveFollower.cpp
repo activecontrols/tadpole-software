@@ -41,33 +41,15 @@ float lerp(float a, float b, float t0, float t1, float t) {
 Sensor_Data get_sensor_data() {
   Sensor_Data sd;
 
-  sd.ox.tank_pressure = PT::lox_tank.getPressure();
-  sd.ox.venturi_throat_pressure = PT::lox_venturi_throat.getPressure();
-  sd.ox.venturi_upstream_pressure = PT::lox_venturi_upstream.getPressure();
-  sd.ox.valve_temperature = TC::lox_valve_temperature.getTemperature_Kelvin();
-  sd.ox.venturi_temperature = TC::lox_venturi_temperature.getTemperature_Kelvin();
+  sd.water.tank_pressure = PT::water_tank.getPressure();
+  sd.water.venturi_throat_pressure = PT::water_venturi_throat.getPressure();
+  sd.water.venturi_upstream_pressure = PT::water_venturi_upstream.getPressure();
+  sd.water.temperature = TC::water.getTemperature_Kelvin();
 
-  sd.ipa.tank_pressure = PT::ipa_tank.getPressure();
-  sd.ipa.venturi_throat_pressure = PT::ipa_venturi_throat.getPressure();
-  sd.ipa.venturi_upstream_pressure = PT::ipa_venturi_upstream.getPressure();
-
-  sd.chamber_pressure = PT::chamber.getPressure();
-
-  sd.water.tank_pressure = sd.ipa.tank_pressure;
-  sd.water.venturi_throat_pressure = sd.water.venturi_throat_pressure;
-  sd.water.venturi_upstream_pressure = sd.water.venturi_upstream_pressure;
-
-  WindowComparators::lox_tank_pressure.check(sd.ox.tank_pressure);
-  WindowComparators::lox_venturi_throat_pressure.check(sd.ox.venturi_throat_pressure);
-  WindowComparators::lox_venturi_upstream_pressure.check(sd.ox.venturi_upstream_pressure);
-  WindowComparators::lox_valve_temperature.check(sd.ox.valve_temperature);
-  WindowComparators::lox_venturi_temperature.check(sd.ox.venturi_temperature);
-
-  WindowComparators::ipa_tank_pressure.check(sd.ipa.tank_pressure);
-  WindowComparators::ipa_venturi_throat_pressure.check(sd.ipa.venturi_throat_pressure);
-  WindowComparators::ipa_venturi_upstream_pressure.check(sd.ipa.venturi_upstream_pressure);
-
-  WindowComparators::chamber_pressure.check(sd.chamber_pressure);
+  WindowComparators::water_tank_pressure.check(sd.water.tank_pressure);
+  WindowComparators::water_venturi_throat_pressure.check(sd.water.venturi_throat_pressure);
+  WindowComparators::water_venturi_upstream_pressure.check(sd.water.venturi_upstream_pressure);
+  WindowComparators::water_temperature.check(sd.water.temperature);
   return sd;
 }
 
@@ -128,9 +110,9 @@ void followThrustLerpCurve() {
 
       Sensor_Data sd = get_sensor_data();
 
-      float angle_ox;
-      float angle_fuel;
-      open_loop_thrust_control_defaults(thrust, &angle_ox, &angle_fuel);
+      float angle_ox = 0;
+      float angle_fuel = 0;
+      // open_loop_thrust_control_defaults(thrust, &angle_ox, &angle_fuel);
       // open_loop_thrust_control(thrust, sd, &angle_ox, &angle_fuel);
       // closed_loop_thrust_control(thrust, sd, &angle_ox, &angle_fuel);
       Driver::loxODrive.setPos(angle_ox);
@@ -155,7 +137,7 @@ void followThrustLerpCurve() {
   }
 }
 
-void waterFlow() {
+void waterflow() {
   Router::info_no_newline("Mass Flow Rate?");
   String mfr_str = Router::read(INT_BUFFER_SIZE);
   Router::info("Response: " + mfr_str);
@@ -208,7 +190,7 @@ void waterFlow() {
 void begin() {
   Router::add({follow_curve_cmd, "follow_curve"});
   Router::add({auto_seq, "auto_seq"});
-  Router::add({waterFlow, "waterflow"});
+  Router::add({waterflow, "waterflow"});
 }
 
 /**

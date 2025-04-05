@@ -34,25 +34,13 @@ float PressureSensor::getPressure() {
 }
 
 namespace PT {
-PressureSensor lox_tank(SPI_DEVICE_PT_LOX_TANK, 9.38, 2.3);
-PressureSensor lox_venturi_upstream(SPI_DEVICE_PT_LOX_VENTURI_UPSTREAM, 9.38, 2.3);
-PressureSensor lox_venturi_throat(SPI_DEVICE_PT_LOX_VENTURI_THROAT, 9.38, 2.3);
-
-PressureSensor ipa_tank(SPI_DEVICE_PT_IPA_TANK, 9.38, 2.3);
-PressureSensor ipa_venturi_upstream(SPI_DEVICE_PT_IPA_VENTURI_UPSTREAM, 9.38, 2.3);
-PressureSensor ipa_venturi_throat(SPI_DEVICE_PT_IPA_VENTURI_THROAT, 9.38, 2.3);
-
-PressureSensor chamber(SPI_DEVICE_PT_CHAMBER, 9.38, 2.3);
+PressureSensor water_tank(SPI_DEVICE_PT_WATER_TANK, 9.38, 2.3);
+PressureSensor water_venturi_upstream(SPI_DEVICE_PT_WATER_VENTURI_UPSTREAM, 9.38, 2.3);
+PressureSensor water_venturi_throat(SPI_DEVICE_PT_WATER_VENTURI_THROAT, 9.38, 2.3);
 
 void begin() {
-  lox_tank.begin();
-  lox_venturi_upstream.begin();
-  lox_venturi_throat.begin();
-
-  ipa_tank.begin();
-  ipa_venturi_upstream.begin();
-  ipa_venturi_throat.begin();
-
-  chamber.begin();
+  water_tank.begin();
+  water_venturi_upstream.begin();
+  water_venturi_throat.begin();
 }
 } // namespace PT

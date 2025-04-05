@@ -30,11 +30,9 @@ float Thermocouple::getTemperature_Kelvin() {
 }
 
 namespace TC {
-Thermocouple lox_venturi_temperature(SPI_DEVICE_TC_LOX_VENTURI);
-Thermocouple lox_valve_temperature(SPI_DEVICE_TC_LOX_VALVE);
+Thermocouple water(SPI_DEVICE_TC_WATER);
 
 void begin() {
-  lox_venturi_temperature.begin(MAX31856_TCTYPE_K);
-  lox_valve_temperature.begin(MAX31856_TCTYPE_K);
+  water.begin(MAX31856_TCTYPE_K);
 }
 } // namespace TC
