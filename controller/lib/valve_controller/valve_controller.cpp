@@ -67,8 +67,16 @@ Sensor_Data default_sensor_data{
         .tank_pressure = 820,           // psi
         .venturi_upstream_pressure = 0, // psi - not needed for OL
         .venturi_throat_pressure = 0,   // psi - not needed for OL
+    },
+    .water = {
+        .tank_pressure = 820,           // psi
+        .venturi_upstream_pressure = 0, // psi - not needed for OL
+        .venturi_throat_pressure = 0,   // psi - not needed for OL
     }};
 
+Venturi ox_venturi{.inlet_area = 0.127, .throat_area = 0.0204, .cd = 0.8};    // in^2 for both
+Venturi ipa_venturi{.inlet_area = 0.127, .throat_area = 0.0204, .cd = 0.8};   // in^2 for both
+Venturi water_venturi{.inlet_area = 0.127, .throat_area = 0.0204, .cd = 0.8}; // in^2 for both
 Venturi ox_venturi{.inlet_area = 0.127, .throat_area = 0.0204, .cd = 0.8};    // in^2 for both
 Venturi ipa_venturi{.inlet_area = 0.127, .throat_area = 0.0204, .cd = 0.8};   // in^2 for both
 Venturi water_venturi{.inlet_area = 0.127, .throat_area = 0.0204, .cd = 0.8}; // in^2 for both
@@ -102,6 +110,10 @@ float ox_density_from_temperature(float temperature) {
 // get ipa properties using temperature in Kelvin
 float ipa_density() {
   return 0.02836; // lb/in^3
+}
+
+float water_density() {
+  return 0.0360724; // lb/in^3
 }
 
 float water_density() {
