@@ -44,6 +44,7 @@ void reset() {
   Chamber_Pressure_Controller.reset();
   LOX_Angle_Controller.reset();
   IPA_Angle_Controller.reset();
+  Water_Angle_Controller.reset();
 }
 
 Controller_State getState() {
