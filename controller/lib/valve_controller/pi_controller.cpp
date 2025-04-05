@@ -16,7 +16,10 @@ float PI_Controller::compute(float input_error) {
   this->err_sum += input_error * (this_compute_time - last_compute_time) * 0.001;
   this->last_compute_time = this_compute_time;
 
-  float raw_output = this->kp * input_error + this->ki * this->err_sum;
+  p_component = this->kp * input_error;
+  i_component = this->ki * this->err_sum;
+
+  float raw_output = p_component + i_component;
   if (raw_output > max_output) {
     return max_output; // clamped high
   }
@@ -40,5 +43,16 @@ void reset() {
   Chamber_Pressure_Controller.reset();
   LOX_Angle_Controller.reset();
   IPA_Angle_Controller.reset();
+}
+
+Controller_State getState() {
+  Controller_State cs;
+  cs.chamber_pressure_controller_p_component = Chamber_Pressure_Controller.p_component;
+  cs.chamber_pressure_controller_i_component = Chamber_Pressure_Controller.i_component;
+  cs.lox_angle_controller_p_component = LOX_Angle_Controller.p_component;
+  cs.lox_angle_controller_i_component = LOX_Angle_Controller.i_component;
+  cs.ipa_angle_controller_p_component = IPA_Angle_Controller.p_component;
+  cs.ipa_angle_controller_i_component = IPA_Angle_Controller.i_component;
+  return cs;
 }
 } // namespace ClosedLoopControllers

@@ -158,17 +158,22 @@ float ipa_manifold_pressure(float thrust) {
   return clamped_table_interplolation(thrust, ipa_manifold_table, IPA_MANIFOLD_TABLE_LEN);
 }
 
+FF_State ff_state;
 // get valve angles (degrees) given thrust (lbf) and current sensor data
 void open_loop_thrust_control(float thrust, Sensor_Data sensor_data, float *angle_ox, float *angle_ipa) {
+  float mass_flow_total = mass_flow_rate(chamber_pressure(thrust));
   float mass_flow_ox;
   float mass_flow_ipa;
-  mass_balance(mass_flow_rate(chamber_pressure(thrust)), &mass_flow_ox, &mass_flow_ipa);
+  mass_balance(mass_flow_total, &mass_flow_ox, &mass_flow_ipa);
 
   float ox_valve_downstream_pressure_goal = ox_manifold_pressure(thrust); // TODO RJN OL - multiply these by coeff
   float ipa_valve_downstream_pressure_goal = ipa_manifold_pressure(thrust);
 
   *angle_ox = valve_angle(sub_critical_cv(mass_flow_ox, sensor_data.ox.tank_pressure, ox_valve_downstream_pressure_goal, ox_density_from_temperature(sensor_data.ox.valve_temperature)));
   *angle_ipa = valve_angle(sub_critical_cv(mass_flow_ipa, sensor_data.ipa.tank_pressure, ipa_valve_downstream_pressure_goal, ipa_density()));
+  ff_state.ol_mdot = mass_flow_total;
+  ff_state.ol_lox_angle = *angle_ox;
+  ff_state.ol_ipa_angle = *angle_ox;
 }
 
 // get valve angles (degrees) given thrust (lbf)
@@ -210,4 +215,7 @@ void closed_loop_thrust_control(float thrust, Sensor_Data sensor_data, float *an
 
   *angle_ox = ol_angle_ox - ClosedLoopControllers::LOX_Angle_Controller.compute(err_mass_flow_ox);
   *angle_ipa = ol_angle_ipa - ClosedLoopControllers::IPA_Angle_Controller.compute(err_mass_flow_ipa);
+  ff_state.ol_mdot = ol_mdot_total;
+  ff_state.ol_lox_angle = ol_angle_ox;
+  ff_state.ol_ipa_angle = ol_angle_ipa;
 }
