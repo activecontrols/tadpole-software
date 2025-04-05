@@ -2,10 +2,10 @@
 #include "pi_controller.h"
 #include "math.h"
 
-#define tadpole_AREA_OF_THROAT 1.69 // in^2
-#define tadpole_C_STAR 4998.0654    // ft / s // TODO RJN OL - replace with data from testing
-#define tadpole_MASS_FLOW_RATIO 1.2 // #ox = 1.2 * ipa
-#define GRAVITY_FT_S 32.1740        // Gravity in (ft / s^2)
+// #define tadpole_AREA_OF_THROAT 1.69 // in^2
+// #define tadpole_C_STAR 4998.0654    // ft / s // TODO RJN OL - replace with data from testing
+// #define tadpole_MASS_FLOW_RATIO 1.2 // #ox = 1.2 * ipa
+#define GRAVITY_FT_S 32.1740 // Gravity in (ft / s^2)
 
 #define IN3_TO_GAL 0.004329       // convert cubic inches to gallons
 #define PER_SEC_TO_PER_MIN 60     // convert per second to per minute
@@ -19,36 +19,6 @@ float valve_angle_table[2][INTERPOLATION_TABLE_LENGTH] = {
     {0.000, 0.070, 0.161, 0.378, 0.670, 1.000, 1.450, 2.050, 2.780, 3.710, 4.960},
     {0, 9, 18, 27, 36, 45, 54, 63, 72, 81, 90}};
 
-#define CF_THRUST_TABLE_LEN 2 // TODO RJN OL - replace with data from testing
-// thrust (lbf) to cf (unitless)
-float cf_thrust_table[2][INTERPOLATION_TABLE_LENGTH] = {
-    {220, 550},
-    {1.12, 1.3}};
-
-#define OX_DENSITY_TABLE_LEN 20
-// temperature (K) to density (lb/in^3)
-float ox_density_table[2][INTERPOLATION_TABLE_LENGTH] = {
-    {55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 105, 110, 115, 120, 125, 130, 135, 140, 145, 150},
-    {0.04709027778, 0.04631539352, 0.04550925926, 0.0446880787, 0.04385474537, 0.04300810185, 0.04214525463, 0.04126099537, 0.04035127315, 0.03941087963, 0.03843229167, 0.03740856481, 0.03632986111, 0.03518287037, 0.03394965278, 0.03260416667, 0.03110532407, 0.02938020833, 0.0272806713, 0.02440335648}};
-
-#define OX_PRESSURE_TABLE_LEN 20
-// temperature (K) to vapour pressure (psi)
-float ox_pressure_table[2][INTERPOLATION_TABLE_LENGTH] = {
-    {55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 105, 110, 115, 120, 125, 130, 135, 140, 145, 150},
-    {0.0259, 0.10527, 0.33866, 0.90826, 2.1099, 4.369, 8.2426, 14.41, 23.653, 36.84, 54.901, 78.814, 109.59, 148.27, 195.93, 253.68, 322.72, 404.33, 500.05, 611.86}};
-
-#define OX_MANIFOLD_TABLE_LEN 21
-// thrust (lbf) to pressure (psi)
-float ox_manifold_table[2][INTERPOLATION_TABLE_LENGTH] = {
-    {192.5, 210.556, 228.611, 246.667, 264.722, 282.778, 300.833, 318.889, 336.944, 355.0, 373.056, 391.111, 409.167, 427.222, 445.278, 463.333, 481.389, 499.444, 517.5, 535.556, 550.0},
-    {118.055, 127.34, 136.64, 146.082, 155.44, 165.182, 175.069, 184.896, 194.888, 205.049, 215.378, 225.702, 236.381, 246.93, 257.695, 268.683, 279.647, 290.878, 301.999, 313.482, 322.79}};
-
-#define IPA_MANIFOLD_TABLE_LEN 21
-// thrust (lbf) to pressure (psi)
-float ipa_manifold_table[2][INTERPOLATION_TABLE_LENGTH] = {
-    {192.5, 210.556, 228.611, 246.667, 264.722, 282.778, 300.833, 318.889, 336.944, 355.0, 373.056, 391.111, 409.167, 427.222, 445.278, 463.333, 481.389, 499.444, 517.5, 535.556, 550.0},
-    {120.844, 130.535, 140.262, 150.16, 159.99, 170.243, 180.67, 191.054, 201.631, 212.408, 223.382, 234.368, 245.752, 257.017, 268.529, 280.3, 292.062, 304.129, 316.095, 328.466, 338.509}};
-
 Sensor_Data default_sensor_data{
     .water = {
         .tank_pressure = 820,           // psi
@@ -57,8 +27,6 @@ Sensor_Data default_sensor_data{
         .temperature = 0,               // K
     }};
 
-Venturi ox_venturi{.inlet_area = 0.127, .throat_area = 0.0204, .cd = 0.8};    // in^2 for both
-Venturi ipa_venturi{.inlet_area = 0.127, .throat_area = 0.0204, .cd = 0.8};   // in^2 for both
 Venturi water_venturi{.inlet_area = 0.127, .throat_area = 0.0204, .cd = 0.8}; // in^2 for both
 
 // maps v from (min_in, max_in) to (min_out, max_out)
@@ -82,48 +50,8 @@ float clamped_table_interplolation(float v, float table[2][INTERPOLATION_TABLE_L
   return table[1][table_length - 1]; // if starting value is above max, return max
 }
 
-// get oxygen properties using temperature in Kelvin
-float ox_density_from_temperature(float temperature) {
-  return clamped_table_interplolation(temperature, ox_density_table, OX_DENSITY_TABLE_LEN);
-}
-
-// get ipa properties using temperature in Kelvin
-float ipa_density() {
-  return 0.02836; // lb/in^3
-}
-
 float water_density() {
   return 0.0360724; // lb/in^3
-}
-
-// The thrust coefficient (Cf) varies based on thrust
-// Lookup the thrust coefficient using linear interpolation
-// INPUT: thrust (lbf)
-// OUTPUT: thrust coefficient (unitless)
-float cf(float thrust) {
-  return clamped_table_interplolation(thrust, cf_thrust_table, CF_THRUST_TABLE_LEN);
-}
-
-// convert thrust to chamber pressure using Cf equation
-// INPUT: thrust (lbf)
-// OUTPUT: chamber pressure (psi)
-float chamber_pressure(float thrust) {
-  return thrust / cf(thrust) / tadpole_AREA_OF_THROAT;
-}
-
-// convert chamber pressure to total mass flow rate using c* equation
-// INPUT: chamber pressure (psi)
-// OUTPUT: total mass flow rate (lbm/s)
-float mass_flow_rate(float chamber_pressure) {
-  return chamber_pressure * tadpole_AREA_OF_THROAT / tadpole_C_STAR * GRAVITY_FT_S;
-}
-
-// convert total mass flow into OX and IPA flow rates
-// INPUT: total_mass_flow (lbm/s)
-// OUTPUT: mass_flow_ox (lbm/s) and mass_flow_ipa (lbm/s)
-void mass_balance(float total_mass_flow, float *mass_flow_ox, float *mass_flow_ipa) {
-  *mass_flow_ox = total_mass_flow / (1 + tadpole_MASS_FLOW_RATIO) * tadpole_MASS_FLOW_RATIO;
-  *mass_flow_ipa = total_mass_flow / (1 + tadpole_MASS_FLOW_RATIO);
 }
 
 // convert mass_flow into valve flow coefficient (cv)
@@ -142,20 +70,6 @@ float valve_angle(float cv) {
   return clamped_table_interplolation(cv, valve_angle_table, VALVE_ANGLE_TABLE_LEN);
 }
 
-// Lookup ox manifold pressure using linear interpolation
-// INPUT: thrust
-// OUTPUT: ox manifold pressure (psi)
-float ox_manifold_pressure(float thrust) {
-  return clamped_table_interplolation(thrust, ox_manifold_table, OX_MANIFOLD_TABLE_LEN);
-}
-
-// Lookup ipa manifold pressure using linear interpolation
-// INPUT: thrust
-// OUTPUT: ipa manifold pressure (psi)
-float ipa_manifold_pressure(float thrust) {
-  return clamped_table_interplolation(thrust, ipa_manifold_table, IPA_MANIFOLD_TABLE_LEN);
-}
-
 FF_State ff_state;
 
 // Estimates mass flow across a venturi using pressure sensor data and fluid information.
@@ -170,6 +84,7 @@ float estimate_mass_flow(Fluid_Line fluid_line, Venturi venturi, float fluid_den
 float open_loop_water_flow(float mass_flow_water, Sensor_Data sensor_data) {
   float downstream_pressure_goal = 14.3;
   float angle_water = valve_angle(sub_critical_cv(mass_flow_water, sensor_data.water.tank_pressure, downstream_pressure_goal, water_density()));
+  ff_state.mass_flow_estimate = -1;
   ff_state.ol_water_angle = angle_water;
   return angle_water;
 }
@@ -177,8 +92,11 @@ float open_loop_water_flow(float mass_flow_water, Sensor_Data sensor_data) {
 // get valve angles (degrees) given thrust (lbf) and current sensor data
 float closed_loop_water_flow(float mass_flow_water, Sensor_Data sensor_data) {
   float downstream_pressure_goal = 14.3;
-  float err_mass_flow_water = estimate_mass_flow(sensor_data.water, water_venturi, water_density()) - mass_flow_water;
+  float mass_flow_estimate = estimate_mass_flow(sensor_data.water, water_venturi, water_density());
+
+  float err_mass_flow_water = mass_flow_estimate - mass_flow_water;
   float ol_angle_water = valve_angle(sub_critical_cv(mass_flow_water, sensor_data.water.tank_pressure, downstream_pressure_goal, water_density()));
+  ff_state.mass_flow_estimate = mass_flow_estimate;
   ff_state.ol_water_angle = ol_angle_water;
   return ol_angle_water - ClosedLoopControllers::Water_Angle_Controller.compute(err_mass_flow_water);
 }

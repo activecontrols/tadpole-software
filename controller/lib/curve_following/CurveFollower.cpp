@@ -68,13 +68,13 @@ void followAngleLerpCurve() {
       float lox_pos = lerp(lac[i].lox_angle, lac[i + 1].lox_angle, lac[i].time, lac[i + 1].time, seconds) / 360;
       float ipa_pos = lerp(lac[i].ipa_angle, lac[i + 1].ipa_angle, lac[i].time, lac[i + 1].time, seconds) / 360;
 
-      Sensor_Data sd = get_sensor_data();
+      // Sensor_Data sd = get_sensor_data();
 
       Driver::loxODrive.setPos(lox_pos);
       Driver::ipaODrive.setPos(ipa_pos);
 
       if (timer - lastlog > LOG_INTERVAL_MS) {
-        CurveLogger::log_curve_csv(seconds, i, -1, sd);
+        // CurveLogger::log_curve_csv(seconds, i, -1, sd);
         lastlog = timer;
       }
 
@@ -105,10 +105,10 @@ void followThrustLerpCurve() {
 
   for (int i = 0; i < Loader::header.num_points - 1; i++) {
     while (timer / 1000.0 < ltc[i + 1].time) {
-      float seconds = timer / 1000.0;
-      float thrust = lerp(ltc[i].thrust, ltc[i + 1].thrust, ltc[i].time, ltc[i + 1].time, seconds);
+      // float seconds = timer / 1000.0;
+      // float thrust = lerp(ltc[i].thrust, ltc[i + 1].thrust, ltc[i].time, ltc[i + 1].time, seconds);
 
-      Sensor_Data sd = get_sensor_data();
+      // Sensor_Data sd = get_sensor_data();
 
       float angle_ox = 0;
       float angle_fuel = 0;
@@ -119,7 +119,7 @@ void followThrustLerpCurve() {
       Driver::ipaODrive.setPos(angle_fuel);
 
       if (timer - lastlog >= LOG_INTERVAL_MS) {
-        CurveLogger::log_curve_csv(seconds, i, thrust, sd);
+        // CurveLogger::log_curve_csv(seconds, i, thrust, sd);
         lastlog = timer;
       }
 
@@ -138,7 +138,7 @@ void followThrustLerpCurve() {
 }
 
 void waterflow() {
-  Router::info_no_newline("Mass Flow Rate?");
+  Router::info_no_newline("Mass Flow Rate? ");
   String mfr_str = Router::read(INT_BUFFER_SIZE);
   Router::info("Response: " + mfr_str);
 
@@ -149,7 +149,7 @@ void waterflow() {
     return;
   }
 
-  Router::info_no_newline("Time (seconds)?");
+  Router::info_no_newline("Time (seconds)? ");
   String time_str = Router::read(INT_BUFFER_SIZE);
   Router::info("Response: " + time_str);
 
@@ -159,6 +159,10 @@ void waterflow() {
     Router::info("Could not convert input to a float, not continuing");
     return;
   }
+
+  Router::info_no_newline("Enter log filename (1-8 chars + '.' + 3 chars): ");
+  String filename = Router::read(50);
+  CurveLogger::create_curve_log(filename.toUpperCase().c_str()); // lower case files have issues on teensy
 
   int kill_reason = DONT_KILL;
   elapsedMillis timer = elapsedMillis();
@@ -172,7 +176,7 @@ void waterflow() {
     Driver::loxODrive.setPos(open_loop_water_flow(mfr, sd) / 360);
 
     if (timer - lastlog >= LOG_INTERVAL_MS) {
-      CurveLogger::log_curve_csv(timer / 1000.0, 0, 0, sd);
+      CurveLogger::log_curve_csv(timer / 1000.0, sd);
       lastlog = timer;
     }
 
@@ -184,6 +188,8 @@ void waterflow() {
     }
     delay(COMMAND_INTERVAL_MS);
   }
+
+  CurveLogger::close_curve_log();
 }
 
 // init CurveFollower and add relevant router cmds

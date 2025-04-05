@@ -26,9 +26,9 @@ void WindowComparator::check(float v) {
 namespace WindowComparators {
 wc_error_info WC_ERROR = {.isError = false};
 
-WindowComparator water_tank_pressure(WC_WATER_TANK_PRESSURE_ID, -1, 2000);
-WindowComparator water_venturi_upstream_pressure(WC_WATER_VENTURI_UPSTREAM_PRESSURE_ID, -1, 2000);
-WindowComparator water_venturi_throat_pressure(WC_WATER_VENTURI_THROAT_PRESSURE_ID, -1, 2000);
-WindowComparator water_temperature(WC_WATER_TEMPERATURE, -1, 2000);
+WindowComparator water_tank_pressure(WC_WATER_TANK_PRESSURE_ID, -2000, 2000);
+WindowComparator water_venturi_upstream_pressure(WC_WATER_VENTURI_UPSTREAM_PRESSURE_ID, -2000, 2000);
+WindowComparator water_venturi_throat_pressure(WC_WATER_VENTURI_THROAT_PRESSURE_ID, -2000, 2000);
+WindowComparator water_temperature(WC_WATER_TEMPERATURE, -2000, 2000);
 
 } // namespace WindowComparators

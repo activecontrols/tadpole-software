@@ -27,6 +27,7 @@ struct Sensor_Data {
 
 struct FF_State {
   float ol_water_angle;
+  float mass_flow_estimate;
 };
 
 extern FF_State ff_state;
