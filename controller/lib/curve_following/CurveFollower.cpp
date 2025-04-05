@@ -53,6 +53,10 @@ Sensor_Data get_sensor_data() {
 
   sd.chamber_pressure = PT::chamber.getPressure();
 
+  sd.water.tank_pressure = sd.ipa.tank_pressure;
+  sd.water.venturi_throat_pressure = sd.water.venturi_throat_pressure;
+  sd.water.venturi_upstream_pressure = sd.water.venturi_upstream_pressure;
+
   WindowComparators::lox_tank_pressure.check(sd.ox.tank_pressure);
   WindowComparators::lox_venturi_throat_pressure.check(sd.ox.venturi_throat_pressure);
   WindowComparators::lox_venturi_upstream_pressure.check(sd.ox.venturi_upstream_pressure);
