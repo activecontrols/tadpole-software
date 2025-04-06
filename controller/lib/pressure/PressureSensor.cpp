@@ -9,6 +9,9 @@ PressureSensor::PressureSensor(int demuxAddr, float slope, float offset) : ADS13
 void PressureSensor::begin() {
   setInputChannelSelection(0, INPUT_CHANNEL_MUX_AIN0P_AIN0N);
   setInputChannelSelection(1, INPUT_CHANNEL_MUX_AIN0P_AIN0N);
+  writeRegister(0x4, 0);
+  setChannelOffsetCalibration(0, 0);
+  setChannelOffsetCalibration(1, 0);
 }
 
 // returns the absolute pressure
@@ -34,9 +37,9 @@ float PressureSensor::getPressure() {
 }
 
 namespace PT {
-PressureSensor water_tank(SPI_DEVICE_PT_WATER_TANK, 1, 0);
-PressureSensor water_venturi_upstream(SPI_DEVICE_PT_WATER_VENTURI_UPSTREAM, 1, 0);
-PressureSensor water_venturi_throat(SPI_DEVICE_PT_WATER_VENTURI_THROAT, 1, 0);
+PressureSensor water_tank(SPI_DEVICE_PT_WATER_TANK, 8.18, 9.34);                         // S/N 5920590
+PressureSensor water_venturi_upstream(SPI_DEVICE_PT_WATER_VENTURI_UPSTREAM, 8.37, 8.68); // S/N 5920589
+PressureSensor water_venturi_throat(SPI_DEVICE_PT_WATER_VENTURI_THROAT, 175.24, 121.69); // S/N 10503469
 
 void begin() {
   water_tank.begin();

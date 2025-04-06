@@ -283,9 +283,9 @@ public:
 
   uint16_t isResetOK(void);
   adcOutput readADC(void);
+  uint8_t writeRegister(uint8_t address, uint16_t value);
 
 private:
-  uint8_t writeRegister(uint8_t address, uint16_t value);
   void writeRegisterMasked(uint8_t address, uint16_t value, uint16_t mask);
   uint16_t readRegister(uint8_t address);
 
