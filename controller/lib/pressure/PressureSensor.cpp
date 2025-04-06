@@ -7,11 +7,15 @@ PressureSensor::PressureSensor(int demuxAddr, float slope, float offset) : ADS13
 }
 
 void PressureSensor::begin() {
-  setInputChannelSelection(0, INPUT_CHANNEL_MUX_AIN0P_AIN0N);
-  setInputChannelSelection(1, INPUT_CHANNEL_MUX_AIN0P_AIN0N);
-  writeRegister(0x4, 0);
-  setChannelOffsetCalibration(0, 0);
-  setChannelOffsetCalibration(1, 0);
+  // setInputChannelSelection(0, INPUT_CHANNEL_MUX_AIN0P_AIN0N);
+  // setInputChannelSelection(1, INPUT_CHANNEL_MUX_AIN0P_AIN0N);
+  // setChannelPGA(0, 0);
+  // setChannelPGA(1, 0);
+  // setChannelOffsetCalibration(0, 0);
+  // setChannelOffsetCalibration(1, 0);
+  setChannelGainCalibration(0, 0);
+  setChannelGainCalibration(1, 0);
+  resetDevice();
 }
 
 // returns the absolute pressure

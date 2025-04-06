@@ -469,6 +469,18 @@ bool ADS131M0x::resetDevice(void) {
   x2 = SPI1.transfer(0x11);
   SPI1.transfer(0x00);
 
+  SPI1.transfer(0x00);
+  SPI1.transfer(0x00);
+  SPI1.transfer(0x00);
+
+  SPI1.transfer(0x00);
+  SPI1.transfer(0x00);
+  SPI1.transfer(0x00);
+
+  SPI1.transfer(0x00);
+  SPI1.transfer(0x00);
+  SPI1.transfer(0x00);
+
   ris = ((x << 8) | x2);
 
   delayMicroseconds(2);
