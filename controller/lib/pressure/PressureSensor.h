@@ -20,15 +20,15 @@ public:
 namespace PT {
 void begin();
 
-extern PressureSensor lox_tank;
-extern PressureSensor lox_venturi_upstream;
-extern PressureSensor lox_venturi_throat;
+extern PressureSensor pressure_0;
+extern PressureSensor pressure_2;
+extern PressureSensor pressure_4;
 
-extern PressureSensor ipa_tank;
-extern PressureSensor ipa_venturi_upstream;
-extern PressureSensor ipa_venturi_throat;
+extern PressureSensor pressure_6;
+extern PressureSensor pressure_8;
+extern PressureSensor pressure_10;
 
-extern PressureSensor chamber;
+extern PressureSensor pressure_12;
 } // namespace PT
 
 #endif // PRESSURE_SENSOR_H

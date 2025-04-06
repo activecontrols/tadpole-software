@@ -7,8 +7,15 @@ PressureSensor::PressureSensor(int demuxAddr, float slope, float offset) : ADS13
 }
 
 void PressureSensor::begin() {
-  setInputChannelSelection(0, INPUT_CHANNEL_MUX_AIN0P_AIN0N);
-  setInputChannelSelection(1, INPUT_CHANNEL_MUX_AIN0P_AIN0N);
+  // setInputChannelSelection(0, INPUT_CHANNEL_MUX_AIN0P_AIN0N);
+  // setInputChannelSelection(1, INPUT_CHANNEL_MUX_AIN0P_AIN0N);
+  // setChannelPGA(0, 0);
+  // setChannelPGA(1, 0);
+  // setChannelOffsetCalibration(0, 0);
+  // setChannelOffsetCalibration(1, 0);
+  setChannelGainCalibration(0, 0); // sets both gains to 0 - if the reset works, they will be reset to 1
+  setChannelGainCalibration(1, 0); // sets both gains to 0 - if the reset works, they will be reset to 1
+  resetDevice();
 }
 
 // returns the absolute pressure
@@ -34,25 +41,25 @@ float PressureSensor::getPressure() {
 }
 
 namespace PT {
-PressureSensor lox_tank(SPI_DEVICE_PT_LOX_TANK, 9.38, 2.3);
-PressureSensor lox_venturi_upstream(SPI_DEVICE_PT_LOX_VENTURI_UPSTREAM, 9.38, 2.3);
-PressureSensor lox_venturi_throat(SPI_DEVICE_PT_LOX_VENTURI_THROAT, 9.38, 2.3);
+PressureSensor pressure_0(SPI_DEVICE_PT_0, 100, 0);
+PressureSensor pressure_2(SPI_DEVICE_PT_2, 100, 0);
+PressureSensor pressure_4(SPI_DEVICE_PT_4, 100, 0);
 
-PressureSensor ipa_tank(SPI_DEVICE_PT_IPA_TANK, 9.38, 2.3);
-PressureSensor ipa_venturi_upstream(SPI_DEVICE_PT_IPA_VENTURI_UPSTREAM, 9.38, 2.3);
-PressureSensor ipa_venturi_throat(SPI_DEVICE_PT_IPA_VENTURI_THROAT, 9.38, 2.3);
+PressureSensor pressure_6(SPI_DEVICE_PT_6, 100, 0);
+PressureSensor pressure_8(SPI_DEVICE_PT_8, 100, 0);
+PressureSensor pressure_10(SPI_DEVICE_PT_10, 100, 0);
 
-PressureSensor chamber(SPI_DEVICE_PT_CHAMBER, 9.38, 2.3);
+PressureSensor pressure_12(SPI_DEVICE_PT_12, 100, 0);
 
 void begin() {
-  lox_tank.begin();
-  lox_venturi_upstream.begin();
-  lox_venturi_throat.begin();
+  pressure_0.begin();
+  pressure_2.begin();
+  pressure_4.begin();
 
-  ipa_tank.begin();
-  ipa_venturi_upstream.begin();
-  ipa_venturi_throat.begin();
+  pressure_6.begin();
+  pressure_8.begin();
+  pressure_10.begin();
 
-  chamber.begin();
+  pressure_12.begin();
 }
 } // namespace PT

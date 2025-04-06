@@ -41,17 +41,17 @@ float lerp(float a, float b, float t0, float t1, float t) {
 Sensor_Data get_sensor_data() {
   Sensor_Data sd;
 
-  sd.ox.tank_pressure = PT::lox_tank.getPressure();
-  sd.ox.venturi_throat_pressure = PT::lox_venturi_throat.getPressure();
-  sd.ox.venturi_upstream_pressure = PT::lox_venturi_upstream.getPressure();
-  sd.ox.valve_temperature = TC::lox_valve_temperature.getTemperature_Kelvin();
-  sd.ox.venturi_temperature = TC::lox_venturi_temperature.getTemperature_Kelvin();
+  // sd.ox.tank_pressure = PT::lox_tank.getPressure();
+  // sd.ox.venturi_throat_pressure = PT::lox_venturi_throat.getPressure();
+  // sd.ox.venturi_upstream_pressure = PT::lox_venturi_upstream.getPressure();
+  // sd.ox.valve_temperature = TC::lox_valve_temperature.getTemperature_Kelvin();
+  // sd.ox.venturi_temperature = TC::lox_venturi_temperature.getTemperature_Kelvin();
 
-  sd.ipa.tank_pressure = PT::ipa_tank.getPressure();
-  sd.ipa.venturi_throat_pressure = PT::ipa_venturi_throat.getPressure();
-  sd.ipa.venturi_upstream_pressure = PT::ipa_venturi_upstream.getPressure();
+  // sd.ipa.tank_pressure = PT::ipa_tank.getPressure();
+  // sd.ipa.venturi_throat_pressure = PT::ipa_venturi_throat.getPressure();
+  // sd.ipa.venturi_upstream_pressure = PT::ipa_venturi_upstream.getPressure();
 
-  sd.chamber_pressure = PT::chamber.getPressure();
+  // sd.chamber_pressure = PT::chamber.getPressure();
 
   WindowComparators::lox_tank_pressure.check(sd.ox.tank_pressure);
   WindowComparators::lox_venturi_throat_pressure.check(sd.ox.venturi_throat_pressure);
