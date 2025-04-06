@@ -264,7 +264,7 @@ void ODrive::hardStopHoming() { // @ Xander
   ODriveCAN::setVelocity(-0.1); // velocity [turn/s]
 
   // TODO RJN - replace with more robust + update thresholds
-  while (current < 30 && current > -30) { // thresholds must be experimentally determined. will be diffrent depening on needed current to normally move valve
+  while (current < 15 && current > -15) { // thresholds must be experimentally determined. will be diffrent depening on needed current to normally move valve
     Get_Iq_msg_t amp_msg;
     ODriveCAN::getCurrents(amp_msg); // update current reading
     current = amp_msg.Iq_Measured;

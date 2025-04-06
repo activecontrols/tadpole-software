@@ -129,8 +129,8 @@ void followThrustLerpCurve() {
       open_loop_thrust_control_defaults(thrust, &angle_ox, &angle_fuel);
       // open_loop_thrust_control(thrust, sd, &angle_ox, &angle_fuel);
       // closed_loop_thrust_control(thrust, sd, &angle_ox, &angle_fuel);
-      Driver::loxODrive.setPos(angle_ox);
-      Driver::ipaODrive.setPos(angle_fuel);
+      Driver::loxODrive.setPos(angle_ox / 360);
+      Driver::ipaODrive.setPos(angle_fuel / 360);
 
       if (timer - lastlog >= LOG_INTERVAL_MS) {
         CurveLogger::log_curve_csv(seconds, i, thrust, sd);
