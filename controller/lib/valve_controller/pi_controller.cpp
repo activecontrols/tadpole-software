@@ -35,7 +35,7 @@ void PI_Controller::reset() {
 }
 
 namespace ClosedLoopControllers {
-PI_Controller Water_Angle_Controller(1, 1, INFINITY);
+PI_Controller Water_Angle_Controller(0, 50, 20);
 
 void reset() {
   Water_Angle_Controller.reset();

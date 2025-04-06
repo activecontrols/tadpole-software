@@ -34,9 +34,9 @@ float PressureSensor::getPressure() {
 }
 
 namespace PT {
-PressureSensor water_tank(SPI_DEVICE_PT_WATER_TANK, 9.38, 2.3);
-PressureSensor water_venturi_upstream(SPI_DEVICE_PT_WATER_VENTURI_UPSTREAM, 9.38, 2.3);
-PressureSensor water_venturi_throat(SPI_DEVICE_PT_WATER_VENTURI_THROAT, 9.38, 2.3);
+PressureSensor water_tank(SPI_DEVICE_PT_WATER_TANK, 1, 0);
+PressureSensor water_venturi_upstream(SPI_DEVICE_PT_WATER_VENTURI_UPSTREAM, 1, 0);
+PressureSensor water_venturi_throat(SPI_DEVICE_PT_WATER_VENTURI_THROAT, 1, 0);
 
 void begin() {
   water_tank.begin();
