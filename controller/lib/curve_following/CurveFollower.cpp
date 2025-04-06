@@ -164,32 +164,39 @@ void waterflow() {
   String filename = Router::read(50);
   CurveLogger::create_curve_log(filename.toUpperCase().c_str()); // lower case files have issues on teensy
 
+  lerp_point_thrust *ltc = Loader::lerp_thrust_curve;
   int kill_reason = DONT_KILL;
   elapsedMillis timer = elapsedMillis();
   unsigned long lastlog = timer;
 
   ClosedLoopControllers::reset();
 
-  while (timer / 1000.0 < time_sec) {
-    Sensor_Data sd = get_sensor_data();
+  for (int i = 0; i < Loader::header.num_points - 1; i++) {
+    while (timer / 1000.0 < ltc[i + 1].time) {
+      float seconds = timer / 1000.0;
+      float thrust = lerp(ltc[i].thrust, ltc[i + 1].thrust, ltc[i].time, ltc[i + 1].time, seconds);
 
-    // log_mass_flow(sd);
-    Driver::loxODrive.setPos(closed_loop_water_flow(mfr, sd) / 360);
+      Sensor_Data sd = get_sensor_data();
 
-    if (timer - lastlog >= LOG_INTERVAL_MS) {
-      CurveLogger::log_curve_csv(timer / 1000.0, sd);
-      lastlog = timer;
+      Driver::loxODrive.setPos(closed_loop_water_flow(thrust, sd) / 360);
+
+      if (timer - lastlog >= LOG_INTERVAL_MS) {
+        CurveLogger::log_curve_csv(seconds, thrust, sd);
+        lastlog = timer;
+      }
+
+      // ZucrowInterface::send_valve_angles_to_zucrow(Driver::loxODrive.position, Driver::ipaODrive.position);
+      kill_reason = Safety::check_for_kill();
+      if (kill_reason != DONT_KILL) {
+        Safety::kill_response(kill_reason);
+        break;
+      }
+      delay(COMMAND_INTERVAL_MS);
     }
-
-    ZucrowInterface::send_valve_angles_to_zucrow(Driver::loxODrive.position, 0);
-    kill_reason = Safety::check_for_kill();
     if (kill_reason != DONT_KILL) {
-      Safety::kill_response(kill_reason);
       break;
     }
-    delay(COMMAND_INTERVAL_MS);
   }
-
   CurveLogger::close_curve_log();
 }
 

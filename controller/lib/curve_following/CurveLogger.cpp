@@ -11,17 +11,17 @@ namespace CurveLogger {
 File odriveLogFile;
 CString<400> curveTelemCSV;
 
-#define LOG_HEADER ("time,lox_pos_cmd,"                                                                  \
+#define LOG_HEADER ("time,thrust,lox_pos_cmd,"                                                           \
                     "lox_pos,lox_vel,lox_voltage,lox_current,lox_temperature,"                           \
                     "water_tank_pressure,water_venturi_upstream_pressure,water_venturi_throat_pressure," \
                     "water_angle_controller_p_component,water_angle_controller_i_component,"             \
                     "ol_water_angle,mass_flow_estimate")
 
 // logs time, phase, thrust, and sensor data in .csv format
-void log_curve_csv(float time, Sensor_Data sd) {
+void log_curve_csv(float time, float thrust, Sensor_Data sd) {
   Controller_State cs = ClosedLoopControllers::getState();
   curveTelemCSV.clear();
-  curveTelemCSV << time << "," << Driver::loxODrive.getLastPosCmd() << ","
+  curveTelemCSV << time << "," << thrust << "," << Driver::loxODrive.getLastPosCmd() << ","
                 << Driver::loxODrive.getTelemetryCSV() << ","
                 << sd.water.tank_pressure << "," << sd.water.venturi_upstream_pressure << "," << sd.water.venturi_throat_pressure << ","
                 << cs.water_angle_controller_p_component << "," << cs.water_angle_controller_i_component << ","

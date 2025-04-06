@@ -83,8 +83,10 @@ float estimate_mass_flow(Fluid_Line fluid_line, Venturi venturi, float fluid_den
 // get valve angles (degrees) given thrust (lbf) and current sensor data
 float open_loop_water_flow(float mass_flow_water, Sensor_Data sensor_data) {
   float downstream_pressure_goal = 14.3;
+  float mass_flow_estimate = estimate_mass_flow(sensor_data.water, water_venturi, water_density());
+
   float angle_water = valve_angle(sub_critical_cv(mass_flow_water, 80, downstream_pressure_goal, water_density()));
-  ff_state.mass_flow_estimate = -1;
+  ff_state.mass_flow_estimate = mass_flow_estimate;
   ff_state.ol_water_angle = angle_water;
   return angle_water;
 }
