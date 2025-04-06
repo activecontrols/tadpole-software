@@ -173,7 +173,8 @@ void waterflow() {
   while (timer / 1000.0 < time_sec) {
     Sensor_Data sd = get_sensor_data();
 
-    Driver::loxODrive.setPos(open_loop_water_flow(mfr, sd) / 360);
+    // log_mass_flow(sd);
+    Driver::loxODrive.setPos(closed_loop_water_flow(mfr, sd) / 360);
 
     if (timer - lastlog >= LOG_INTERVAL_MS) {
       CurveLogger::log_curve_csv(timer / 1000.0, sd);

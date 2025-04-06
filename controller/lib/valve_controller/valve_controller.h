@@ -33,4 +33,5 @@ struct FF_State {
 extern FF_State ff_state;
 float open_loop_water_flow(float mass_flow_water, Sensor_Data sensor_data);
 float closed_loop_water_flow(float mass_flow_water, Sensor_Data sensor_data);
+void log_mass_flow(Sensor_Data sensor_data);
 #endif

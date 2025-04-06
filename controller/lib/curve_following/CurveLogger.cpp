@@ -29,6 +29,7 @@ void log_curve_csv(float time, Sensor_Data sd) {
 
   curveTelemCSV.print();
   odriveLogFile.println(curveTelemCSV.str);
+  odriveLogFile.flush();
 }
 
 // creates a log file for the current curve and prints csv header

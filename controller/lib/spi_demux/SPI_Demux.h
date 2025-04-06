@@ -2,9 +2,9 @@
 #define SPI_DEMUX_H
 
 // only even numbers on PT boards
-#define SPI_DEVICE_PT_WATER_TANK 4
-#define SPI_DEVICE_PT_WATER_VENTURI_UPSTREAM 8
-#define SPI_DEVICE_PT_WATER_VENTURI_THROAT 12
+#define SPI_DEVICE_PT_WATER_TANK 12            // slot 3
+#define SPI_DEVICE_PT_WATER_VENTURI_UPSTREAM 4 // slot 1
+#define SPI_DEVICE_PT_WATER_VENTURI_THROAT 8   // slot 2
 
 #define SPI_DEVICE_TC_WATER 22
 

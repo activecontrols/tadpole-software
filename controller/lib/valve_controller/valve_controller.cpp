@@ -27,7 +27,7 @@ Sensor_Data default_sensor_data{
         .temperature = 0,               // K
     }};
 
-Venturi water_venturi{.inlet_area = 0.127, .throat_area = 0.0204, .cd = 0.8}; // in^2 for both
+Venturi water_venturi{.inlet_area = 0.127, .throat_area = 0.0204, .cd = 0.7}; // in^2 for both
 
 // maps v from (min_in, max_in) to (min_out, max_out)
 float linear_interpolation(float v, float min_in, float max_in, float min_out, float max_out) {
@@ -83,7 +83,7 @@ float estimate_mass_flow(Fluid_Line fluid_line, Venturi venturi, float fluid_den
 // get valve angles (degrees) given thrust (lbf) and current sensor data
 float open_loop_water_flow(float mass_flow_water, Sensor_Data sensor_data) {
   float downstream_pressure_goal = 14.3;
-  float angle_water = valve_angle(sub_critical_cv(mass_flow_water, sensor_data.water.tank_pressure, downstream_pressure_goal, water_density()));
+  float angle_water = valve_angle(sub_critical_cv(mass_flow_water, 80, downstream_pressure_goal, water_density()));
   ff_state.mass_flow_estimate = -1;
   ff_state.ol_water_angle = angle_water;
   return angle_water;
@@ -95,8 +95,14 @@ float closed_loop_water_flow(float mass_flow_water, Sensor_Data sensor_data) {
   float mass_flow_estimate = estimate_mass_flow(sensor_data.water, water_venturi, water_density());
 
   float err_mass_flow_water = mass_flow_estimate - mass_flow_water;
-  float ol_angle_water = valve_angle(sub_critical_cv(mass_flow_water, sensor_data.water.tank_pressure, downstream_pressure_goal, water_density()));
+  float ol_angle_water = valve_angle(sub_critical_cv(mass_flow_water, 80, downstream_pressure_goal, water_density()));
   ff_state.mass_flow_estimate = mass_flow_estimate;
   ff_state.ol_water_angle = ol_angle_water;
   return ol_angle_water - ClosedLoopControllers::Water_Angle_Controller.compute(err_mass_flow_water);
+}
+
+void log_mass_flow(Sensor_Data sensor_data) {
+  float mass_flow_estimate = estimate_mass_flow(sensor_data.water, water_venturi, water_density());
+  ff_state.mass_flow_estimate = mass_flow_estimate;
+  ff_state.ol_water_angle = -1;
 }
