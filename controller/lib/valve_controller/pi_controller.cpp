@@ -13,11 +13,11 @@ float PI_Controller::compute(float input_error) {
     this->last_compute_time = this_compute_time; // zeroes out the delta on the first iteration
   }
 
-  this->err_sum += input_error * (this_compute_time - last_compute_time) * 0.001;
+  float temp_err_sum = this->err_sum + input_error * (this_compute_time - last_compute_time) * 0.001;
   this->last_compute_time = this_compute_time;
 
   p_component = this->kp * input_error;
-  i_component = this->ki * this->err_sum;
+  i_component = this->ki * temp_err_sum;
 
   float raw_output = p_component + i_component;
   if (raw_output > max_output) {
@@ -26,6 +26,7 @@ float PI_Controller::compute(float input_error) {
   if (raw_output < -max_output) {
     return -max_output; // clamped low
   }
+  this->err_sum = temp_err_sum;
   return raw_output;
 }
 
