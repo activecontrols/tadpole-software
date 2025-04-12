@@ -7,8 +7,6 @@ PressureSensor::PressureSensor(int demuxAddr, float slope, float offset) : ADS13
 }
 
 void PressureSensor::begin() {
-  setInputChannelSelection(0, INPUT_CHANNEL_MUX_AIN0P_AIN0N);
-  setInputChannelSelection(1, INPUT_CHANNEL_MUX_AIN0P_AIN0N);
 }
 
 // returns the absolute pressure
@@ -30,19 +28,21 @@ float PressureSensor::getPressure() {
   float voltage = out.ch1;
   voltage *= 2.4 / 1;
   voltage /= pow(2, 24);
+  Serial.print(voltage * 1000);
+  Serial.print(" mV ");
   return map(voltage, 0, 1, 0, 10) * slope + offset;
 }
 
 namespace PT {
-PressureSensor lox_tank(SPI_DEVICE_PT_LOX_TANK, 9.38, 2.3);
-PressureSensor lox_venturi_upstream(SPI_DEVICE_PT_LOX_VENTURI_UPSTREAM, 9.38, 2.3);
-PressureSensor lox_venturi_throat(SPI_DEVICE_PT_LOX_VENTURI_THROAT, 9.38, 2.3);
+PressureSensor lox_tank(SPI_DEVICE_PT_LOX_TANK, 1, 0);
+PressureSensor lox_venturi_upstream(SPI_DEVICE_PT_LOX_VENTURI_UPSTREAM, 1, 0);
+PressureSensor lox_venturi_throat(SPI_DEVICE_PT_LOX_VENTURI_THROAT, 1, 0);
 
-PressureSensor ipa_tank(SPI_DEVICE_PT_IPA_TANK, 9.38, 2.3);
-PressureSensor ipa_venturi_upstream(SPI_DEVICE_PT_IPA_VENTURI_UPSTREAM, 9.38, 2.3);
-PressureSensor ipa_venturi_throat(SPI_DEVICE_PT_IPA_VENTURI_THROAT, 9.38, 2.3);
+PressureSensor ipa_tank(SPI_DEVICE_PT_IPA_TANK, 1, 0);
+PressureSensor ipa_venturi_upstream(SPI_DEVICE_PT_IPA_VENTURI_UPSTREAM, 1, 0);
+PressureSensor ipa_venturi_throat(SPI_DEVICE_PT_IPA_VENTURI_THROAT, 1, 0);
 
-PressureSensor chamber(SPI_DEVICE_PT_CHAMBER, 9.38, 2.3);
+PressureSensor chamber(SPI_DEVICE_PT_CHAMBER, 1, 0);
 
 void begin() {
   lox_tank.begin();
