@@ -2,6 +2,7 @@
 
 #include "teensy_pins.h"
 #include "MCP48xx.hpp"
+#include "Router.h"
 
 MCP4822 dac(SPI_DEVICE_ZUCROW_DAC);
 
@@ -23,6 +24,11 @@ void ZucrowInterface::begin() {
   dac.setGainB(MCP4822::Low);
 
   dac.updateDAC();
+
+  Router::add({send_fault_to_zucrow, "zi_send_fault"});
+  Router::add({send_ok_to_zucrow, "zi_send_ok"});
+  Router::add({[&]() { send_sync_to_zucrow(TEENSY_SYNC_RUNNING); }, "zi_send_run"});
+  Router::add({[&]() { send_sync_to_zucrow(TEENSY_SYNC_IDLE); }, "zi_send_idle"});
 }
 
 bool ZucrowInterface::check_fault_from_zucrow() {

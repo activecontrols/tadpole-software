@@ -2,15 +2,15 @@
 #define ZUCROW_H
 
 // INPUTS FROM ZUCROW
-#define ZUCROW_PANIC false
-#define ZUCROW_NO_PANIC true
+#define ZUCROW_PANIC true
+#define ZUCROW_NO_PANIC false
 
 #define ZUCROW_SYNC_RUNNING true
 #define ZUCROW_SYNC_IDLE false
 
 // OUTPUTS FROM TEENSY
-#define TEENSY_PANIC false
-#define TEENSY_NO_PANIC true
+#define TEENSY_PANIC true
+#define TEENSY_NO_PANIC false
 
 #define TEENSY_SYNC_RUNNING true
 #define TEENSY_SYNC_IDLE false
