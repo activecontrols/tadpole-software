@@ -27,7 +27,7 @@ float PressureSensor::getPressure() {
   }
   float voltage = out.ch1;
   voltage *= 2.4 / 1;
-  voltage /= pow(2, 24);
+  voltage /= -pow(2, 24);
   Serial.print(voltage * 1000);
   Serial.print(" mV ");
   return map(voltage, 0, 1, 0, 10) * slope + offset;
