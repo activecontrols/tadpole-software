@@ -195,7 +195,7 @@ void follow_curve_cmd() {
   CurveLogger::close_curve_log();
 }
 
-void auto_seq() { // TODO - home valves?
+void auto_seq() { // TODO - home valves?, zero PTs?
   const char *curve_file_name = "AUTOCUR";
   const char *tpl_log_file_name = "AUTOL"; // generates names like AUTOL#.CSV
   Loader::load_curve_sd(curve_file_name);

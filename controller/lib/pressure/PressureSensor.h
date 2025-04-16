@@ -15,10 +15,12 @@ public:
   PressureSensor(int demuxAddr, float slope, float offset);
   void begin();
   float getPressure();
+  void zero();
 };
 
 namespace PT {
 void begin();
+void zero();
 
 extern PressureSensor lox_tank;
 extern PressureSensor lox_venturi_upstream;
