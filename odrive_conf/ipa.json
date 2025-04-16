@@ -138,7 +138,7 @@
   "axis0.controller.config.inertia": 0.0,
   "axis0.controller.config.input_filter_bandwidth": 20.0,
   "axis0.controller.config.input_mode": 3,
-  "axis0.controller.config.pos_gain": 0.01,
+  "axis0.controller.config.pos_gain": 1,
   "axis0.controller.config.spinout_electrical_power_bandwidth": 20.0,
   "axis0.controller.config.spinout_electrical_power_threshold": 10.0,
   "axis0.controller.config.spinout_mechanical_power_bandwidth": 20.0,
