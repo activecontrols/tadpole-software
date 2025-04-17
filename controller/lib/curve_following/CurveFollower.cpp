@@ -76,6 +76,8 @@ void followAngleLerpCurve() {
   elapsedMillis timer = elapsedMillis();
   unsigned long lastlog = timer;
 
+  WindowComparators::reset();
+
   for (int i = 0; i < Loader::header.num_points - 1; i++) {
     while (timer / 1000.0 < lac[i + 1].time) {
       float seconds = timer / 1000.0;
@@ -116,6 +118,7 @@ void followThrustLerpCurve() {
   unsigned long lastlog = timer;
 
   ClosedLoopControllers::reset();
+  WindowComparators::reset();
 
   for (int i = 0; i < Loader::header.num_points - 1; i++) {
     while (timer / 1000.0 < ltc[i + 1].time) {
@@ -160,16 +163,13 @@ void begin() {
 /**
  * Initiates curve following based on the curve header loaded in Loader.cpp.
  */
-void follow_curve() {
-  if (!Loader::loaded_curve) {
-    Router::info("No curve loaded.");
-    return;
-  }
-
+void follow_curve(const char *log_file_name) {
   // checkConfig() function provides its own error message console logging
   if (Driver::loxODrive.checkConfig() || Driver::ipaODrive.checkConfig()) {
     return;
   }
+
+  CurveLogger::create_curve_log(log_file_name); // lower case files have issues on teensy
 
   ZucrowInterface::send_ok_to_zucrow(); // tell zucrow we are ready to go
 
@@ -183,28 +183,34 @@ void follow_curve() {
   ZucrowInterface::send_sync_to_zucrow(TEENSY_SYNC_IDLE);
 
   Router::info("Finished following curve!");
+  CurveLogger::close_curve_log();
 }
 
 // prompt user for log file name, then follow curve
 void follow_curve_cmd() {
+  if (!Loader::loaded_curve) {
+    Router::info("No curve loaded.");
+    return;
+  }
+
   // filenames use DOS 8.3 standard
   Router::info_no_newline("Enter log filename (1-8 chars + '.' + 3 chars): ");
   String filename = Router::read(50);
-  CurveLogger::create_curve_log(filename.toUpperCase().c_str()); // lower case files have issues on teensy
-  follow_curve();
-  CurveLogger::close_curve_log();
+  follow_curve(filename.toUpperCase().c_str());
 }
 
 void auto_seq() { // TODO - home valves?, zero PTs?
   const char *curve_file_name = "AUTOCUR";
   const char *tpl_log_file_name = "AUTOL"; // generates names like AUTOL#.CSV
-  Loader::load_curve_sd(curve_file_name);
+
+  if (!Loader::load_curve_sd(curve_file_name)) {
+    return;
+  };
+
   String log_file_name = SDCard::get_next_safe_name(tpl_log_file_name);
   Router::info_no_newline("Using log file: ");
   Router::info(log_file_name);
-  CurveLogger::create_curve_log(log_file_name.c_str());
-  follow_curve();
-  CurveLogger::close_curve_log();
+  follow_curve(log_file_name.c_str());
 }
 
 } // namespace CurveFollower

@@ -25,6 +25,9 @@ void WindowComparator::check(float v) {
 
 namespace WindowComparators {
 wc_error_info WC_ERROR = {.isError = false};
+void reset() {
+  WC_ERROR.isError = false;
+}
 
 WindowComparator lox_tank_pressure(WC_LOX_TANK_PRESSURE_ID, -1, 2000);
 WindowComparator lox_venturi_upstream_pressure(WC_LOX_VENTURI_UPSTREAM_PRESSURE_ID, -1, 2000);

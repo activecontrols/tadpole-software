@@ -26,6 +26,8 @@ public:
 
 namespace WindowComparators {
 
+void reset();
+
 #define WC_LOX_TANK_PRESSURE_ID 1
 #define WC_LOX_VENTURI_UPSTREAM_PRESSURE_ID 2
 #define WC_LOX_VENTURI_THROAT_PRESSURE_ID 3
