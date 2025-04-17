@@ -2,6 +2,8 @@
 #include "SPI_Demux.h"
 #include "Router.h"
 
+// #define PRINT_PT_MV // enable to print adc mv measurement (for calibration)
+
 PressureSensor::PressureSensor(int demuxAddr, float slope, float offset) : ADS131M0x(demuxAddr) {
   this->slope = slope;
   this->offset = offset;
@@ -29,8 +31,11 @@ float PressureSensor::getPressure() {
   float voltage = out.ch1;
   voltage *= 2.4 / 1;
   voltage /= -pow(2, 24);
+
+#ifdef PRINT_PT_MV
   Serial.print(voltage * 1000);
   Serial.print(" mV ");
+#endif
   return map(voltage, 0, 1, 0, 10) * slope + offset;
 }
 
@@ -71,6 +76,7 @@ void begin() {
 }
 
 void zero() {
+  Router::info_no_newline("Calibrating ...");
   lox_tank.zero();
   lox_venturi_upstream.zero();
   lox_venturi_throat.zero();
@@ -80,5 +86,6 @@ void zero() {
   ipa_venturi_throat.zero();
 
   chamber.zero();
+  Router::info(" finished!");
 }
 } // namespace PT
