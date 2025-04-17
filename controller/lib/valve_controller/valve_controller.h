@@ -28,13 +28,16 @@ struct Sensor_Data {
   Fluid_Line ipa;
 };
 
-struct FF_State {
-  float ol_mdot;
+struct VC_State {
+  float ol_lox_mdot;
+  float ol_ipa_mdot;
+  float measured_lox_mdot;
+  float measured_ipa_mdot;
   float ol_lox_angle;
   float ol_ipa_angle;
 };
 
-extern FF_State ff_state;
+extern VC_State vc_state;
 void open_loop_thrust_control(float thrust, Sensor_Data sensor_data, float *angle_ox, float *angle_ipa);
 void open_loop_thrust_control_defaults(float thrust, float *angle_ox, float *angle_ipa);
 void closed_loop_thrust_control(float thrust, Sensor_Data sensor_data, float *angle_ox, float *angle_ipa);
