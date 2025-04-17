@@ -1,8 +1,13 @@
 shared_settings = {
-	"axis0.controller.config.pos_gain": 1,
-	"axis0.controller.config.vel_gain": 2,
-	"axis0.controller.config.vel_integrator_gain": 0,
-	"axis0.controller.config.vel_limit": 2,
+	"axis0.controller.config.pos_gain": 5,
+	"axis0.controller.config.vel_gain": 1,
+	"axis0.controller.config.vel_integrator_gain": 2,
+	"axis0.controller.config.vel_limit": 10,
+
+	"axis0.controller.config.input_filter_bandwidth": 200.0, # frequency pos updates will be commanded
+	"axis0.controller.config.vel_ramp_rate": 10.0, # called vel limit in GUI
+
+	"axis0.config.motor.current_slew_rate_limit": 100.0, # prevent over current
 
 	"config.brake_resistor0.dc_bus_voltage_feedback_ramp_end": 15.0,
 	"config.brake_resistor0.dc_bus_voltage_feedback_ramp_start": 13.0,
