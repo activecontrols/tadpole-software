@@ -7,10 +7,9 @@
 #define tadpole_MASS_FLOW_RATIO 1.2 // #ox = 1.2 * ipa
 #define GRAVITY_FT_S 32.1740        // Gravity in (ft / s^2)
 
-#define IN3_TO_GAL 0.004329       // convert cubic inches to gallons
-#define PER_SEC_TO_PER_MIN 60     // convert per second to per minute
-#define LB_TO_TON 0.000453592     // convert lb to metric tons
-#define PER_IN3_TO_PER_M3 61023.7 // convert per in^3 to per m^3
+#define IN3_TO_GAL 0.004329     // convert cubic inches to gallons
+#define PER_SEC_TO_PER_MIN 60   // convert per second to per minute
+#define DENSITY_WATER 0.0360724 // lb/in^3
 
 #define INTERPOLATION_TABLE_LENGTH 30 // max length of all tables - set to enable passing tables to functions
 #define VALVE_ANGLE_TABLE_LEN 11
@@ -134,7 +133,7 @@ void mass_balance(float total_mass_flow, float *mass_flow_ox, float *mass_flow_i
 float sub_critical_cv(float mass_flow, float upstream_pressure, float downstream_pressure, float density) {
   float pressure_delta = upstream_pressure - downstream_pressure;
   pressure_delta = pressure_delta > 0 ? pressure_delta : 0.0001; // block negative under sqrt and divide by 0
-  return mass_flow * IN3_TO_GAL * PER_SEC_TO_PER_MIN * sqrt(LB_TO_TON * PER_IN3_TO_PER_M3 / pressure_delta / density);
+  return mass_flow * IN3_TO_GAL * PER_SEC_TO_PER_MIN * sqrt(1 / (pressure_delta * density * DENSITY_WATER));
 }
 
 // Lookup the valve angle using linear interpolation
