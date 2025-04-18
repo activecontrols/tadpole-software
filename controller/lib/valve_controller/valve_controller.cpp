@@ -161,7 +161,7 @@ float ipa_manifold_pressure(float thrust) {
 float estimate_mass_flow(Fluid_Line fluid_line, Venturi venturi, float fluid_density) {
   float pressure_delta = fluid_line.venturi_upstream_pressure - fluid_line.venturi_throat_pressure;
   pressure_delta = pressure_delta > 0 ? pressure_delta : 0; // block negative under sqrt
-  float area_term = 1 - pow(venturi.throat_area / venturi.inlet_area, 2);
+  float area_term = pow(venturi.throat_area / venturi.inlet_area, 2);
   return venturi.throat_area * sqrt(2 * fluid_density * pressure_delta * GRAVITY_FT_S / (1 - area_term)) * venturi.cd;
 }
 
@@ -182,12 +182,12 @@ void open_loop_thrust_control(float thrust, Sensor_Data sensor_data, float *angl
   *angle_ox = valve_angle(sub_critical_cv(mass_flow_ox, sensor_data.ox.tank_pressure, ox_valve_downstream_pressure_goal, ox_density_from_temperature(sensor_data.ox.valve_temperature)));
   *angle_ipa = valve_angle(sub_critical_cv(mass_flow_ipa, sensor_data.ipa.tank_pressure, ipa_valve_downstream_pressure_goal, ipa_density()));
 
-  vc_state.ol_lox_mdot = mass_flow_ipa;
-  vc_state.ol_ipa_mdot = mass_flow_ox;
+  vc_state.ol_lox_mdot = mass_flow_ox;
+  vc_state.ol_ipa_mdot = mass_flow_ipa;
   vc_state.measured_lox_mdot = measured_mass_flow_ox;
   vc_state.measured_ipa_mdot = measured_mass_flow_ipa;
-  vc_state.ol_lox_angle = *angle_ipa;
-  vc_state.ol_ipa_angle = *angle_ox;
+  vc_state.ol_lox_angle = *angle_ox;
+  vc_state.ol_ipa_angle = *angle_ipa;
 }
 
 // get valve angles (degrees) given thrust (lbf)
