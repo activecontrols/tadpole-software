@@ -38,6 +38,9 @@ void send_sync_to_zucrow(bool status);
 // send valve angle telemetry to zucrow, pos should be from 0 to 0.25 for 0 to 90 deg
 void send_valve_angles_to_zucrow(float lox_pos, float ipa_pos);
 
+// for debug
+void print_zi_status();
+
 } // namespace ZucrowInterface
 
 #endif

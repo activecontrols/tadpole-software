@@ -29,6 +29,7 @@ void ZucrowInterface::begin() {
   Router::add({send_ok_to_zucrow, "zi_send_ok"});
   Router::add({[&]() { send_sync_to_zucrow(TEENSY_SYNC_RUNNING); }, "zi_send_run"});
   Router::add({[&]() { send_sync_to_zucrow(TEENSY_SYNC_IDLE); }, "zi_send_idle"});
+  Router::add({print_zi_status, "zi_status_print"});
 }
 
 bool ZucrowInterface::check_fault_from_zucrow() {
@@ -57,4 +58,20 @@ void ZucrowInterface::send_valve_angles_to_zucrow(float lox_pos, float ipa_pos) 
   dac.setVoltageA(va);
   dac.setVoltageB(vb);
   dac.updateDAC();
+}
+
+void ZucrowInterface::print_zi_status() {
+  Serial.print("Fault (from zucrow)? ");
+  if (ZucrowInterface::check_fault_from_zucrow()) {
+    Serial.println("yes");
+  } else {
+    Serial.println("no");
+  }
+
+  Serial.print("Sync (from zucrow)? ");
+  if (ZucrowInterface::check_sync_from_zucrow() == ZUCROW_SYNC_RUNNING) {
+    Serial.println("running");
+  } else {
+    Serial.println("idle");
+  }
 }
