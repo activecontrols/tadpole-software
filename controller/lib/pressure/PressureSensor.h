@@ -9,9 +9,9 @@ class PressureSensor : ADS131M0x {
 
 private:
   float slope;
-  float offset;
 
 public:
+  float offset; // public to allow for calibration
   PressureSensor(int demuxAddr, float slope, float offset);
   void begin();
   float getPressure();
