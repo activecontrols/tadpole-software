@@ -15,8 +15,8 @@
 #define VALVE_ANGLE_TABLE_LEN 11
 // CV (assume unitless) to angle (degrees)
 float valve_angle_table[2][INTERPOLATION_TABLE_LENGTH] = {
-    {0.000, 0.070, 0.161, 0.378, 0.670, 1.000, 1.450, 2.050, 2.780, 3.710, 4.960},
-    {0, 9, 18, 27, 36, 45, 54, 63, 72, 81, 90}};
+    {0, 9.0000, 18.0000, 27.0000, 36.0000, 45.0000, 54.0000, 63.0000, 72.0000, 81.0000, 90.0000},
+    {0, 0.0890, 0.0741, 0.0807, 0.1968, 0.4659, 0.8864, 1.4125, 1.9532, 2.3731, 2.4919}};
 
 #define CF_THRUST_TABLE_LEN 2 // TODO RJN OL - replace with data from testing
 // thrust (lbf) to cf (unitless)
