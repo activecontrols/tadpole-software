@@ -152,7 +152,7 @@ void Loader::save_pt_calib() {
   ptc.ipa_venturi_upstream = PT::ipa_venturi_upstream.offset;
   ptc.ipa_venturi_throat = PT::ipa_venturi_throat.offset;
 
-  ptc.chamber = PT::chamber.offset;
+  ptc.chamber = 0; // PT::chamber.offset;
 
   SD.remove("ptcal");
   File f = SDCard::open("ptcal", FILE_WRITE);
@@ -183,7 +183,7 @@ void Loader::restore_pt_calib() {
   PT::ipa_venturi_upstream.offset = ptc.ipa_venturi_upstream;
   PT::ipa_venturi_throat.offset = ptc.ipa_venturi_throat;
 
-  PT::chamber.offset = ptc.chamber;
+  // PT::chamber.offset = ptc.chamber;
 
   Router::info("Restored pt calib.");
 }

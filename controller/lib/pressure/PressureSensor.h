@@ -30,7 +30,7 @@ extern PressureSensor ipa_tank;
 extern PressureSensor ipa_venturi_upstream;
 extern PressureSensor ipa_venturi_throat;
 
-extern PressureSensor chamber;
+// extern PressureSensor chamber;
 } // namespace PT
 
 #endif // PRESSURE_SENSOR_H

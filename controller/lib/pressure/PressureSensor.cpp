@@ -51,15 +51,15 @@ void PressureSensor::zero() {
 }
 
 namespace PT {
-PressureSensor lox_tank(SPI_DEVICE_PT_LOX_TANK, 1, 0);
-PressureSensor lox_venturi_upstream(SPI_DEVICE_PT_LOX_VENTURI_UPSTREAM, 1, 0);
-PressureSensor lox_venturi_throat(SPI_DEVICE_PT_LOX_VENTURI_THROAT, 1, 0);
+PressureSensor lox_tank(SPI_DEVICE_PT_LOX_TANK, 106.0602165, 0);
+PressureSensor lox_venturi_upstream(SPI_DEVICE_PT_LOX_VENTURI_UPSTREAM, 154.791979, 0);
+PressureSensor lox_venturi_throat(SPI_DEVICE_PT_LOX_VENTURI_THROAT, 10.75944182, 0);
 
-PressureSensor ipa_tank(SPI_DEVICE_PT_IPA_TANK, 1, 0);
-PressureSensor ipa_venturi_upstream(SPI_DEVICE_PT_IPA_VENTURI_UPSTREAM, 1, 0);
-PressureSensor ipa_venturi_throat(SPI_DEVICE_PT_IPA_VENTURI_THROAT, 1, 0);
+PressureSensor ipa_tank(SPI_DEVICE_PT_IPA_TANK, 157.7749324, 0);
+PressureSensor ipa_venturi_upstream(SPI_DEVICE_PT_IPA_VENTURI_UPSTREAM, 157.6435835, 0);
+PressureSensor ipa_venturi_throat(SPI_DEVICE_PT_IPA_VENTURI_THROAT, 10.73794083, 0);
 
-PressureSensor chamber(SPI_DEVICE_PT_CHAMBER, 1, 0);
+// PressureSensor chamber(SPI_DEVICE_PT_CHAMBER, 1, 0);
 
 void begin() {
   lox_tank.begin();
@@ -70,7 +70,7 @@ void begin() {
   ipa_venturi_upstream.begin();
   ipa_venturi_throat.begin();
 
-  chamber.begin();
+  // chamber.begin();
 
   Router::add({zero, "calib_pt_to_atm"});
 }
@@ -85,7 +85,7 @@ void zero() {
   ipa_venturi_upstream.zero();
   ipa_venturi_throat.zero();
 
-  chamber.zero();
+  // chamber.zero();
   Router::info(" finished!");
 }
 } // namespace PT

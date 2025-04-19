@@ -34,10 +34,10 @@ void print_all_sensors() {
   print_labeled_sensor("PT IPA Venturi Upstream: ", PT::ipa_venturi_upstream.getPressure(), " psi");
   print_labeled_sensor("  PT IPA Venturi Throat: ", PT::ipa_venturi_throat.getPressure(), " psi");
 
-  print_labeled_sensor("             PT Chamber: ", PT::chamber.getPressure(), " psi");
+  // print_labeled_sensor("             PT Chamber: ", PT::chamber.getPressure(), " psi");
 
-  print_labeled_sensor("           TC LOX Valve: ", TC::lox_valve_temperature.getTemperature_F(), " F");
-  print_labeled_sensor("         TC LOX Venturi: ", TC::lox_venturi_temperature.getTemperature_F(), " F");
+  // print_labeled_sensor("           TC LOX Valve: ", TC::lox_valve_temperature.getTemperature_F(), " F");
+  // print_labeled_sensor("         TC LOX Venturi: ", TC::lox_venturi_temperature.getTemperature_F(), " F");
 }
 
 void setup() {
