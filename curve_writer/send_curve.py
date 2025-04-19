@@ -1,7 +1,7 @@
 from time import sleep
 import serial
 
-port = 'COM5'
+port = 'COM10'
 
 fname = input("Enter a filename and press enter to send curve: ")
 device = serial.Serial(port, 115200, timeout=1)
