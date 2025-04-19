@@ -13,8 +13,10 @@ device.write(f"{fname}\n".encode())
 
 with open("curve_writer/data/" + fname, "w+") as f:
     while True:
-        line = device.readline().decode()
-        if (len(line) == 0):
+        lines = device.readlines()
+        if (len(lines) == 0):
             break
-        print(line.strip())
-        f.write(line.strip() + "\n")
+        for line in lines:
+            line = line.decode()
+			# print(line.strip())
+            f.write(line.strip() + "\n")

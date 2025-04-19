@@ -15,8 +15,8 @@
 #define VALVE_ANGLE_TABLE_LEN 11
 // CV (assume unitless) to angle (degrees)
 float valve_angle_table[2][INTERPOLATION_TABLE_LENGTH] = {
-    {0, 9.0000, 18.0000, 27.0000, 36.0000, 45.0000, 54.0000, 63.0000, 72.0000, 81.0000, 90.0000},
-    {0, 0.0890, 0.0741, 0.0807, 0.1968, 0.4659, 0.8864, 1.4125, 1.9532, 2.3731, 2.4919}};
+    {0, 0.0890, 0.0741, 0.0807, 0.1968, 0.4659, 0.8864, 1.4125, 1.9532, 2.3731, 2.4919},
+    {0, 9.0000, 18.0000, 27.0000, 36.0000, 45.0000, 54.0000, 63.0000, 72.0000, 81.0000, 90.0000}};
 
 #define CF_THRUST_TABLE_LEN 2 // TODO RJN OL - replace with data from testing
 // thrust (lbf) to cf (unitless)
@@ -123,7 +123,7 @@ void open_loop_thrust_control(float thrust, Sensor_Data sensor_data, float *angl
   float measured_mass_flow_ox = estimate_mass_flow(sensor_data.ox, ox_venturi, DENSITY_WATER);
   float measured_mass_flow_ipa = estimate_mass_flow(sensor_data.ipa, ipa_venturi, DENSITY_WATER);
 
-  float mass_flow_total = mass_flow_rate(chamber_pressure(thrust)) / 2.5;
+  float mass_flow_total = mass_flow_rate(chamber_pressure(thrust)) / 6;
   float mass_flow_ox;
   float mass_flow_ipa;
   mass_balance(mass_flow_total, &mass_flow_ox, &mass_flow_ipa);
@@ -160,6 +160,7 @@ void closed_loop_thrust_control(float thrust, Sensor_Data sensor_data, float *an
   float err_chamber_pressure = sensor_data.chamber_pressure - ol_chamber_pressure;
   float ol_mdot_total = mass_flow_rate(ol_chamber_pressure);
   float cl_mdot_total = ol_mdot_total - ClosedLoopControllers::Chamber_Pressure_Controller.compute(err_chamber_pressure);
+  cl_mdot_total = cl_mdot_total / 4;
 
   float ol_mass_flow_ox;
   float ol_mass_flow_ipa;
