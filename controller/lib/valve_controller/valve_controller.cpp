@@ -232,3 +232,15 @@ void closed_loop_thrust_control(float thrust, Sensor_Data sensor_data, float *an
   vc_state.ol_lox_angle = ol_angle_ox;
   vc_state.ol_ipa_angle = ol_angle_ipa;
 }
+
+void log_only(Sensor_Data sensor_data) {
+  float measured_mass_flow_ox = estimate_mass_flow(sensor_data.ox, ox_venturi, ox_density_from_temperature(sensor_data.ox.venturi_temperature));
+  float measured_mass_flow_ipa = estimate_mass_flow(sensor_data.ipa, ipa_venturi, ipa_density());
+
+  vc_state.ol_lox_mdot = 0;
+  vc_state.ol_ipa_mdot = 0;
+  vc_state.measured_lox_mdot = measured_mass_flow_ox;
+  vc_state.measured_ipa_mdot = measured_mass_flow_ipa;
+  vc_state.ol_lox_angle = 0;
+  vc_state.ol_ipa_angle = 0;
+}

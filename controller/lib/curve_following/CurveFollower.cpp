@@ -129,6 +129,7 @@ void followThrustLerpCurve() {
 
       float angle_ox;
       float angle_fuel;
+      // log_only(sd);
       open_loop_thrust_control_defaults(thrust, &angle_ox, &angle_fuel);
       // open_loop_thrust_control(thrust, sd, &angle_ox, &angle_fuel);
       // closed_loop_thrust_control(thrust, sd, &angle_ox, &angle_fuel);
