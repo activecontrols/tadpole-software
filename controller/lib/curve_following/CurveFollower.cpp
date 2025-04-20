@@ -85,6 +85,7 @@ void followAngleLerpCurve() {
       float ipa_pos = lerp(lac[i].ipa_angle, lac[i + 1].ipa_angle, lac[i].time, lac[i + 1].time, seconds) / 360;
 
       Sensor_Data sd = get_sensor_data();
+      log_only(sd);
 
       Driver::loxODrive.setPos(lox_pos);
       Driver::ipaODrive.setPos(ipa_pos);
