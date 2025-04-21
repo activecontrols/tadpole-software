@@ -97,7 +97,10 @@ void mass_balance(float total_mass_flow, float *mass_flow_ox, float *mass_flow_i
 // OUTPUT: valve flow coefficient (assume this is unitless)
 // INPUT: mass_flow (lbm/s), downstream pressure (psi), fluid properties
 float sub_critical_cv(float mass_flow, float upstream_pressure, float downstream_pressure, float density) {
-  float pressure_delta = upstream_pressure - downstream_pressure;
+  float K = 1.355;
+  float pipe_area = 0.127;
+  float correction_factor = pow(mass_flow, 2) / (2 * density * pow(K, 2) * pow(pipe_area, 2));
+  float pressure_delta = upstream_pressure - downstream_pressure - correction_factor;
   pressure_delta = pressure_delta > 0 ? pressure_delta : 0.0001; // block negative under sqrt and divide by 0
   return mass_flow * IN3_TO_GAL * PER_SEC_TO_PER_MIN * sqrt(1 / (pressure_delta * density * DENSITY_WATER));
 }
