@@ -12,6 +12,7 @@ boolean SDCard::begin() {
   Router::add({ls, "ls"});
   Router::add({rm, "rm"});
   Router::add({cat, "cat"});
+  Router::add({auto_cat, "auto_cat"});
   return true;
 }
 
@@ -73,4 +74,20 @@ void SDCard::cat() {
   } else {
     Router::info("File not found.");
   }
+}
+
+void SDCard::auto_cat() {
+  Router::info_no_newline("Enter filename: ");
+  String filename = Router::read(50);
+  File f = SD.open(filename.c_str(), FILE_READ);
+  if (f) {
+    while (f.available()) {
+      Serial.println(f.readStringUntil('\n'));
+      Serial.readStringUntil('\n'); // wait for enter
+    }
+    f.close();
+  } else {
+    Router::info("File not found.");
+  }
+  Serial.println("done");
 }

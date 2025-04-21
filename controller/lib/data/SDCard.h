@@ -22,6 +22,7 @@ private:
   static void ls();
   static void rm();
   static void cat();
+  static void auto_cat();
 };
 
 #endif // TADPOLE_SOFTWARE_SDCARD_H
