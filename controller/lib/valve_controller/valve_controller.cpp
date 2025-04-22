@@ -12,11 +12,6 @@
 #define DENSITY_WATER 0.0360724 // lb/in^3
 
 #define INTERPOLATION_TABLE_LENGTH 30 // max length of all tables - set to enable passing tables to functions
-#define VALVE_ANGLE_TABLE_LEN 11
-// CV (assume unitless) to angle (degrees)
-float valve_angle_table[2][INTERPOLATION_TABLE_LENGTH] = {
-    {0, 0.0890, 0.0741, 0.0807, 0.1968, 0.4659, 0.8864, 1.4125, 1.9532, 2.3731, 2.4919},
-    {0, 9.0000, 18.0000, 27.0000, 36.0000, 45.0000, 54.0000, 63.0000, 72.0000, 81.0000, 90.0000}};
 
 #define CF_THRUST_TABLE_LEN 2 // TODO RJN OL - replace with data from testing
 // thrust (lbf) to cf (unitless)
@@ -131,18 +126,27 @@ void mass_balance(float total_mass_flow, float *mass_flow_ox, float *mass_flow_i
 // OUTPUT: valve flow coefficient (assume this is unitless)
 // INPUT: mass_flow (lbm/s), downstream pressure (psi), fluid properties
 float sub_critical_cv(float mass_flow, float upstream_pressure, float downstream_pressure, float density) {
-  float pressure_delta = upstream_pressure - downstream_pressure;
-  pressure_delta = pressure_delta > 0 ? pressure_delta : 0.0001; // block negative under sqrt and divide by 0
+  float pressure_delta = upstream_pressure - downstream_pressure; // TODO - update for cold flows
+  pressure_delta = pressure_delta > 0 ? pressure_delta : 0.0001;  // block negative under sqrt and divide by 0
   return mass_flow * IN3_TO_GAL * PER_SEC_TO_PER_MIN * sqrt(1 / (pressure_delta * density * DENSITY_WATER));
 }
 
 // Lookup the valve angle using linear interpolation
 // INPUT: valve flow coefficient (assume this is unitless)
 // OUTPUT: valve angle (degrees)
-float valve_angle(float cv) {
-  return clamped_table_interplolation(cv, valve_angle_table, VALVE_ANGLE_TABLE_LEN);
+#define LOX_ALPHA 2.5
+#define LOX_BETA 58
+#define LOX_GAMMA 11
+float lox_valve_angle(float cv) {
+  return -LOX_GAMMA * log(LOX_ALPHA / cv - 1) + LOX_BETA;
 }
 
+#define IPA_ALPHA 2.95
+#define IPA_BETA 63
+#define IPA_GAMMA 10
+float ipa_valve_angle(float cv) {
+  return -IPA_GAMMA * log(IPA_ALPHA / cv - 1) + IPA_BETA;
+}
 // Lookup ox manifold pressure using linear interpolation
 // INPUT: thrust
 // OUTPUT: ox manifold pressure (psi)
@@ -179,8 +183,8 @@ void open_loop_thrust_control(float thrust, Sensor_Data sensor_data, float *angl
   float ox_valve_downstream_pressure_goal = ox_manifold_pressure(thrust); // TODO RJN OL - multiply these by coeff / replace with venturi upstream?
   float ipa_valve_downstream_pressure_goal = ipa_manifold_pressure(thrust);
 
-  *angle_ox = valve_angle(sub_critical_cv(mass_flow_ox, sensor_data.ox.tank_pressure, ox_valve_downstream_pressure_goal, ox_density_from_temperature(sensor_data.ox.valve_temperature)));
-  *angle_ipa = valve_angle(sub_critical_cv(mass_flow_ipa, sensor_data.ipa.tank_pressure, ipa_valve_downstream_pressure_goal, ipa_density()));
+  *angle_ox = lox_valve_angle(sub_critical_cv(mass_flow_ox, sensor_data.ox.tank_pressure, ox_valve_downstream_pressure_goal, ox_density_from_temperature(sensor_data.ox.valve_temperature)));
+  *angle_ipa = ipa_valve_angle(sub_critical_cv(mass_flow_ipa, sensor_data.ipa.tank_pressure, ipa_valve_downstream_pressure_goal, ipa_density()));
 
   vc_state.ol_lox_mdot = mass_flow_ox;
   vc_state.ol_ipa_mdot = mass_flow_ipa;
@@ -219,8 +223,8 @@ void closed_loop_thrust_control(float thrust, Sensor_Data sensor_data, float *an
   float ox_valve_downstream_pressure_goal = ox_manifold_pressure(thrust);
   float ipa_valve_downstream_pressure_goal = ipa_manifold_pressure(thrust);
 
-  float ol_angle_ox = valve_angle(sub_critical_cv(ol_mass_flow_ox, sensor_data.ox.tank_pressure, ox_valve_downstream_pressure_goal, ox_density_from_temperature(sensor_data.ox.valve_temperature)));
-  float ol_angle_ipa = valve_angle(sub_critical_cv(ol_mass_flow_ipa, sensor_data.ipa.tank_pressure, ipa_valve_downstream_pressure_goal, ipa_density()));
+  float ol_angle_ox = lox_valve_angle(sub_critical_cv(ol_mass_flow_ox, sensor_data.ox.tank_pressure, ox_valve_downstream_pressure_goal, ox_density_from_temperature(sensor_data.ox.valve_temperature)));
+  float ol_angle_ipa = ipa_valve_angle(sub_critical_cv(ol_mass_flow_ipa, sensor_data.ipa.tank_pressure, ipa_valve_downstream_pressure_goal, ipa_density()));
 
   *angle_ox = ol_angle_ox - ClosedLoopControllers::LOX_Angle_Controller.compute(err_mass_flow_ox);
   *angle_ipa = ol_angle_ipa - ClosedLoopControllers::IPA_Angle_Controller.compute(err_mass_flow_ipa);
