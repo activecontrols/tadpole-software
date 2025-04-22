@@ -35,6 +35,8 @@ struct VC_State {
   float measured_ipa_mdot;
   float ol_lox_angle;
   float ol_ipa_angle;
+
+  float p_correct_factor;
 };
 
 extern VC_State vc_state;

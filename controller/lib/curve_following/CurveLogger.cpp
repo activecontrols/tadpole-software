@@ -20,7 +20,7 @@ CString<400> curveTelemCSV;
                     "chamber_pressure_controller_p_component,chamber_pressure_controller_i_component," \
                     "lox_angle_controller_p_component,lox_angle_controller_i_component,"               \
                     "ipa_angle_controller_p_component,ipa_angle_controller_i_component,"               \
-                    "lox_mdot,ipa_mdot,ol_lox_mdot,ol_ipa_mdot,ol_lox_angle,ol_ipa_angle")
+                    "lox_mdot,ipa_mdot,ol_lox_mdot,ol_ipa_mdot,ol_lox_angle,ol_ipa_angle,psi_factor")
 
 // logs time, phase, thrust, and sensor data in .csv format
 void log_curve_csv(float time, int phase, float thrust, Sensor_Data sd) {
@@ -35,7 +35,8 @@ void log_curve_csv(float time, int phase, float thrust, Sensor_Data sd) {
                 << cs.lox_angle_controller_p_component << "," << cs.lox_angle_controller_i_component << ","
                 << cs.ipa_angle_controller_p_component << "," << cs.ipa_angle_controller_i_component << ","
                 << vc_state.measured_lox_mdot << "," << vc_state.measured_ipa_mdot << ","
-                << vc_state.ol_lox_mdot << "," << vc_state.ol_ipa_mdot << "," << vc_state.ol_lox_angle << "," << vc_state.ol_ipa_angle;
+                << vc_state.ol_lox_mdot << "," << vc_state.ol_ipa_mdot << "," << vc_state.ol_lox_angle << "," << vc_state.ol_ipa_angle << ","
+                << vc_state.p_correct_factor;
 
   curveTelemCSV.print();
   odriveLogFile.println(curveTelemCSV.str);
