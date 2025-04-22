@@ -1,9 +1,13 @@
 #ifndef PI_CONTROLLER_H
 #define PI_CONTROLLER_H
 
+#include <Arduino.h>
+
 class PI_Controller {
 public:
   PI_Controller(float kp, float ki, float max_output);
+  PI_Controller(float kp, float ki, float max_output, float min_output);
+  PI_Controller(float kp, float ki, float max_output, float min_output, float i_limit);
   void reset();
   float compute(float input_error);
   float p_component;
@@ -12,8 +16,10 @@ public:
 private:
   float kp;
   float ki;
+  float min_output;
   float max_output;
-
+  float i_limit;
+  
   long long last_compute_time = -1;
   float err_sum = 0;
 };

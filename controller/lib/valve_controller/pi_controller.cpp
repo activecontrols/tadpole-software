@@ -2,9 +2,19 @@
 #include <Arduino.h>
 
 PI_Controller::PI_Controller(float kp, float ki, float max_output) {
+  PI_Controller(kp, ki, -max_output, max_output);
+}
+
+PI_Controller::PI_Controller(float kp, float ki, float min_output, float max_output) {
+  PI_Controller(kp, ki, min_output, max_output, INFINITY);
+}
+
+PI_Controller::PI_Controller(float kp, float ki, float min_output, float max_output, float i_limit) {
   this->kp = kp;
   this->ki = ki;
+  this->min_output = min_output;
   this->max_output = max_output;
+  this->i_limit = i_limit;
 }
 
 float PI_Controller::compute(float input_error) {
@@ -14,6 +24,10 @@ float PI_Controller::compute(float input_error) {
   }
 
   float temp_err_sum = this->err_sum + input_error * (this_compute_time - last_compute_time) * 0.001;
+  if (temp_err_sum > i_limit || temp_err_sum < -i_limit) {
+    temp_err_sum = this->err_sum; // clamp integral
+  }
+
   this->last_compute_time = this_compute_time;
 
   p_component = this->kp * input_error;
@@ -23,9 +37,10 @@ float PI_Controller::compute(float input_error) {
   if (raw_output > max_output) {
     return max_output; // clamped high
   }
-  if (raw_output < -max_output) {
-    return -max_output; // clamped low
+  if (raw_output < min_output) {
+    return min_output; // clamped low
   }
+  
   this->err_sum = temp_err_sum;
   return raw_output;
 }
