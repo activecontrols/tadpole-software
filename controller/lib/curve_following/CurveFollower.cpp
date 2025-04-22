@@ -12,6 +12,7 @@
 #include "Driver.h"
 #include "Loader.h"
 #include "Router.h"
+#include "plant.h"
 
 #define LOG_INTERVAL_MS 10
 #define COMMAND_INTERVAL_MS 1
@@ -120,6 +121,7 @@ void followThrustLerpCurve() {
 
   ClosedLoopControllers::reset();
   WindowComparators::reset();
+  reset_plant();
 
   for (int i = 0; i < Loader::header.num_points - 1; i++) {
     while (timer / 1000.0 < ltc[i + 1].time) {
@@ -133,7 +135,7 @@ void followThrustLerpCurve() {
       // log_only(sd);
       // open_loop_thrust_control_defaults(thrust, &angle_ox, &angle_fuel);
       // open_loop_thrust_control(thrust, sd, &angle_ox, &angle_fuel);
-      closed_loop_thrust_control(thrust, sd, &angle_ox, &angle_fuel);
+      closed_loop_thrust_control(thrust, &sd, &angle_ox, &angle_fuel);
       Driver::loxODrive.setPos(angle_ox / 360);
       Driver::ipaODrive.setPos(0);
 

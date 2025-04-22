@@ -1,5 +1,6 @@
 #include "valve_controller.h"
 #include "pi_controller.h"
+#include "plant.h"
 #include "math.h"
 
 #define tadpole_AREA_OF_THROAT 1.69 // in^2
@@ -157,16 +158,17 @@ void open_loop_thrust_control_defaults(float thrust, float *angle_ox, float *ang
 }
 
 // get valve angles (degrees) given thrust (lbf) and current sensor data using PID controllers
-void closed_loop_thrust_control(float thrust, Sensor_Data sensor_data, float *angle_ox, float *angle_ipa) {
+void closed_loop_thrust_control(float thrust, Sensor_Data *sensor_data, float *angle_ox, float *angle_ipa) {
   // ol_ for open loop computations
   // err_ for err between ol and sensor
   // col_ for closed loop computation
 
-  float measured_mass_flow_ox = estimate_mass_flow(sensor_data.ox, ox_venturi, DENSITY_WATER);
-  float measured_mass_flow_ipa = estimate_mass_flow(sensor_data.ipa, ipa_venturi, DENSITY_WATER);
+  float measured_mass_flow_ox = estimate_mass_flow(sensor_data->ox, ox_venturi, DENSITY_WATER);
+  float measured_mass_flow_ipa = estimate_mass_flow(sensor_data->ipa, ipa_venturi, DENSITY_WATER);
+  sensor_data->chamber_pressure = chamber_pressure_plant(measured_mass_flow_ox * 4, measured_mass_flow_ox * 4 / 1.2);
 
   float ol_chamber_pressure = chamber_pressure(thrust);
-  float err_chamber_pressure = sensor_data.chamber_pressure - ol_chamber_pressure;
+  float err_chamber_pressure = sensor_data->chamber_pressure - ol_chamber_pressure;
   float ol_mdot_total = mass_flow_rate(ol_chamber_pressure);
   float cl_mdot_total = ol_mdot_total - ClosedLoopControllers::Chamber_Pressure_Controller.compute(err_chamber_pressure);
   cl_mdot_total = cl_mdot_total / 4;
@@ -181,8 +183,8 @@ void closed_loop_thrust_control(float thrust, Sensor_Data sensor_data, float *an
   float ox_valve_downstream_pressure_goal = 14.7;
   float ipa_valve_downstream_pressure_goal = 14.7;
 
-  float ol_angle_ox = lox_valve_angle(sub_critical_cv(ol_mass_flow_ox, sensor_data.ox.tank_pressure, ox_valve_downstream_pressure_goal, DENSITY_WATER));
-  float ol_angle_ipa = ipa_valve_angle(sub_critical_cv(ol_mass_flow_ipa, sensor_data.ipa.tank_pressure, ipa_valve_downstream_pressure_goal, DENSITY_WATER));
+  float ol_angle_ox = lox_valve_angle(sub_critical_cv(ol_mass_flow_ox, sensor_data->ox.tank_pressure, ox_valve_downstream_pressure_goal, DENSITY_WATER));
+  float ol_angle_ipa = ipa_valve_angle(sub_critical_cv(ol_mass_flow_ipa, sensor_data->ipa.tank_pressure, ipa_valve_downstream_pressure_goal, DENSITY_WATER));
 
   *angle_ox = ol_angle_ox - ClosedLoopControllers::LOX_Angle_Controller.compute(err_mass_flow_ox);
   *angle_ipa = ol_angle_ipa - ClosedLoopControllers::IPA_Angle_Controller.compute(err_mass_flow_ipa);

@@ -36,9 +36,9 @@ void PI_Controller::reset() {
 }
 
 namespace ClosedLoopControllers {
-PI_Controller Chamber_Pressure_Controller(0, 0, INFINITY); // TODO RJN CL - PID constants
-PI_Controller LOX_Angle_Controller(0, 120, INFINITY);
-PI_Controller IPA_Angle_Controller(0, 120, INFINITY);
+PI_Controller Chamber_Pressure_Controller(0, 0.0005, 0.1); // TODO RJN CL - PID constants
+PI_Controller LOX_Angle_Controller(0, 100, 10);
+PI_Controller IPA_Angle_Controller(0, 100, 10);
 
 void reset() {
   Chamber_Pressure_Controller.reset();
