@@ -58,8 +58,8 @@ Sensor_Data default_sensor_data{
         .venturi_throat_pressure = 0,   // psi - not needed for OL
     }};
 
-Venturi ox_venturi{.inlet_area = 0.127, .throat_area = 0.0204, .cd = 0.8};  // in^2 for both
-Venturi ipa_venturi{.inlet_area = 0.127, .throat_area = 0.0204, .cd = 0.8}; // in^2 for both
+Venturi ox_venturi{.inlet_area = 0.127, .throat_area = 0.0204, .cd = 1};  // in^2 for both // TODO - update!
+Venturi ipa_venturi{.inlet_area = 0.127, .throat_area = 0.0204, .cd = 1}; // in^2 for both
 
 // maps v from (min_in, max_in) to (min_out, max_out)
 float linear_interpolation(float v, float min_in, float max_in, float min_out, float max_out) {
