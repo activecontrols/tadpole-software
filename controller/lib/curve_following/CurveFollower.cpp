@@ -67,6 +67,29 @@ Sensor_Data get_sensor_data() {
   return sd;
 }
 
+void print_labeled_sensor(const char *msg, float sensor_value, const char *unit) {
+  Router::info_no_newline(msg);
+  Router::info_no_newline(sensor_value);
+  Router::info(unit);
+}
+
+void print_all_sensors() {
+  Router::info("  Sensor Status ");
+  print_labeled_sensor("            PT LOX Tank: ", PT::lox_tank.getPressure(), " psi");
+  print_labeled_sensor("PT LOX Venturi Upstream: ", PT::lox_venturi_upstream.getPressure(), " psi");
+  print_labeled_sensor("  PT LOX Venturi Throat: ", PT::lox_venturi_throat.getPressure(), " psi");
+
+  print_labeled_sensor("            PT IPA Tank: ", PT::ipa_tank.getPressure(), " psi");
+  print_labeled_sensor("PT IPA Venturi Upstream: ", PT::ipa_venturi_upstream.getPressure(), " psi");
+  print_labeled_sensor("  PT IPA Venturi Throat: ", PT::ipa_venturi_throat.getPressure(), " psi");
+
+  print_labeled_sensor("             PT Chamber: ", PT::chamber.getPressure(), " psi");
+
+  print_labeled_sensor("           TC LOX Valve: ", TC::lox_valve_temperature.getTemperature_F(), " F");
+  print_labeled_sensor("         TC LOX Venturi: ", TC::lox_venturi_temperature.getTemperature_F(), " F");
+  Router::info(" "); // newline
+}
+
 /**
  * Follows an angle curve by interpolating between LOX and IPA positions.
  */
@@ -157,41 +180,8 @@ void followThrustLerpCurve() {
 
 // init CurveFollower and add relevant router cmds
 void begin() {
+  Router::add({print_all_sensors, "print_sensors"});
   Router::add({arm, "arm"});
-}
-
-void move_odrives_to_starting_angle() {
-  Driver::loxODrive.setPos(Loader::lerp_angle_curve[0].lox_angle / 360);
-  Driver::ipaODrive.setPos(Loader::lerp_angle_curve[0].ipa_angle / 360);
-}
-
-void move_odrive_to_starting_thrust() {
-  float lox_tank_pressure;
-  Router::info_no_newline("Enter lox tank pressure (psi): ");
-  String lox_tank_string = Router::read(50);
-  int result = std::sscanf(lox_tank_string.c_str(), "%f", &lox_tank_pressure);
-  if (result != 1) {
-    Router::info("ARMING FAILURE: invalid value entered.");
-    return;
-  }
-
-  float ipa_tank_pressure;
-  Router::info_no_newline("Enter ipa tank pressure (psi): ");
-  String ipa_tank_string = Router::read(50);
-  result = std::sscanf(ipa_tank_string.c_str(), "%f", &ipa_tank_pressure);
-  if (result != 1) {
-    Router::info("ARMING FAILURE: invalid value entered.");
-    return;
-  }
-
-  Sensor_Data sd;
-  sd.ox.tank_pressure = lox_tank_pressure;
-  sd.ipa.tank_pressure = ipa_tank_pressure;
-  float lox_pos;
-  float ipa_pos;
-  open_loop_thrust_control(Loader::lerp_thrust_curve[0].thrust, sd, &lox_pos, &ipa_pos);
-  Driver::loxODrive.setPos(lox_pos / 360);
-  Driver::ipaODrive.setPos(ipa_pos / 360);
 }
 
 // prompt user for log file name, then follow curve
@@ -224,9 +214,35 @@ void arm() {
 
   Router::info("ARMING STATUS: Preparing to move odrives to start pos.");
   if (Loader::header.is_thrust) {
-    move_odrive_to_starting_thrust();
+    float lox_tank_pressure;
+    Router::info_no_newline("Enter lox tank pressure (psi): ");
+    String lox_tank_string = Router::read(50);
+    int result = std::sscanf(lox_tank_string.c_str(), "%f", &lox_tank_pressure);
+    if (result != 1) {
+      Router::info("ARMING FAILURE: invalid value entered.");
+      return;
+    }
+
+    float ipa_tank_pressure;
+    Router::info_no_newline("Enter ipa tank pressure (psi): ");
+    String ipa_tank_string = Router::read(50);
+    result = std::sscanf(ipa_tank_string.c_str(), "%f", &ipa_tank_pressure);
+    if (result != 1) {
+      Router::info("ARMING FAILURE: invalid value entered.");
+      return;
+    }
+
+    Sensor_Data sd;
+    sd.ox.tank_pressure = lox_tank_pressure;
+    sd.ipa.tank_pressure = ipa_tank_pressure;
+    float lox_pos;
+    float ipa_pos;
+    open_loop_thrust_control(Loader::lerp_thrust_curve[0].thrust, sd, &lox_pos, &ipa_pos);
+    Driver::loxODrive.setPos(lox_pos / 360);
+    Driver::ipaODrive.setPos(ipa_pos / 360);
   } else {
-    move_odrives_to_starting_angle();
+    Driver::loxODrive.setPos(Loader::lerp_angle_curve[0].lox_angle / 360);
+    Driver::ipaODrive.setPos(Loader::lerp_angle_curve[0].ipa_angle / 360);
   }
 
   // filenames use DOS 8.3 standard
@@ -245,7 +261,24 @@ void arm() {
   ZucrowInterface::send_ok_to_zucrow(); // tell zucrow we are ready to go
 
 #ifdef ENABLE_ZUCROW_SAFETY
+  elapsedMillis sensor_print_timer = elapsedMillis();
+  unsigned long last_print = sensor_print_timer;
+
   while (ZucrowInterface::check_sync_from_zucrow() != ZUCROW_SYNC_RUNNING) {
+    if (COMMS_SERIAL.available() && COMMS_SERIAL.read() == 'k') {
+      Router::info("ARMING FAILURE: Aborted by operator.");
+      return;
+    }
+    if (ZucrowInterface::check_fault_from_zucrow()) {
+      Router::info("ARMING FAILURE: Zucrow abort line in abort state.");
+      return;
+    }
+
+    if (sensor_print_timer - last_print >= 1000) {
+      Router::info("Waiting for go signal from Zucrow... ");
+      print_all_sensors();
+      last_print = sensor_print_timer;
+    }
   }; // wait until zucrow gives us the go
 #endif
 
