@@ -34,6 +34,7 @@ x = lox/ipa
 | zi_send_idle          | ZucrowInterface | Sets the sync (teensy -> zucrow) line to IDLE                     |
 | zi_status_print       | ZucrowInterface | Prints the incoming state of the (zucrow -> teensy) control lines |
 | kill                  | Driver          | moves odrives out of closed loop mode                             |
+| enable                | Driver          | moves odrives back into closed loop mode                          |
 | get_odrive_info       | Driver          | prints odrive info to confirm connection                          |
 | clear_x_odrive_errors | Driver          | resets odrive error state                                         |
 | set_x_odrive_pos      | Driver          | manually move odrive                                              |

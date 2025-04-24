@@ -75,6 +75,7 @@ void begin() {
   Router::add({[&]() { ipaODrive.hardStopHoming(); }, "ipa_hard_stop_home"});
 
   Router::add({[&]() { loxODrive.kill(); ipaODrive.kill(); }, "kill"});
+  Router::add({[&]() { loxODrive.enable(); ipaODrive.enable(); }, "enable"});
 
 #if (ENABLE_ODRIVE_COMM)
   Router::info("Connecting to lox odrive...");

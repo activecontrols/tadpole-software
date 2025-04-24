@@ -273,12 +273,16 @@ void ODrive::hardStopHoming() { // @ Xander
 
   Router::info("Home Set");
   kill();
+  delay(100);
+  enable();
+  Router::info("State Reset");
 }
 
 void ODrive::kill() {
   ODriveCAN::setState(AXIS_STATE_IDLE); // stop movement attempt
-  delay(100);
+}
+
+void ODrive::enable() {
   ODriveCAN::setState(AXIS_STATE_CLOSED_LOOP_CONTROL); // resume taking movement commands
   ODriveCAN::setControllerMode(CONTROL_MODE_POSITION_CONTROL, INPUT_MODE_POS_FILTER);
-  Router::info("State Reset");
 }

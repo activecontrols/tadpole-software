@@ -127,8 +127,8 @@ public:
   char *getODriveInfo();
   void printODriveInfo() { odriveInfo.print(); }
   void hardStopHoming();
-  void indexHoming();
   void kill();
+  void enable();
 };
 
 #endif

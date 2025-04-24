@@ -209,8 +209,8 @@ void arm() {
 #endif
 
   Router::info("ARMING STATUS: Connecting to odrives.");
-  Driver::loxODrive.checkConnection(); // will block until odrive connection is valid
-  Driver::ipaODrive.checkConnection();
+  Driver::loxODrive.enable();
+  Driver::ipaODrive.enable();
 
   Router::info("ARMING STATUS: Preparing to move odrives to start pos.");
   if (Loader::header.is_thrust) {
