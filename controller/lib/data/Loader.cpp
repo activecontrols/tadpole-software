@@ -167,10 +167,15 @@ void Loader::restore_pt_zero() {
 
   int local_version;
   File f = SDCard::open("ptzero", FILE_READ);
+  if (!f) {
+    Router::info("Zero file not found.");
+    return;
+  }
   f.read((char *)&local_version, sizeof(int));
   if (local_version != pt_zero_version) {
     Router::info("Tried to load zero from incorrect version.");
     f.close();
+    return;
   }
   f.read((char *)&ptz, sizeof(PT_zero));
   f.close();
