@@ -60,33 +60,6 @@ void ODrive::checkConnection() {
 }
 
 /**
- * Checks the `misconfigured` and `reboot_required` flags (from the ODrive API), and if either
- * are true, return an error
- */
-int ODrive::checkConfig() {
-#if (ENABLE_ODRIVE_COMM)
-
-  misconfigured = false;  // ODriveUART::getParameterAsInt("misconfigured"); // TODO RJN odrive - deal with this later
-  rebootRequired = false; // ODriveUART::getParameterAsInt("reboot_required");
-
-  if (misconfigured) {
-    Router::info(
-        "ERROR: " + std::string(name, 3) +
-        " ODRIVE IS MISCONFIGURED, WILL NOT ALLOW CURVE FOLLOWING");
-    return ODRIVE_MISCONFIGURED;
-  }
-
-  if (rebootRequired) {
-    Router::info(
-        "ERROR: " + std::string(name, 3) +
-        " ODRIVE NEEDS TO REBOOT, WILL NOT ALLOW CURVE FOLLOWING");
-    return ODRIVE_REBOOT_REQUIRED;
-  }
-#endif
-  return ODRIVE_NO_ERROR;
-}
-
-/**
  * Set the position for the odrive to control flow through valve.
  * @param pos value to be sent to odrive (valid values are from `MIN_ODRIVE_POS` to `MAX_ODRIVE_POS`).
  */

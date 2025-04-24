@@ -70,18 +70,6 @@ private:
   bool isArmed;
 
   /*
-   * A flag that determines whether the ODrive is misconfigured or not
-   * Modified by checkConfig()
-   */
-  bool misconfigured;
-
-  /*
-   * A flag that determines whether the ODrive needs to be rebooted
-   * Modified by checkConfig()
-   */
-  bool rebootRequired;
-
-  /*
    * The error code that made the odrive disarm
    * Modified only by `checkErrors()`
    * Can be cleared by `ODriveCAN::clearErrors()`
@@ -115,7 +103,6 @@ public:
   ODriveUserData odrive_status;
 
   void checkConnection();
-  int checkConfig();
 
   void setPos(float);
   void setPosConsoleCmd();
