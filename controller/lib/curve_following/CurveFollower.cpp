@@ -131,8 +131,7 @@ void followThrustLerpCurve() {
       float angle_ox;
       float angle_fuel;
       // log_only(sd);
-      open_loop_thrust_control_defaults(thrust, &angle_ox, &angle_fuel);
-      // open_loop_thrust_control(thrust, sd, &angle_ox, &angle_fuel);
+      open_loop_thrust_control(thrust, sd, &angle_ox, &angle_fuel);
       // closed_loop_thrust_control(thrust, sd, &angle_ox, &angle_fuel);
       Driver::loxODrive.setPos(angle_ox / 360);
       Driver::ipaODrive.setPos(angle_fuel / 360);
@@ -158,20 +157,90 @@ void followThrustLerpCurve() {
 
 // init CurveFollower and add relevant router cmds
 void begin() {
-  Router::add({follow_curve_cmd, "follow_curve"});
-  Router::add({auto_seq, "auto_seq"});
+  Router::add({arm, "arm"});
 }
 
-/**
- * Initiates curve following based on the curve header loaded in Loader.cpp.
- */
-void follow_curve(const char *log_file_name) {
-  // checkConfig() function provides its own error message console logging
-  if (Driver::loxODrive.checkConfig() || Driver::ipaODrive.checkConfig()) {
+void move_odrives_to_starting_angle() {
+  Driver::loxODrive.setPos(Loader::lerp_angle_curve[0].lox_angle / 360);
+  Driver::ipaODrive.setPos(Loader::lerp_angle_curve[0].ipa_angle / 360);
+}
+
+void move_odrive_to_starting_thrust() {
+  float lox_tank_pressure;
+  Router::info_no_newline("Enter lox tank pressure (psi): ");
+  String lox_tank_string = Router::read(50);
+  int result = std::sscanf(lox_tank_string.c_str(), "%f", &lox_tank_pressure);
+  if (result != 1) {
+    Router::info("ARMING FAILURE: invalid value entered.");
     return;
   }
 
-  CurveLogger::create_curve_log(log_file_name); // lower case files have issues on teensy
+  float ipa_tank_pressure;
+  Router::info_no_newline("Enter ipa tank pressure (psi): ");
+  String ipa_tank_string = Router::read(50);
+  result = std::sscanf(ipa_tank_string.c_str(), "%f", &ipa_tank_pressure);
+  if (result != 1) {
+    Router::info("ARMING FAILURE: invalid value entered.");
+    return;
+  }
+
+  Sensor_Data sd;
+  sd.ox.tank_pressure = lox_tank_pressure;
+  sd.ipa.tank_pressure = ipa_tank_pressure;
+  float lox_pos;
+  float ipa_pos;
+  open_loop_thrust_control(Loader::lerp_thrust_curve[0].thrust, sd, &lox_pos, &ipa_pos);
+  Driver::loxODrive.setPos(lox_pos / 360);
+  Driver::ipaODrive.setPos(ipa_pos / 360);
+}
+
+// prompt user for log file name, then follow curve
+void arm() {
+  if (!Loader::loaded_curve) {
+    Router::info("ARMING FAILURE: no curve loaded.");
+    return;
+  }
+
+  if (!PT::zeroed_since_boot) {
+    Router::info("ARMING FAILURE: pt boards have not been zeroed.");
+    return;
+  }
+
+#ifdef ENABLE_ZUCROW_SAFETY
+  if (ZucrowInterface::check_fault_from_zucrow()) {
+    Router::info("ARMING FAILURE: Zucrow abort line in abort state.");
+    return;
+  }
+
+  if (ZucrowInterface::check_sync_from_zucrow() == ZUCROW_SYNC_RUNNING) {
+    Router::info("ARMING FAILURE: Zucrow already commanding curve start.");
+    return;
+  }
+#endif
+
+  Router::info("ARMING STATUS: Connecting to odrives.");
+  Driver::loxODrive.checkConnection(); // will block until odrive connection is valid
+  Driver::ipaODrive.checkConnection();
+
+  Router::info("ARMING STATUS: Preparing to move odrives to start pos.");
+  if (Loader::header.is_thrust) {
+    move_odrive_to_starting_thrust();
+  } else {
+    move_odrives_to_starting_angle();
+  }
+
+  // filenames use DOS 8.3 standard
+  Router::info_no_newline("Enter log filename (1-8 chars + '.' + 3 chars): ");
+  String log_file_name = Router::read(50);
+  CurveLogger::create_curve_log(log_file_name.c_str()); // lower case files have issues on teensy
+
+  Router::info_no_newline("ARMING COMPLETE. Type `y` and press enter to confirm. ");
+  String final_check_str = Router::read(50);
+  if (final_check_str != "y") {
+    Router::info("ARMING FAILURE: Cancelled by operator.");
+    CurveLogger::close_curve_log();
+    return;
+  }
 
   ZucrowInterface::send_ok_to_zucrow(); // tell zucrow we are ready to go
 
@@ -186,33 +255,6 @@ void follow_curve(const char *log_file_name) {
 
   Router::info("Finished following curve!");
   CurveLogger::close_curve_log();
-}
-
-// prompt user for log file name, then follow curve
-void follow_curve_cmd() {
-  if (!Loader::loaded_curve) {
-    Router::info("No curve loaded.");
-    return;
-  }
-
-  // filenames use DOS 8.3 standard
-  Router::info_no_newline("Enter log filename (1-8 chars + '.' + 3 chars): ");
-  String filename = Router::read(50);
-  follow_curve(filename.toUpperCase().c_str());
-}
-
-void auto_seq() { // TODO - home valves?, zero PTs?
-  const char *curve_file_name = "AUTOCUR";
-  const char *tpl_log_file_name = "AUTOL"; // generates names like AUTOL#.CSV
-
-  if (!Loader::load_curve_sd(curve_file_name)) {
-    return;
-  };
-
-  String log_file_name = SDCard::get_next_safe_name(tpl_log_file_name);
-  Router::info_no_newline("Using log file: ");
-  Router::info(log_file_name);
-  follow_curve(log_file_name.c_str());
 }
 
 } // namespace CurveFollower

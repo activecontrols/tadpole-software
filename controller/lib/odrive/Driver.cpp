@@ -79,11 +79,9 @@ void begin() {
 #if (ENABLE_ODRIVE_COMM)
   Router::info("Connecting to lox odrive...");
   loxODrive.checkConnection();
-  loxODrive.checkConfig();
 
   Router::info("Connecting to ipa odrive...");
   ipaODrive.checkConnection();
-  ipaODrive.checkConfig();
 
   printODriveInfo();
 #endif

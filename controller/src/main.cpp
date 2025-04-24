@@ -56,8 +56,6 @@ void setup() {
   PT::begin();              // initializes the PT Boards
   TC::begin();              // initializes the TC Boards
   CurveFollower::begin();   // creates curve following commands
-
-  // CurveFollower::auto_seq();
 }
 
 void loop() {

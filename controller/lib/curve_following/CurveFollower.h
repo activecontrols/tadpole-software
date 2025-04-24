@@ -4,9 +4,7 @@
 namespace CurveFollower {
 
 void begin();
-void follow_curve(const char *log_file_name);
-void follow_curve_cmd();
-void auto_seq();
+void arm();
 
 }; // namespace CurveFollower
 
