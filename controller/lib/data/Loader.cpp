@@ -17,8 +17,8 @@ void Loader::begin() {
   Router::add({load_curve_sd_cmd, "load_curve_sd"});
   Router::add({write_curve_sd, "write_curve_sd"});
 
-  Router::add({save_pt_calib, "save_pt_calib"});
-  Router::add({restore_pt_calib, "restore_pt_calib"});
+  Router::add({save_pt_zero, "save_pt_zero"});
+  Router::add({restore_pt_zero, "restore_pt_zero"});
 }
 
 void Loader::load_curve_generic(bool serial, File *f) {
@@ -129,8 +129,8 @@ void Loader::write_curve_sd() {
   Router::info("Wrote curve!");
 }
 
-int pt_calib_version = 1; // change this if the struct format changes
-struct PT_calib {
+int pt_zero_version = 1; // change this if the struct format changes
+struct PT_zero {
   float lox_tank;
   float lox_venturi_upstream;
   float lox_venturi_throat;
@@ -142,48 +142,49 @@ struct PT_calib {
   float chamber;
 };
 
-void Loader::save_pt_calib() {
-  PT_calib ptc;
-  ptc.lox_tank = PT::lox_tank.offset;
-  ptc.lox_venturi_upstream = PT::lox_venturi_upstream.offset;
-  ptc.lox_venturi_throat = PT::lox_venturi_throat.offset;
+void Loader::save_pt_zero() {
+  PT_zero ptz;
+  ptz.lox_tank = PT::lox_tank.offset;
+  ptz.lox_venturi_upstream = PT::lox_venturi_upstream.offset;
+  ptz.lox_venturi_throat = PT::lox_venturi_throat.offset;
 
-  ptc.ipa_tank = PT::ipa_tank.offset;
-  ptc.ipa_venturi_upstream = PT::ipa_venturi_upstream.offset;
-  ptc.ipa_venturi_throat = PT::ipa_venturi_throat.offset;
+  ptz.ipa_tank = PT::ipa_tank.offset;
+  ptz.ipa_venturi_upstream = PT::ipa_venturi_upstream.offset;
+  ptz.ipa_venturi_throat = PT::ipa_venturi_throat.offset;
 
-  ptc.chamber = PT::chamber.offset;
+  ptz.chamber = PT::chamber.offset;
 
-  SD.remove("ptcal");
-  File f = SDCard::open("ptcal", FILE_WRITE);
-  f.write((char *)&pt_calib_version, sizeof(int));
-  f.write((char *)&ptc, sizeof(PT_calib));
+  SD.remove("ptzero");
+  File f = SDCard::open("ptzero", FILE_WRITE);
+  f.write((char *)&pt_zero_version, sizeof(int));
+  f.write((char *)&ptz, sizeof(PT_zero));
   f.close();
-  Router::info("Saved pt calib.");
+  Router::info("Saved pt zero.");
 }
 
-void Loader::restore_pt_calib() {
-  PT_calib ptc;
+void Loader::restore_pt_zero() {
+  PT_zero ptz;
 
   int local_version;
-  File f = SDCard::open("ptcal", FILE_READ);
+  File f = SDCard::open("ptzero", FILE_READ);
   f.read((char *)&local_version, sizeof(int));
-  if (local_version != pt_calib_version) {
-    Router::info("Tried to load cal from incorrect version.");
+  if (local_version != pt_zero_version) {
+    Router::info("Tried to load zero from incorrect version.");
     f.close();
   }
-  f.read((char *)&ptc, sizeof(PT_calib));
+  f.read((char *)&ptz, sizeof(PT_zero));
   f.close();
 
-  PT::lox_tank.offset = ptc.lox_tank;
-  PT::lox_venturi_upstream.offset = ptc.lox_venturi_upstream;
-  PT::lox_venturi_throat.offset = ptc.lox_venturi_throat;
+  PT::lox_tank.offset = ptz.lox_tank;
+  PT::lox_venturi_upstream.offset = ptz.lox_venturi_upstream;
+  PT::lox_venturi_throat.offset = ptz.lox_venturi_throat;
 
-  PT::ipa_tank.offset = ptc.ipa_tank;
-  PT::ipa_venturi_upstream.offset = ptc.ipa_venturi_upstream;
-  PT::ipa_venturi_throat.offset = ptc.ipa_venturi_throat;
+  PT::ipa_tank.offset = ptz.ipa_tank;
+  PT::ipa_venturi_upstream.offset = ptz.ipa_venturi_upstream;
+  PT::ipa_venturi_throat.offset = ptz.ipa_venturi_throat;
 
-  PT::chamber.offset = ptc.chamber;
+  PT::chamber.offset = ptz.chamber;
+  PT::zeroed_since_boot = true;
 
-  Router::info("Restored pt calib.");
+  Router::info("Restored pt zero.");
 }

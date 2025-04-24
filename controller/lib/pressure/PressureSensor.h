@@ -12,7 +12,7 @@ private:
 
 public:
   float offset; // public to allow for calibration
-  PressureSensor(int demuxAddr, float slope, float offset);
+  PressureSensor(int demuxAddr, float slope);
   void begin();
   float getPressure();
   void zero();
@@ -21,6 +21,7 @@ public:
 namespace PT {
 void begin();
 void zero();
+extern bool zeroed_since_boot;
 
 extern PressureSensor lox_tank;
 extern PressureSensor lox_venturi_upstream;

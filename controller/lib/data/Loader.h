@@ -25,8 +25,8 @@ public:
   Loader() = delete;   // prevent instantiation
   static bool load_curve_sd(const char *filename);
 
-  static void save_pt_calib();
-  static void restore_pt_calib();
+  static void save_pt_zero();
+  static void restore_pt_zero();
 
 private:
   // triggered by comms

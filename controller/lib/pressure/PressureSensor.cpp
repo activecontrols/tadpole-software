@@ -4,9 +4,9 @@
 
 // #define PRINT_PT_MV // enable to print adc mv measurement (for calibration)
 
-PressureSensor::PressureSensor(int demuxAddr, float slope, float offset) : ADS131M0x(demuxAddr) {
+PressureSensor::PressureSensor(int demuxAddr, float slope) : ADS131M0x(demuxAddr) {
   this->slope = slope;
-  this->offset = offset;
+  this->offset = 0;
 }
 
 void PressureSensor::begin() {
@@ -42,7 +42,7 @@ float PressureSensor::getPressure() {
 void PressureSensor::zero() {
   offset = 0;
   float sum = 0;
-  int samples = 10;
+  int samples = 100;
   for (int i = 0; i < samples; i++) {
     sum += getPressure();
     delay(10);
@@ -51,15 +51,16 @@ void PressureSensor::zero() {
 }
 
 namespace PT {
-PressureSensor lox_tank(SPI_DEVICE_PT_LOX_TANK, 1, 0);
-PressureSensor lox_venturi_upstream(SPI_DEVICE_PT_LOX_VENTURI_UPSTREAM, 1, 0);
-PressureSensor lox_venturi_throat(SPI_DEVICE_PT_LOX_VENTURI_THROAT, 1, 0);
+bool zeroed_since_boot;
+PressureSensor lox_tank(SPI_DEVICE_PT_LOX_TANK, 1); // TODO - calibrate PTs and set board ids
+PressureSensor lox_venturi_upstream(SPI_DEVICE_PT_LOX_VENTURI_UPSTREAM, 1);
+PressureSensor lox_venturi_throat(SPI_DEVICE_PT_LOX_VENTURI_THROAT, 1);
 
-PressureSensor ipa_tank(SPI_DEVICE_PT_IPA_TANK, 1, 0);
-PressureSensor ipa_venturi_upstream(SPI_DEVICE_PT_IPA_VENTURI_UPSTREAM, 1, 0);
-PressureSensor ipa_venturi_throat(SPI_DEVICE_PT_IPA_VENTURI_THROAT, 1, 0);
+PressureSensor ipa_tank(SPI_DEVICE_PT_IPA_TANK, 1);
+PressureSensor ipa_venturi_upstream(SPI_DEVICE_PT_IPA_VENTURI_UPSTREAM, 1);
+PressureSensor ipa_venturi_throat(SPI_DEVICE_PT_IPA_VENTURI_THROAT, 1);
 
-PressureSensor chamber(SPI_DEVICE_PT_CHAMBER, 1, 0);
+PressureSensor chamber(SPI_DEVICE_PT_CHAMBER, 1);
 
 void begin() {
   lox_tank.begin();
@@ -72,11 +73,11 @@ void begin() {
 
   chamber.begin();
 
-  Router::add({zero, "calib_pt_to_atm"});
+  Router::add({zero, "zero_pt_to_atm"});
 }
 
 void zero() {
-  Router::info_no_newline("Calibrating ...");
+  Router::info_no_newline("Zeroing ...");
   lox_tank.zero();
   lox_venturi_upstream.zero();
   lox_venturi_throat.zero();
@@ -86,6 +87,7 @@ void zero() {
   ipa_venturi_throat.zero();
 
   chamber.zero();
+  zeroed_since_boot = true;
   Router::info(" finished!");
 }
 } // namespace PT
