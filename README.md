@@ -10,4 +10,3 @@ Contains Code for:
 Helpful Cmds:
  - `help` to list all valid commands
  - `ping` to check connection
- - `auto_seq` to load a curve and follow it
