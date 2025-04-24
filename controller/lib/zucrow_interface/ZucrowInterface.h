@@ -2,11 +2,11 @@
 #define ZUCROW_H
 
 // INPUTS FROM ZUCROW
-#define ZUCROW_PANIC true
-#define ZUCROW_NO_PANIC false
+#define ZUCROW_PANIC false
+#define ZUCROW_NO_PANIC true
 
-#define ZUCROW_SYNC_RUNNING true
-#define ZUCROW_SYNC_IDLE false
+#define ZUCROW_SYNC_RUNNING false
+#define ZUCROW_SYNC_IDLE true
 
 // OUTPUTS FROM TEENSY
 #define TEENSY_PANIC true
