@@ -24,9 +24,20 @@ void Safety::kill_response(int kill_reason) {
   Driver::ipaODrive.setState(AXIS_STATE_IDLE);
   ZucrowInterface::send_fault_to_zucrow();
   Router::info("Fault detected! Curve following terminated, odrives disabled, fault signal sent to Zucrow.");
-  Router::info_no_newline("Fault cause #: ");
-  Router::info(kill_reason);
+  Router::info_no_newline("Fault cause: ");
 
+  if (kill_reason == KILLED_BY_ZUCROW) {
+    Router::info("zucrow abort triggered");
+  }
+  if (kill_reason == KILLED_BY_SERIAL) {
+    Router::info("serial abort triggered");
+  }
+  if (kill_reason == KILLED_BY_ANGLE_OOR) {
+    Router::info("odrive reported angle not tracking commanded angle");
+  }
+  if (kill_reason == KILLED_BY_ODRIVE_FAULT) {
+    Router::info("odrive fault");
+  }
   if (kill_reason == KILLED_BY_WC) {
     Router::info_no_newline("Window comparator ");
     Router::info_no_newline(WindowComparators::WC_ERROR.causeID);
