@@ -245,6 +245,20 @@ void arm() {
     Driver::ipaODrive.setPos(Loader::lerp_angle_curve[0].ipa_angle / 360);
   }
 
+  Router::info_no_newline("ARMING STATUS: Moving odrives, monitor valve angle readout: ");
+
+#if ENABLE_ODRIVE_COMM
+  elapsedMillis odrive_monitor_window = elapsedMillis();
+  while (odrive_monitor_window < 2000) {
+    Get_Encoder_Estimates_msg_t enc_msg;
+    Driver::loxODrive.getFeedback(enc_msg);
+    float lox_pos = 0.25 - enc_msg.Pos_Estimate;
+    Driver::ipaODrive.getFeedback(enc_msg);
+    float ipa_pos = 0.25 - enc_msg.Pos_Estimate;
+    ZucrowInterface::send_valve_angles_to_zucrow(lox_pos, ipa_pos);
+  }
+#endif
+
   // filenames use DOS 8.3 standard
   Router::info_no_newline("Enter log filename (1-8 chars + '.' + 3 chars): ");
   String log_file_name = Router::read(50);
