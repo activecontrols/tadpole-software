@@ -245,7 +245,7 @@ void arm() {
     Driver::ipaODrive.setPos(Loader::lerp_angle_curve[0].ipa_angle / 360);
   }
 
-  Router::info_no_newline("ARMING STATUS: Moving odrives, monitor valve angle readout: ");
+  Router::info("ARMING STATUS: Moving odrives, monitor valve angle readout.");
 
 #if ENABLE_ODRIVE_COMM
   elapsedMillis odrive_monitor_window = elapsedMillis();
