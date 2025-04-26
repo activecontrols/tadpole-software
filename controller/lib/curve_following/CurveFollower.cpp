@@ -97,9 +97,12 @@ void followAngleLerpCurve() {
   lerp_point_angle *lac = Loader::lerp_angle_curve;
   int kill_reason = DONT_KILL;
   elapsedMillis timer = elapsedMillis();
+
   unsigned long lastlog = timer;
 
   WindowComparators::reset();
+
+  int counter = 0;
 
   for (int i = 0; i < Loader::header.num_points - 1; i++) {
     while (timer / 1000.0 < lac[i + 1].time) {
@@ -117,6 +120,7 @@ void followAngleLerpCurve() {
         CurveLogger::log_curve_csv(seconds, i, -1, sd);
         lastlog = timer;
       }
+      counter++;
 
       ZucrowInterface::send_valve_angles_to_zucrow(Driver::loxODrive.position, Driver::ipaODrive.position);
       kill_reason = Safety::check_for_kill();
@@ -124,12 +128,15 @@ void followAngleLerpCurve() {
         Safety::kill_response(kill_reason);
         break;
       }
-      delay(COMMAND_INTERVAL_MS);
+      // delay(COMMAND_INTERVAL_MS);
     }
     if (kill_reason != DONT_KILL) {
       break;
     }
   }
+  Router::info_no_newline("Finished ");
+  Router::info_no_newline(counter);
+  Router::info(" loop iterations.");
 }
 
 /**

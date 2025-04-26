@@ -15,7 +15,6 @@ void setup_can(_MB_ptr handler) {
 ODrive::ODrive(uint32_t can_id, char name[4])
     : ODriveCAN(wrap_can_intf(can_intf), can_id) {
 
-  ODriveCAN::onFeedback(onFeedbackCB, &this->odrive_status);
   ODriveCAN::onStatus(onHeartbeatCB, &this->odrive_status);
 
   // crappy way of doing this, bu it is three characters, so it is fine
@@ -32,20 +31,13 @@ void onHeartbeatCB(Heartbeat_msg_t &msg, void *user_data) {
   odrv_user_data->received_heartbeat = true;
 }
 
-// Called every time a feedback message arrives from the ODrive
-void onFeedbackCB(Get_Encoder_Estimates_msg_t &msg, void *user_data) {
-  ODriveUserData *odrv_user_data = static_cast<ODriveUserData *>(user_data);
-  odrv_user_data->last_feedback = msg;
-  odrv_user_data->received_feedback = true;
-}
-
 /**
  * Checks if communication with ODrive is available by requesting the current state
  * Runs in a while loop until the ODrive is connected
  */
 void ODrive::checkConnection() {
 #if (ENABLE_ODRIVE_COMM)
-  while (this->odrive_status.last_heartbeat.Axis_State == AXIS_STATE_UNDEFINED) {
+  while (this->odrive_status.received_heartbeat && this->odrive_status.last_heartbeat.Axis_State == AXIS_STATE_UNDEFINED) {
     Router::info("No response from ODrive...");
     delay(100);
   }
@@ -143,25 +135,11 @@ char *ODrive::getTelemetryCSV() {
   telemetryCSV.clear();
 
 #if (ENABLE_ODRIVE_COMM)
-  Get_Encoder_Estimates_msg_t enc_msg;
-  ODriveCAN::getFeedback(enc_msg);
-  position = 0.25 - enc_msg.Pos_Estimate;
-  velocity = enc_msg.Vel_Estimate;
-
-  // position = 0.25 - this->odrive_status.last_feedback.Pos_Estimate;
-  // velocity = this->odrive_status.last_feedback.Vel_Estimate;
-
-  Get_Bus_Voltage_Current_msg_t vc_msg;
-  ODriveCAN::getBusVI(vc_msg);
-  voltage = vc_msg.Bus_Voltage;
-
-  Get_Iq_msg_t amp_msg;
-  ODriveCAN::getCurrents(amp_msg);
-  current = amp_msg.Iq_Measured;
-
-  Get_Temperature_msg_t temp_msg;
-  ODriveCAN::getTemperature(temp_msg);
-  temperature = temp_msg.Motor_Temperature;
+  position = 0.25 - this->last_enc_msg.Pos_Estimate;
+  velocity = this->last_enc_msg.Vel_Estimate;
+  voltage = this->last_vc_msg.Bus_Voltage;
+  current = this->last_amp_msg.Iq_Measured;
+  temperature = this->last_temp_msg.Motor_Temperature;
 
   telemetryCSV << position << "," << velocity << "," << voltage << "," << current << "," << temperature;
 #else
