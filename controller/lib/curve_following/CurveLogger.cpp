@@ -24,6 +24,7 @@ CString<400> curveTelemCSV;
                     "lox_mdot,ipa_mdot,ol_lox_mdot,ol_ipa_mdot,ol_lox_angle,ol_ipa_angle")
 
 // logs time, phase, thrust, and sensor data in .csv format
+int print_counter = 0;
 void log_curve_csv(float time, int phase, float thrust, Sensor_Data sd) {
   Controller_State cs = ClosedLoopControllers::getState();
   curveTelemCSV.clear();
@@ -39,9 +40,15 @@ void log_curve_csv(float time, int phase, float thrust, Sensor_Data sd) {
                 << vc_state.measured_lox_mdot << "," << vc_state.measured_ipa_mdot << ","
                 << vc_state.ol_lox_mdot << "," << vc_state.ol_ipa_mdot << "," << vc_state.ol_lox_angle << "," << vc_state.ol_ipa_angle;
 
-  curveTelemCSV.print();
   odriveLogFile.println(curveTelemCSV.str);
   odriveLogFile.flush();
+
+  print_counter++;
+  if (print_counter % 10 == 0) {
+    curveTelemCSV.clear();
+    curveTelemCSV << time << "  " << thrust << "  " << vc_state.measured_lox_mdot << "  " << vc_state.measured_ipa_mdot;
+    curveTelemCSV.print();
+  }
 }
 
 // creates a log file for the current curve and prints csv header

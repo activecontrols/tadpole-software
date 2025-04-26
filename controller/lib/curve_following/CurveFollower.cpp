@@ -13,8 +13,8 @@
 #include "Loader.h"
 #include "Router.h"
 
-#define LOG_INTERVAL_MS 10
-#define COMMAND_INTERVAL_MS 1
+#define LOG_INTERVAL_US 5000
+#define COMMAND_INTERVAL_US 1000
 
 namespace CurveFollower {
 
@@ -96,17 +96,17 @@ void print_all_sensors() {
 void followAngleLerpCurve() {
   lerp_point_angle *lac = Loader::lerp_angle_curve;
   int kill_reason = DONT_KILL;
-  elapsedMillis timer = elapsedMillis();
-
+  elapsedMicros timer = elapsedMicros();
   unsigned long lastlog = timer;
+  unsigned long lastloop = timer;
 
   WindowComparators::reset();
 
-  int counter = 0;
+  long counter = 0;
 
   for (int i = 0; i < Loader::header.num_points - 1; i++) {
-    while (timer / 1000.0 < lac[i + 1].time) {
-      float seconds = timer / 1000.0;
+    while (timer / 1000000.0 < lac[i + 1].time) {
+      float seconds = timer / 1000000.0;
       float lox_pos = lerp(lac[i].lox_angle, lac[i + 1].lox_angle, lac[i].time, lac[i + 1].time, seconds) / 360;
       float ipa_pos = lerp(lac[i].ipa_angle, lac[i + 1].ipa_angle, lac[i].time, lac[i + 1].time, seconds) / 360;
 
@@ -116,9 +116,9 @@ void followAngleLerpCurve() {
       Driver::loxODrive.setPos(lox_pos);
       Driver::ipaODrive.setPos(ipa_pos);
 
-      if (timer - lastlog > LOG_INTERVAL_MS) {
+      if (timer - lastlog > LOG_INTERVAL_US) {
+        lastlog += LOG_INTERVAL_US;
         CurveLogger::log_curve_csv(seconds, i, -1, sd);
-        lastlog = timer;
       }
       counter++;
 
@@ -128,7 +128,10 @@ void followAngleLerpCurve() {
         Safety::kill_response(kill_reason);
         break;
       }
-      // delay(COMMAND_INTERVAL_MS);
+
+      unsigned long target_slp = COMMAND_INTERVAL_US - (timer - lastloop);
+      delayMicroseconds(target_slp < COMMAND_INTERVAL_US ? target_slp : 0); // don't delay for too long
+      lastloop += COMMAND_INTERVAL_US;
     }
     if (kill_reason != DONT_KILL) {
       break;
@@ -145,15 +148,18 @@ void followAngleLerpCurve() {
 void followThrustLerpCurve() {
   lerp_point_thrust *ltc = Loader::lerp_thrust_curve;
   int kill_reason = DONT_KILL;
-  elapsedMillis timer = elapsedMillis();
+  elapsedMicros timer = elapsedMicros();
   unsigned long lastlog = timer;
+  unsigned long lastloop = timer;
 
   ClosedLoopControllers::reset();
   WindowComparators::reset();
 
+  long counter = 0;
+
   for (int i = 0; i < Loader::header.num_points - 1; i++) {
-    while (timer / 1000.0 < ltc[i + 1].time) {
-      float seconds = timer / 1000.0;
+    while (timer / 1000000.0 < ltc[i + 1].time) {
+      float seconds = timer / 1000000.0;
       float thrust = lerp(ltc[i].thrust, ltc[i + 1].thrust, ltc[i].time, ltc[i + 1].time, seconds);
 
       Sensor_Data sd = get_sensor_data();
@@ -166,10 +172,11 @@ void followThrustLerpCurve() {
       Driver::loxODrive.setPos(angle_ox / 360);
       Driver::ipaODrive.setPos(angle_fuel / 360);
 
-      if (timer - lastlog >= LOG_INTERVAL_MS) {
-        CurveLogger::log_curve_csv(seconds, i, thrust, sd);
-        lastlog = timer;
+      if (timer - lastlog > LOG_INTERVAL_US) {
+        lastlog += LOG_INTERVAL_US;
+        CurveLogger::log_curve_csv(seconds, i, -1, sd);
       }
+      counter++;
 
       ZucrowInterface::send_valve_angles_to_zucrow(Driver::loxODrive.position, Driver::ipaODrive.position);
       kill_reason = Safety::check_for_kill();
@@ -177,12 +184,19 @@ void followThrustLerpCurve() {
         Safety::kill_response(kill_reason);
         break;
       }
-      delay(COMMAND_INTERVAL_MS);
+
+      unsigned long target_slp = COMMAND_INTERVAL_US - (timer - lastloop);
+      delayMicroseconds(target_slp < COMMAND_INTERVAL_US ? target_slp : 0); // don't delay for too long
+      lastloop += COMMAND_INTERVAL_US;
     }
     if (kill_reason != DONT_KILL) {
       break;
     }
   }
+
+  Router::info_no_newline("Finished ");
+  Router::info_no_newline(counter);
+  Router::info(" loop iterations.");
 }
 
 // init CurveFollower and add relevant router cmds
@@ -220,6 +234,8 @@ void arm() {
   Driver::ipaODrive.enable();
 
   Router::info("ARMING STATUS: Preparing to move odrives to start pos.");
+  float lox_start;
+  float ipa_start;
   if (Loader::header.is_thrust) {
     float lox_tank_pressure;
     Router::info_no_newline("Enter lox tank pressure (psi): ");
@@ -242,27 +258,23 @@ void arm() {
     Sensor_Data sd;
     sd.ox.tank_pressure = lox_tank_pressure;
     sd.ipa.tank_pressure = ipa_tank_pressure;
-    float lox_pos;
-    float ipa_pos;
-    open_loop_thrust_control(Loader::lerp_thrust_curve[0].thrust, sd, &lox_pos, &ipa_pos);
-    Driver::loxODrive.setPos(lox_pos / 360);
-    Driver::ipaODrive.setPos(ipa_pos / 360);
+    open_loop_thrust_control(Loader::lerp_thrust_curve[0].thrust, sd, &lox_start, &ipa_start);
   } else {
-    Driver::loxODrive.setPos(Loader::lerp_angle_curve[0].lox_angle / 360);
-    Driver::ipaODrive.setPos(Loader::lerp_angle_curve[0].ipa_angle / 360);
+    lox_start = Loader::lerp_angle_curve[0].lox_angle;
+    ipa_start = Loader::lerp_angle_curve[0].ipa_angle;
   }
 
   Router::info("ARMING STATUS: Moving odrives, monitor valve angle readout.");
 
 #if ENABLE_ODRIVE_COMM
   elapsedMillis odrive_monitor_window = elapsedMillis();
-  while (odrive_monitor_window < 2000) {
-    Get_Encoder_Estimates_msg_t enc_msg;
-    Driver::loxODrive.getFeedback(enc_msg);
-    float lox_pos = 0.25 - enc_msg.Pos_Estimate;
-    Driver::ipaODrive.getFeedback(enc_msg);
-    float ipa_pos = 0.25 - enc_msg.Pos_Estimate;
-    ZucrowInterface::send_valve_angles_to_zucrow(lox_pos, ipa_pos);
+  unsigned long start_time = odrive_monitor_window;
+  while (odrive_monitor_window - start_time < 2000) {
+    Driver::loxODrive.setPos(lox_start / 360);
+    Driver::ipaODrive.setPos(ipa_start / 360);
+
+    ZucrowInterface::send_valve_angles_to_zucrow(0.25 - Driver::loxODrive.last_enc_msg.Pos_Estimate,
+                                                 0.25 - Driver::ipaODrive.last_enc_msg.Pos_Estimate);
   }
 #endif
 
@@ -304,7 +316,7 @@ void arm() {
 #endif
 
   ZucrowInterface::send_sync_to_zucrow(TEENSY_SYNC_RUNNING);
-  Loader::header.is_thrust ? followThrustLerpCurve() : followAngleLerpCurve();
+  Loader::header.is_thrust ? delay(10) : followAngleLerpCurve();
   ZucrowInterface::send_sync_to_zucrow(TEENSY_SYNC_IDLE);
 
   Router::info("Finished following curve!");
