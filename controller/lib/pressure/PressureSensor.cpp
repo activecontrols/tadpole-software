@@ -24,10 +24,10 @@ float PressureSensor::getPressure() {
     return -1;
   }
 
-  if (!(out.status & 0b1)) {
-    Serial.print(out.status, HEX);
-    Serial.print(" rdy err ");
-  }
+  // if (!(out.status & 0b1)) {
+  //   Serial.print(out.status, HEX);
+  //   Serial.print(" rdy err ");
+  // }
   float voltage = out.ch1;
   voltage *= 2.4 / 1;
   voltage /= -pow(2, 24);
