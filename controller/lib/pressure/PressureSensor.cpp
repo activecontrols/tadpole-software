@@ -2,7 +2,7 @@
 #include "SPI_Demux.h"
 #include "Router.h"
 
-// #define PRINT_PT_MV // enable to print adc mv measurement (for calibration)
+#define PRINT_PT_MV // enable to print adc mv measurement (for calibration)
 
 PressureSensor::PressureSensor(int demuxAddr, float slope) : ADS131M0x(demuxAddr) {
   this->slope = slope;
@@ -52,15 +52,15 @@ void PressureSensor::zero(float target) {
 
 namespace PT {
 bool zeroed_since_boot;
-PressureSensor lox_valve_upstream(SPI_DEVICE_PT_LOX_VALVE_UPSTREAM, 1);
-PressureSensor lox_valve_downstream(SPI_DEVICE_PT_LOX_VALVE_DOWNSTREAM, 1); // not used during throttle
-PressureSensor lox_venturi_differential(SPI_DEVICE_PT_LOX_VENTURI_DIFFERENTIAL, 1);
+PressureSensor lox_valve_upstream(SPI_DEVICE_PT_LOX_VALVE_UPSTREAM, 155.98);
+PressureSensor lox_valve_downstream(SPI_DEVICE_PT_LOX_VALVE_DOWNSTREAM, 103.37); // not used during throttle
+PressureSensor lox_venturi_differential(SPI_DEVICE_PT_LOX_VENTURI_DIFFERENTIAL, 4.97);
 
-PressureSensor ipa_valve_upstream(SPI_DEVICE_PT_IPA_VALVE_UPSTREAM, 1);
-PressureSensor ipa_valve_downstream(SPI_DEVICE_PT_IPA_VALVE_DOWNSTREAM, 1); // not used during throttle
-PressureSensor ipa_venturi_differential(SPI_DEVICE_PT_IPA_VENTURI_DIFFERENTIAL, 1);
+PressureSensor ipa_valve_upstream(SPI_DEVICE_PT_IPA_VALVE_UPSTREAM, 158.70);
+PressureSensor ipa_valve_downstream(SPI_DEVICE_PT_IPA_VALVE_DOWNSTREAM, 157.92); // not used during throttle
+PressureSensor ipa_venturi_differential(SPI_DEVICE_PT_IPA_VENTURI_DIFFERENTIAL, 31.00);
 
-PressureSensor chamber(SPI_DEVICE_PT_CHAMBER, 1);
+PressureSensor chamber(SPI_DEVICE_PT_CHAMBER, 51.07);
 
 void begin() {
   lox_valve_upstream.begin();
