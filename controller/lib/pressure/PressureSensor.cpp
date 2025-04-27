@@ -39,7 +39,7 @@ float PressureSensor::getPressure() {
   return map(voltage, 0, 1, 0, 10) * slope + offset;
 }
 
-void PressureSensor::zero() {
+void PressureSensor::zero(float target) {
   offset = 0;
   float sum = 0;
   int samples = 100;
@@ -47,29 +47,29 @@ void PressureSensor::zero() {
     sum += getPressure();
     delay(10);
   }
-  offset = 14.7 - sum / samples;
+  offset = target - sum / samples;
 }
 
 namespace PT {
 bool zeroed_since_boot;
-PressureSensor lox_tank(SPI_DEVICE_PT_LOX_TANK, 1); // TODO - calibrate PTs and set board ids
-PressureSensor lox_venturi_upstream(SPI_DEVICE_PT_LOX_VENTURI_UPSTREAM, 1);
-PressureSensor lox_venturi_throat(SPI_DEVICE_PT_LOX_VENTURI_THROAT, 1);
+PressureSensor lox_valve_upstream(SPI_DEVICE_PT_LOX_VALVE_UPSTREAM, 1);
+PressureSensor lox_valve_downstream(SPI_DEVICE_PT_LOX_VALVE_DOWNSTREAM, 1); // not used during throttle
+PressureSensor lox_venturi_differential(SPI_DEVICE_PT_LOX_VENTURI_DIFFERENTIAL, 1);
 
-PressureSensor ipa_tank(SPI_DEVICE_PT_IPA_TANK, 1);
-PressureSensor ipa_venturi_upstream(SPI_DEVICE_PT_IPA_VENTURI_UPSTREAM, 1);
-PressureSensor ipa_venturi_throat(SPI_DEVICE_PT_IPA_VENTURI_THROAT, 1);
+PressureSensor ipa_valve_upstream(SPI_DEVICE_PT_IPA_VALVE_UPSTREAM, 1);
+PressureSensor ipa_valve_downstream(SPI_DEVICE_PT_IPA_VALVE_DOWNSTREAM, 1); // not used during throttle
+PressureSensor ipa_venturi_differential(SPI_DEVICE_PT_IPA_VENTURI_DIFFERENTIAL, 1);
 
 PressureSensor chamber(SPI_DEVICE_PT_CHAMBER, 1);
 
 void begin() {
-  lox_tank.begin();
-  lox_venturi_upstream.begin();
-  lox_venturi_throat.begin();
+  lox_valve_upstream.begin();
+  lox_valve_downstream.begin();
+  lox_venturi_differential.begin();
 
-  ipa_tank.begin();
-  ipa_venturi_upstream.begin();
-  ipa_venturi_throat.begin();
+  ipa_valve_upstream.begin();
+  ipa_valve_downstream.begin();
+  ipa_venturi_differential.begin();
 
   chamber.begin();
 
@@ -78,15 +78,15 @@ void begin() {
 
 void zero() {
   Router::info_no_newline("Zeroing ...");
-  lox_tank.zero();
-  lox_venturi_upstream.zero();
-  lox_venturi_throat.zero();
+  lox_valve_upstream.zero(14.7);
+  lox_valve_downstream.zero(14.7);
+  lox_venturi_differential.zero(0);
 
-  ipa_tank.zero();
-  ipa_venturi_upstream.zero();
-  ipa_venturi_throat.zero();
+  ipa_valve_upstream.zero(14.7);
+  ipa_valve_downstream.zero(14.7);
+  ipa_venturi_differential.zero(0);
 
-  chamber.zero();
+  chamber.zero(14.7);
   zeroed_since_boot = true;
   Router::info(" finished!");
 }

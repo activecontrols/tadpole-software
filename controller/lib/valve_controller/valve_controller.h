@@ -15,11 +15,11 @@ struct Venturi {
 };
 
 struct Fluid_Line {
-  float tank_pressure;             // psi
-  float venturi_upstream_pressure; // psi
-  float venturi_throat_pressure;   // psi
-  float venturi_temperature;       // K
-  float valve_temperature;         // K
+  float valve_upstream_pressure;       // psi
+  float valve_downstream_pressure;     // psi
+  float venturi_differential_pressure; // psi
+  float venturi_temperature;           // K
+  float valve_temperature;             // K
 };
 
 struct Sensor_Data {

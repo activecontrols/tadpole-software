@@ -29,16 +29,17 @@ void reset() {
   WC_ERROR.isError = false;
 }
 
-WindowComparator lox_tank_pressure(WC_LOX_TANK_PRESSURE_ID, -1, 2000);
-WindowComparator lox_venturi_upstream_pressure(WC_LOX_VENTURI_UPSTREAM_PRESSURE_ID, -1, 2000);
-WindowComparator lox_venturi_throat_pressure(WC_LOX_VENTURI_THROAT_PRESSURE_ID, -1, 2000);
-WindowComparator lox_venturi_temperature(WC_LOX_VENTURI_TEMPERATURE, -1, 2000);
-WindowComparator lox_valve_temperature(WC_LOX_VALVE_TEMPERATURE, -1, 2000);
+// TODO - set these redlines
+WindowComparator lox_valve_upstream_pressure(WC_LOX_VALVE_UPSTREAM_ID, -3000, 3000);
+WindowComparator lox_valve_downstream_pressure(WC_LOX_VALVE_DOWNSTREAM_ID, -3000, 3000);
+WindowComparator lox_venturi_differential_pressure(WC_LOX_VENTURI_DIFFERENTIAL_ID, -3000, 3000);
+WindowComparator lox_venturi_temperature(WC_LOX_VENTURI_TEMPERATURE, -3000, 3000);
+WindowComparator lox_valve_temperature(WC_LOX_VALVE_TEMPERATURE, -3000, 3000);
 
-WindowComparator ipa_tank_pressure(WC_IPA_TANK_PRESSURE_ID, -1, 2000);
-WindowComparator ipa_venturi_upstream_pressure(WC_IPA_VENUTRI_UPSTREAM_PRESSURE_ID, -1, 2000);
-WindowComparator ipa_venturi_throat_pressure(WC_IPA_VENUTRI_THROAT_PRESSURE_ID, -1, 2000);
+WindowComparator ipa_valve_upstream_pressure(WC_IPA_VALVE_UPSTREAM_ID, -3000, 3000);
+WindowComparator ipa_valve_downstream_pressure(WC_IPA_VALVE_DOWNSTREAM_ID, -3000, 3000);
+WindowComparator ipa_venturi_differential_pressure(WC_IPA_VENTURI_DIFFERENTIAL_ID, -3000, 3000);
 
-WindowComparator chamber_pressure(WC_CHAMBER_PRESSURE_ID, -1, 2000);
+WindowComparator chamber_pressure(WC_CHAMBER_PRESSURE_ID, -3000, 3000);
 
 } // namespace WindowComparators

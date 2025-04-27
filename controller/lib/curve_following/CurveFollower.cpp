@@ -41,27 +41,27 @@ float lerp(float a, float b, float t0, float t1, float t) {
 Sensor_Data get_sensor_data() {
   Sensor_Data sd;
 
-  sd.ox.tank_pressure = PT::lox_tank.getPressure();
-  sd.ox.venturi_throat_pressure = PT::lox_venturi_throat.getPressure();
-  sd.ox.venturi_upstream_pressure = PT::lox_venturi_upstream.getPressure();
+  sd.ox.valve_upstream_pressure = PT::lox_valve_upstream.getPressure();
+  sd.ox.valve_downstream_pressure = PT::lox_valve_downstream.getPressure();
+  sd.ox.venturi_differential_pressure = PT::lox_venturi_differential.getPressure();
   sd.ox.valve_temperature = TC::lox_valve_temperature.getTemperature_Kelvin();
   sd.ox.venturi_temperature = TC::lox_venturi_temperature.getTemperature_Kelvin();
 
-  sd.ipa.tank_pressure = PT::ipa_tank.getPressure();
-  sd.ipa.venturi_throat_pressure = PT::ipa_venturi_throat.getPressure();
-  sd.ipa.venturi_upstream_pressure = PT::ipa_venturi_upstream.getPressure();
+  sd.ipa.valve_upstream_pressure = PT::ipa_valve_upstream.getPressure();
+  sd.ipa.valve_downstream_pressure = PT::ipa_valve_downstream.getPressure();
+  sd.ipa.venturi_differential_pressure = PT::ipa_venturi_differential.getPressure();
 
   sd.chamber_pressure = PT::chamber.getPressure();
 
-  WindowComparators::lox_tank_pressure.check(sd.ox.tank_pressure);
-  WindowComparators::lox_venturi_throat_pressure.check(sd.ox.venturi_throat_pressure);
-  WindowComparators::lox_venturi_upstream_pressure.check(sd.ox.venturi_upstream_pressure);
+  WindowComparators::lox_valve_upstream_pressure.check(sd.ox.valve_upstream_pressure);
+  WindowComparators::lox_valve_downstream_pressure.check(sd.ox.valve_downstream_pressure);
+  WindowComparators::lox_venturi_differential_pressure.check(sd.ox.venturi_differential_pressure);
   WindowComparators::lox_valve_temperature.check(sd.ox.valve_temperature);
   WindowComparators::lox_venturi_temperature.check(sd.ox.venturi_temperature);
 
-  WindowComparators::ipa_tank_pressure.check(sd.ipa.tank_pressure);
-  WindowComparators::ipa_venturi_throat_pressure.check(sd.ipa.venturi_throat_pressure);
-  WindowComparators::ipa_venturi_upstream_pressure.check(sd.ipa.venturi_upstream_pressure);
+  WindowComparators::ipa_valve_upstream_pressure.check(sd.ipa.valve_upstream_pressure);
+  WindowComparators::ipa_valve_downstream_pressure.check(sd.ipa.valve_downstream_pressure);
+  WindowComparators::ipa_venturi_differential_pressure.check(sd.ipa.venturi_differential_pressure);
 
   WindowComparators::chamber_pressure.check(sd.chamber_pressure);
   return sd;
@@ -75,18 +75,18 @@ void print_labeled_sensor(const char *msg, float sensor_value, const char *unit)
 
 void print_all_sensors() {
   Router::info("  Sensor Status ");
-  print_labeled_sensor("            PT LOX Tank: ", PT::lox_tank.getPressure(), " psi");
-  print_labeled_sensor("PT LOX Venturi Upstream: ", PT::lox_venturi_upstream.getPressure(), " psi");
-  print_labeled_sensor("  PT LOX Venturi Throat: ", PT::lox_venturi_throat.getPressure(), " psi");
+  print_labeled_sensor("      PT LOX Valve Upstream: ", PT::lox_valve_upstream.getPressure(), " psi");
+  print_labeled_sensor("    PT LOX Valve Downstream: ", PT::lox_valve_downstream.getPressure(), " psi");
+  print_labeled_sensor("PT LOX Venturi Differential: ", PT::lox_venturi_differential.getPressure(), " psi");
 
-  print_labeled_sensor("            PT IPA Tank: ", PT::ipa_tank.getPressure(), " psi");
-  print_labeled_sensor("PT IPA Venturi Upstream: ", PT::ipa_venturi_upstream.getPressure(), " psi");
-  print_labeled_sensor("  PT IPA Venturi Throat: ", PT::ipa_venturi_throat.getPressure(), " psi");
+  print_labeled_sensor("      PT IPA Valve Upstream: ", PT::ipa_valve_upstream.getPressure(), " psi");
+  print_labeled_sensor("    PT IPA Valve Downstream: ", PT::ipa_valve_downstream.getPressure(), " psi");
+  print_labeled_sensor("PT IPA Venturi Differential: ", PT::ipa_venturi_differential.getPressure(), " psi");
 
-  print_labeled_sensor("             PT Chamber: ", PT::chamber.getPressure(), " psi");
+  print_labeled_sensor("                 PT Chamber: ", PT::chamber.getPressure(), " psi");
 
-  print_labeled_sensor("           TC LOX Valve: ", TC::lox_valve_temperature.getTemperature_F(), " F");
-  print_labeled_sensor("         TC LOX Venturi: ", TC::lox_venturi_temperature.getTemperature_F(), " F");
+  print_labeled_sensor("               TC LOX Valve: ", TC::lox_valve_temperature.getTemperature_F(), " F");
+  print_labeled_sensor("             TC LOX Venturi: ", TC::lox_venturi_temperature.getTemperature_F(), " F");
   Router::info(" "); // newline
 }
 
@@ -237,27 +237,27 @@ void arm() {
   float lox_start;
   float ipa_start;
   if (Loader::header.is_thrust) {
-    float lox_tank_pressure;
-    Router::info_no_newline("Enter lox tank pressure (psi): ");
-    String lox_tank_string = Router::read(50);
-    int result = std::sscanf(lox_tank_string.c_str(), "%f", &lox_tank_pressure);
+    float lox_valve_upstream_pressure;
+    Router::info_no_newline("Enter lox valve upstream pressure (psi): ");
+    String lox_valve_upstream_string = Router::read(50);
+    int result = std::sscanf(lox_valve_upstream_string.c_str(), "%f", &lox_valve_upstream_pressure);
     if (result != 1) {
       Router::info("ARMING FAILURE: invalid value entered.");
       return;
     }
 
-    float ipa_tank_pressure;
-    Router::info_no_newline("Enter ipa tank pressure (psi): ");
-    String ipa_tank_string = Router::read(50);
-    result = std::sscanf(ipa_tank_string.c_str(), "%f", &ipa_tank_pressure);
+    float ipa_valve_upstream_pressure;
+    Router::info_no_newline("Enter ipa valve upstream pressure (psi): ");
+    String ipa_valve_upstream = Router::read(50);
+    result = std::sscanf(ipa_valve_upstream.c_str(), "%f", &ipa_valve_upstream_pressure);
     if (result != 1) {
       Router::info("ARMING FAILURE: invalid value entered.");
       return;
     }
 
     Sensor_Data sd;
-    sd.ox.tank_pressure = lox_tank_pressure;
-    sd.ipa.tank_pressure = ipa_tank_pressure;
+    sd.ox.valve_upstream_pressure = lox_valve_upstream_pressure;
+    sd.ipa.valve_upstream_pressure = ipa_valve_upstream_pressure;
     open_loop_thrust_control(Loader::lerp_thrust_curve[0].thrust, sd, &lox_start, &ipa_start);
   } else {
     lox_start = Loader::lerp_angle_curve[0].lox_angle;

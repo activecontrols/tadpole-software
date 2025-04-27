@@ -28,30 +28,29 @@ namespace WindowComparators {
 
 void reset();
 
-#define WC_LOX_TANK_PRESSURE_ID 1
-#define WC_LOX_VENTURI_UPSTREAM_PRESSURE_ID 2
-#define WC_LOX_VENTURI_THROAT_PRESSURE_ID 3
+#define WC_LOX_VALVE_UPSTREAM_ID 1
+#define WC_LOX_VALVE_DOWNSTREAM_ID 2
+#define WC_LOX_VENTURI_DIFFERENTIAL_ID 3
 #define WC_LOX_VENTURI_TEMPERATURE 4
 #define WC_LOX_VALVE_TEMPERATURE 5
 
-#define WC_IPA_TANK_PRESSURE_ID 6
-#define WC_IPA_VENUTRI_UPSTREAM_PRESSURE_ID 7
-#define WC_IPA_VENUTRI_THROAT_PRESSURE_ID 8
+#define WC_IPA_VALVE_UPSTREAM_ID 6
+#define WC_IPA_VALVE_DOWNSTREAM_ID 7
+#define WC_IPA_VENTURI_DIFFERENTIAL_ID 8
 
 #define WC_CHAMBER_PRESSURE_ID 9
 
 extern wc_error_info WC_ERROR;
 
-extern WindowComparator lox_tank_pressure;
-extern WindowComparator lox_venturi_upstream_pressure;
-extern WindowComparator lox_venturi_throat_pressure;
+extern WindowComparator lox_valve_upstream_pressure;
+extern WindowComparator lox_valve_downstream_pressure;
+extern WindowComparator lox_venturi_differential_pressure;
 extern WindowComparator lox_venturi_temperature;
 extern WindowComparator lox_valve_temperature;
 
-extern WindowComparator ipa_tank_pressure;
-extern WindowComparator ipa_venturi_upstream_pressure;
-
-extern WindowComparator ipa_venturi_throat_pressure;
+extern WindowComparator ipa_valve_upstream_pressure;
+extern WindowComparator ipa_valve_downstream_pressure;
+extern WindowComparator ipa_venturi_differential_pressure;
 
 extern WindowComparator chamber_pressure;
 

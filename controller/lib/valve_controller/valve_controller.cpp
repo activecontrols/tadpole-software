@@ -148,7 +148,7 @@ float ipa_manifold_pressure(float thrust) {
 
 // Estimates mass flow across a venturi using pressure sensor data and fluid information.
 float estimate_mass_flow(Fluid_Line fluid_line, Venturi venturi, float fluid_density) {
-  float pressure_delta = fluid_line.venturi_upstream_pressure - fluid_line.venturi_throat_pressure;
+  float pressure_delta = fluid_line.venturi_differential_pressure;
   pressure_delta = pressure_delta > 0 ? pressure_delta : 0; // block negative under sqrt
   float area_term = pow(venturi.throat_area / venturi.inlet_area, 2);
   return venturi.throat_area * sqrt(2 * fluid_density * pressure_delta * 12 * GRAVITY_FT_S / (1 - area_term)) * venturi.cd;
@@ -168,8 +168,8 @@ void open_loop_thrust_control(float thrust, Sensor_Data sensor_data, float *angl
   float ox_valve_downstream_pressure_goal = ox_manifold_pressure(thrust); // TODO RJN OL - multiply these by coeff / replace with venturi upstream?
   float ipa_valve_downstream_pressure_goal = ipa_manifold_pressure(thrust);
 
-  *angle_ox = lox_valve_angle(sub_critical_cv(mass_flow_ox, sensor_data.ox.tank_pressure, ox_valve_downstream_pressure_goal, ox_density_from_temperature(sensor_data.ox.valve_temperature)));
-  *angle_ipa = ipa_valve_angle(sub_critical_cv(mass_flow_ipa, sensor_data.ipa.tank_pressure, ipa_valve_downstream_pressure_goal, ipa_density()));
+  *angle_ox = lox_valve_angle(sub_critical_cv(mass_flow_ox, sensor_data.ox.valve_upstream_pressure, ox_valve_downstream_pressure_goal, ox_density_from_temperature(sensor_data.ox.valve_temperature)));
+  *angle_ipa = ipa_valve_angle(sub_critical_cv(mass_flow_ipa, sensor_data.ipa.valve_upstream_pressure, ipa_valve_downstream_pressure_goal, ipa_density()));
 
   vc_state.ol_lox_mdot = mass_flow_ox;
   vc_state.ol_ipa_mdot = mass_flow_ipa;
@@ -203,8 +203,8 @@ void closed_loop_thrust_control(float thrust, Sensor_Data sensor_data, float *an
   float ox_valve_downstream_pressure_goal = ox_manifold_pressure(thrust);
   float ipa_valve_downstream_pressure_goal = ipa_manifold_pressure(thrust);
 
-  float ol_angle_ox = lox_valve_angle(sub_critical_cv(ol_mass_flow_ox, sensor_data.ox.tank_pressure, ox_valve_downstream_pressure_goal, ox_density_from_temperature(sensor_data.ox.valve_temperature)));
-  float ol_angle_ipa = ipa_valve_angle(sub_critical_cv(ol_mass_flow_ipa, sensor_data.ipa.tank_pressure, ipa_valve_downstream_pressure_goal, ipa_density()));
+  float ol_angle_ox = lox_valve_angle(sub_critical_cv(ol_mass_flow_ox, sensor_data.ox.valve_upstream_pressure, ox_valve_downstream_pressure_goal, ox_density_from_temperature(sensor_data.ox.valve_temperature)));
+  float ol_angle_ipa = ipa_valve_angle(sub_critical_cv(ol_mass_flow_ipa, sensor_data.ipa.valve_upstream_pressure, ipa_valve_downstream_pressure_goal, ipa_density()));
 
   *angle_ox = ol_angle_ox - ClosedLoopControllers::LOX_Angle_Controller.compute(err_mass_flow_ox);
   *angle_ipa = ol_angle_ipa - ClosedLoopControllers::IPA_Angle_Controller.compute(err_mass_flow_ipa);

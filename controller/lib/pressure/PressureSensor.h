@@ -15,7 +15,7 @@ public:
   PressureSensor(int demuxAddr, float slope);
   void begin();
   float getPressure();
-  void zero();
+  void zero(float target);
 };
 
 namespace PT {
@@ -23,13 +23,13 @@ void begin();
 void zero();
 extern bool zeroed_since_boot;
 
-extern PressureSensor lox_tank;
-extern PressureSensor lox_venturi_upstream;
-extern PressureSensor lox_venturi_throat;
+extern PressureSensor lox_valve_upstream;
+extern PressureSensor lox_valve_downstream;
+extern PressureSensor lox_venturi_differential;
 
-extern PressureSensor ipa_tank;
-extern PressureSensor ipa_venturi_upstream;
-extern PressureSensor ipa_venturi_throat;
+extern PressureSensor ipa_valve_upstream;
+extern PressureSensor ipa_valve_downstream;
+extern PressureSensor ipa_venturi_differential;
 
 extern PressureSensor chamber;
 } // namespace PT

@@ -129,28 +129,28 @@ void Loader::write_curve_sd() {
   Router::info("Wrote curve!");
 }
 
-int pt_zero_version = 1; // change this if the struct format changes
+int pt_zero_version = 2; // change this if the struct format changes
 struct PT_zero {
-  float lox_tank;
-  float lox_venturi_upstream;
-  float lox_venturi_throat;
+  float lox_valve_upstream;
+  float lox_valve_downstream;
+  float lox_venturi_differential;
 
-  float ipa_tank;
-  float ipa_venturi_upstream;
-  float ipa_venturi_throat;
+  float ipa_valve_upstream;
+  float ipa_valve_downstream;
+  float ipa_venturi_differential;
 
   float chamber;
 };
 
 void Loader::save_pt_zero() {
   PT_zero ptz;
-  ptz.lox_tank = PT::lox_tank.offset;
-  ptz.lox_venturi_upstream = PT::lox_venturi_upstream.offset;
-  ptz.lox_venturi_throat = PT::lox_venturi_throat.offset;
+  ptz.lox_valve_upstream = PT::lox_valve_upstream.offset;
+  ptz.lox_valve_downstream = PT::lox_valve_downstream.offset;
+  ptz.lox_venturi_differential = PT::lox_venturi_differential.offset;
 
-  ptz.ipa_tank = PT::ipa_tank.offset;
-  ptz.ipa_venturi_upstream = PT::ipa_venturi_upstream.offset;
-  ptz.ipa_venturi_throat = PT::ipa_venturi_throat.offset;
+  ptz.ipa_valve_upstream = PT::ipa_valve_upstream.offset;
+  ptz.ipa_valve_downstream = PT::ipa_valve_downstream.offset;
+  ptz.ipa_venturi_differential = PT::ipa_venturi_differential.offset;
 
   ptz.chamber = PT::chamber.offset;
 
@@ -180,13 +180,13 @@ void Loader::restore_pt_zero() {
   f.read((char *)&ptz, sizeof(PT_zero));
   f.close();
 
-  PT::lox_tank.offset = ptz.lox_tank;
-  PT::lox_venturi_upstream.offset = ptz.lox_venturi_upstream;
-  PT::lox_venturi_throat.offset = ptz.lox_venturi_throat;
+  PT::lox_valve_upstream.offset = ptz.lox_valve_upstream;
+  PT::lox_valve_downstream.offset = ptz.lox_valve_downstream;
+  PT::lox_venturi_differential.offset = ptz.lox_venturi_differential;
 
-  PT::ipa_tank.offset = ptz.ipa_tank;
-  PT::ipa_venturi_upstream.offset = ptz.ipa_venturi_upstream;
-  PT::ipa_venturi_throat.offset = ptz.ipa_venturi_throat;
+  PT::ipa_valve_upstream.offset = ptz.ipa_valve_upstream;
+  PT::ipa_valve_downstream.offset = ptz.ipa_valve_downstream;
+  PT::ipa_venturi_differential.offset = ptz.ipa_venturi_differential;
 
   PT::chamber.offset = ptz.chamber;
   PT::zeroed_since_boot = true;
