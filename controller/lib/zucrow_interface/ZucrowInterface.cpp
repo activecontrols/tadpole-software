@@ -53,6 +53,9 @@ void ZucrowInterface::send_sync_to_zucrow(bool status) {
 }
 
 void ZucrowInterface::send_valve_angles_to_zucrow(float lox_pos, float ipa_pos) {
+  lox_pos = min(0.25, max(0, lox_pos)); // clamp
+  ipa_pos = min(0.25, max(0, ipa_pos)); // clamp
+
   int va = lox_pos * 4 * 4096; // remap pos from 0 to 1, then multiply by  4096 for 12 bit resolution
   int vb = ipa_pos * 4 * 4096;
   dac.setVoltageA(va);
