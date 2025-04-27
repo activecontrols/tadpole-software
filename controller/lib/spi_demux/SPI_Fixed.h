@@ -344,7 +344,6 @@ public:
 
   void inline transfer(void *buf, size_t count) {
 #if 0
-		// TODO: byte order still needs work to match SPISettings
 		if (__builtin_constant_p(count)) {
 			if (count < 1) return;
 			if (((count & 3) == 0) && (((uint32_t)buf & 3) == 0)) {

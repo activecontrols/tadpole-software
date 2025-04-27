@@ -12,8 +12,8 @@ File odriveLogFile;
 CString<400> curveTelemCSV;
 
 #define LOG_HEADER ("time,phase,thrust_cmd,lox_pos_cmd,ipa_pos_cmd,"                                               \
-                    "lox_pos,lox_vel,lox_voltage,lox_current,lox_temperature,"                                     \
-                    "ipa_pos,ipa_vel,ipa_voltage,ipa_current,ipa_temperature,"                                     \
+                    "lox_pos,lox_vel,lox_voltage,lox_current,"                                                     \
+                    "ipa_pos,ipa_vel,ipa_voltage,ipa_current,"                                                     \
                     "chamber_pressure,"                                                                            \
                     "lox_valve_upstream_pressure,lox_valve_downstream_pressure,lox_venturi_differential_pressure," \
                     "lox_venturi_temperature,lox_valve_temperature,"                                               \

@@ -141,7 +141,7 @@ char *ODrive::getTelemetryCSV() {
   current = this->last_amp_msg.Iq_Measured;
   temperature = this->last_temp_msg.Motor_Temperature;
 
-  telemetryCSV << position << "," << velocity << "," << voltage << "," << current << "," << temperature;
+  telemetryCSV << position << "," << velocity << "," << voltage << "," << current;
 #else
   telemetryCSV << "pos" << "," << "vel" << ","
                << "V" << "," << "A" << "," << "T";
@@ -214,7 +214,6 @@ void ODrive::hardStopHoming() { // @ Xander
   delay(500);
   ODriveCAN::setVelocity(-0.1); // velocity [turn/s]
 
-  // TODO RJN - replace with more robust + update thresholds
   while (current < 20 && current > -20) { // thresholds must be experimentally determined. will be diffrent depening on needed current to normally move valve
     Get_Iq_msg_t amp_msg;
     ODriveCAN::getCurrents(amp_msg); // update current reading

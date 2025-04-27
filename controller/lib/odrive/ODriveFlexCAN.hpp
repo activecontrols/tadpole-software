@@ -16,7 +16,7 @@ static bool sendMsg(FlexCAN_T4_Base& can_intf, uint32_t id, uint8_t length, cons
         memcpy(teensy_msg.buf, data, length);
     }
 
-    can_intf.events(); // TODO: is this really needed?
+    can_intf.events();
 
     return (can_intf.write(teensy_msg) > 0);
 }
