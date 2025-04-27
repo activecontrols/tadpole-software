@@ -272,6 +272,7 @@ void arm() {
   while (odrive_monitor_window - start_time < 2000) {
     Driver::loxODrive.setPos(lox_start / 360);
     Driver::ipaODrive.setPos(ipa_start / 360);
+    delay(1);
 
     ZucrowInterface::send_valve_angles_to_zucrow(0.25 - Driver::loxODrive.last_enc_msg.Pos_Estimate,
                                                  0.25 - Driver::ipaODrive.last_enc_msg.Pos_Estimate);
@@ -316,7 +317,7 @@ void arm() {
 #endif
 
   ZucrowInterface::send_sync_to_zucrow(TEENSY_SYNC_RUNNING);
-  Loader::header.is_thrust ? delay(10) : followAngleLerpCurve();
+  Loader::header.is_thrust ? followThrustLerpCurve() : followAngleLerpCurve();
   ZucrowInterface::send_sync_to_zucrow(TEENSY_SYNC_IDLE);
 
   Router::info("Finished following curve!");

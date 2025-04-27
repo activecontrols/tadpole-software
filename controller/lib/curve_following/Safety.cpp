@@ -32,11 +32,17 @@ void Safety::kill_response(int kill_reason) {
   if (kill_reason == KILLED_BY_SERIAL) {
     Router::info("serial abort triggered");
   }
-  if (kill_reason == KILLED_BY_ANGLE_OOR) {
-    Router::info("odrive reported angle not tracking commanded angle");
+  if (kill_reason == KILLED_BY_ANGLE_OOR_LOX) {
+    Router::info("lox odrive reported angle not tracking commanded angle");
   }
-  if (kill_reason == KILLED_BY_ODRIVE_FAULT) {
-    Router::info("odrive fault");
+  if (kill_reason == KILLED_BY_ANGLE_OOR_IPA) {
+    Router::info("ipa odrive reported angle not tracking commanded angle");
+  }
+  if (kill_reason == KILLED_BY_ODRIVE_FAULT_LOX) {
+    Router::info("lox odrive fault");
+  }
+  if (kill_reason == KILLED_BY_ODRIVE_FAULT_IPA) {
+    Router::info("ipa odrive fault");
   }
   if (kill_reason == KILLED_BY_WC) {
     Router::info_no_newline("Window comparator ");
@@ -70,18 +76,18 @@ int Safety::check_for_kill() {
 #endif
 
 #ifdef ENABLE_ODRIVE_SAFETY_CHECKS
-  if (abs(Driver::loxODrive.position - Driver::loxODrive.getLastPosCmd()) > ANGLE_OOR_THRESH) {
-    return KILLED_BY_ANGLE_OOR;
+  if (abs((0.25 - Driver::loxODrive.last_enc_msg.Pos_Estimate) - Driver::loxODrive.getLastPosCmd()) > ANGLE_OOR_THRESH) {
+    return KILLED_BY_ANGLE_OOR_LOX;
   }
-  if (abs(Driver::ipaODrive.position - Driver::ipaODrive.getLastPosCmd()) > ANGLE_OOR_THRESH) {
-    return KILLED_BY_ANGLE_OOR;
+  if (abs((0.25 - Driver::ipaODrive.last_enc_msg.Pos_Estimate) - Driver::ipaODrive.getLastPosCmd()) > ANGLE_OOR_THRESH) {
+    return KILLED_BY_ANGLE_OOR_IPA;
   }
 
   if (Driver::loxODrive.odrive_status.last_heartbeat.Axis_State != AXIS_STATE_CLOSED_LOOP_CONTROL) {
-    return KILLED_BY_ODRIVE_FAULT;
+    return KILLED_BY_ODRIVE_FAULT_LOX;
   }
   if (Driver::ipaODrive.odrive_status.last_heartbeat.Axis_State != AXIS_STATE_CLOSED_LOOP_CONTROL) {
-    return KILLED_BY_ODRIVE_FAULT;
+    return KILLED_BY_ODRIVE_FAULT_IPA;
   }
 #endif
 

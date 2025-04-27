@@ -6,7 +6,7 @@
 #include "ODriveCAN.h"
 #include <FlexCAN_T4.h>
 #include "ODriveFlexCAN.hpp"
-#define CAN_BAUDRATE 250000
+#define CAN_BAUDRATE 500000
 
 struct ODriveUserData {
   Heartbeat_msg_t last_heartbeat;
