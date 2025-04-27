@@ -2,7 +2,7 @@
 #include "SPI_Demux.h"
 #include "Router.h"
 
-#define PRINT_PT_MV // enable to print adc mv measurement (for calibration)
+// #define PRINT_PT_MV // enable to print adc mv measurement (for calibration)
 
 PressureSensor::PressureSensor(int demuxAddr, float slope) : ADS131M0x(demuxAddr) {
   this->slope = slope;
