@@ -41,6 +41,9 @@ void send_valve_angles_to_zucrow(float lox_pos, float ipa_pos);
 // for debug
 void print_zi_status();
 
+// for AI calib
+void zero_angle_outputs();
+
 } // namespace ZucrowInterface
 
 #endif

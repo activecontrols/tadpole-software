@@ -30,6 +30,7 @@ void ZucrowInterface::begin() {
   Router::add({[&]() { send_sync_to_zucrow(TEENSY_SYNC_RUNNING); }, "zi_send_run"});
   Router::add({[&]() { send_sync_to_zucrow(TEENSY_SYNC_IDLE); }, "zi_send_idle"});
   Router::add({print_zi_status, "zi_status_print"});
+  Router::add({zero_angle_outputs, "zi_zero_angles"});
 }
 
 bool ZucrowInterface::check_fault_from_zucrow() {
@@ -77,4 +78,8 @@ void ZucrowInterface::print_zi_status() {
   } else {
     Serial.println("idle");
   }
+}
+
+void ZucrowInterface::zero_angle_outputs() {
+  send_valve_angles_to_zucrow(0, 0);
 }
