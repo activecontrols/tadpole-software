@@ -229,6 +229,8 @@ public:
     return true;
   }
 
+  void pumpEvents();
+
   /**
    * @brief Sends a specified message over CAN.
    */

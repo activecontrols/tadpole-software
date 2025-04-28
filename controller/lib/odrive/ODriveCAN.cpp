@@ -202,3 +202,7 @@ bool ODriveCAN::awaitMsg(uint16_t timeout) {
   }
   return true;
 }
+
+void ODriveCAN::pumpEvents() {
+  can_intf_.pump_events(); // pump event loop while waiting
+}

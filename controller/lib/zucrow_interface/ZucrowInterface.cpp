@@ -92,5 +92,7 @@ void ZucrowInterface::report_angles_for_five_seconds() {
     delay(1);
     ZucrowInterface::send_valve_angles_to_zucrow(0.25 - Driver::loxODrive.last_enc_msg.Pos_Estimate,
                                                  0.25 - Driver::ipaODrive.last_enc_msg.Pos_Estimate);
+    Driver::loxODrive.pumpEvents();
+    Driver::ipaODrive.pumpEvents();
   }
 }
