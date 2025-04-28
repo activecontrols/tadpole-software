@@ -255,9 +255,20 @@ void arm() {
       return;
     }
 
+    float lox_temperature;
+    Router::info_no_newline("Enter lox temperature (Kelvin): ");
+    String lox_temp_str = Router::read(50);
+    result = std::sscanf(lox_temp_str.c_str(), "%f", &lox_temperature);
+    if (result != 1) {
+      Router::info("ARMING FAILURE: invalid value entered.");
+      return;
+    }
+
     Sensor_Data sd;
     sd.ox.valve_upstream_pressure = lox_valve_upstream_pressure;
     sd.ipa.valve_upstream_pressure = ipa_valve_upstream_pressure;
+    sd.ox.valve_temperature = lox_temperature;
+    sd.ox.venturi_temperature = lox_temperature;
     open_loop_thrust_control(Loader::lerp_thrust_curve[0].thrust, sd, &lox_start, &ipa_start);
   } else {
     lox_start = Loader::lerp_angle_curve[0].lox_angle;
