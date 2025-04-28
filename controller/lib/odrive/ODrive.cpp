@@ -255,6 +255,7 @@ void ODrive::hardStopHoming() { // @ Xander
   delay(100);
   enable();
   Router::info("State Reset");
+  ZucrowInterface::report_angles_for_five_seconds();
 }
 
 void ODrive::kill() {

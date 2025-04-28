@@ -33,6 +33,7 @@ void setup() {
   PT::begin();              // initializes the PT Boards
   TC::begin();              // initializes the TC Boards
   CurveFollower::begin();   // creates curve following commands
+  ZucrowInterface::report_angles_for_five_seconds();
 }
 
 void loop() {
