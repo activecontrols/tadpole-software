@@ -126,6 +126,7 @@ void followAngleLerpCurve() {
       kill_reason = Safety::check_for_kill();
       if (kill_reason != DONT_KILL) {
         Safety::kill_response(kill_reason);
+        CurveLogger::log_curve_csv(seconds, i, -1, sd);
         break;
       }
 
@@ -174,7 +175,7 @@ void followThrustLerpCurve() {
 
       if (timer - lastlog > LOG_INTERVAL_US) {
         lastlog += LOG_INTERVAL_US;
-        CurveLogger::log_curve_csv(seconds, i, -1, sd);
+        CurveLogger::log_curve_csv(seconds, i, thrust, sd);
       }
       counter++;
 
@@ -182,6 +183,7 @@ void followThrustLerpCurve() {
       kill_reason = Safety::check_for_kill();
       if (kill_reason != DONT_KILL) {
         Safety::kill_response(kill_reason);
+        CurveLogger::log_curve_csv(seconds, i, thrust, sd);
         break;
       }
 
