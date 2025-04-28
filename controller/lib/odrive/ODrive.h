@@ -32,7 +32,6 @@ struct ODriveUserData {
 #define MIN_ODRIVE_POS (0.0 / 360.0)
 
 void onHeartbeatCB(Heartbeat_msg_t &msg, void *user_data);
-void onFeedbackCB(Get_Encoder_Estimates_msg_t &msg, void *user_data);
 void setup_can(_MB_ptr handler);
 
 class ODrive : public ODriveCAN {

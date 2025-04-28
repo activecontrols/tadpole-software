@@ -44,6 +44,9 @@ void print_zi_status();
 // for AI calib
 void zero_angle_outputs();
 
+// for manual movements
+void report_angles_for_five_seconds();
+
 } // namespace ZucrowInterface
 
 #endif

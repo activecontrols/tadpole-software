@@ -1,5 +1,6 @@
 #include "ODrive.h"
 
+#include "ZucrowInterface.h"
 #include <string>
 
 FlexCAN_T4<CAN3, RX_SIZE_256, TX_SIZE_16> can_intf; // can interface
@@ -176,7 +177,7 @@ char *ODrive::getODriveInfo() {
  */
 void ODrive::setPosConsoleCmd() {
 
-  Router::info_no_newline("Angle (-360 to 360 degrees)?");
+  Router::info_no_newline("Angle (0 to 90 degrees)?");
   String posString = Router::read(INT_BUFFER_SIZE);
   Router::info("Response: " + posString);
 
@@ -194,7 +195,8 @@ void ODrive::setPosConsoleCmd() {
   }
 
   setPos(pos);
-  Router::info("Position set");
+  Router::info("Position set - watch angle readout.");
+  ZucrowInterface::report_angles_for_five_seconds();
 }
 
 void ODrive::hardStopHoming() { // @ Xander

@@ -3,6 +3,7 @@
 #include "teensy_pins.h"
 #include "MCP48xx.hpp"
 #include "Router.h"
+#include "Driver.h"
 
 MCP4822 dac(SPI_DEVICE_ZUCROW_DAC);
 
@@ -82,4 +83,14 @@ void ZucrowInterface::print_zi_status() {
 
 void ZucrowInterface::zero_angle_outputs() {
   send_valve_angles_to_zucrow(0, 0);
+}
+
+void ZucrowInterface::report_angles_for_five_seconds() {
+  elapsedMillis odrive_monitor_window = elapsedMillis();
+  unsigned long start_time = odrive_monitor_window;
+  while (odrive_monitor_window - start_time < 5000) {
+    delay(1);
+    ZucrowInterface::send_valve_angles_to_zucrow(0.25 - Driver::loxODrive.last_enc_msg.Pos_Estimate,
+                                                 0.25 - Driver::ipaODrive.last_enc_msg.Pos_Estimate);
+  }
 }
