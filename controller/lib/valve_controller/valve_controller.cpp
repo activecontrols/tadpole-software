@@ -11,6 +11,11 @@
 #define PER_SEC_TO_PER_MIN 60   // convert per second to per minute
 #define DENSITY_WATER 0.0360724 // lb/in^3
 
+#define OX_INJ_AREA 0.0498   // in^2
+#define IPA_INJ_AREA 0.04031 // in^2
+#define OX_INJ_CD 0.35       // TODO RJN - change during hotfires
+#define IPA_INJ_CD 0.72
+
 #define INTERPOLATION_TABLE_LENGTH 30 // max length of all tables - set to enable passing tables to functions
 
 #define CF_THRUST_TABLE_LEN 2 // TODO RJN OL - replace with data from testing
@@ -24,24 +29,6 @@ float cf_thrust_table[2][INTERPOLATION_TABLE_LENGTH] = {
 float ox_density_table[2][INTERPOLATION_TABLE_LENGTH] = {
     {55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 105, 110, 115, 120, 125, 130, 135, 140, 145, 150},
     {0.04709027778, 0.04631539352, 0.04550925926, 0.0446880787, 0.04385474537, 0.04300810185, 0.04214525463, 0.04126099537, 0.04035127315, 0.03941087963, 0.03843229167, 0.03740856481, 0.03632986111, 0.03518287037, 0.03394965278, 0.03260416667, 0.03110532407, 0.02938020833, 0.0272806713, 0.02440335648}};
-
-#define OX_PRESSURE_TABLE_LEN 20
-// temperature (K) to vapour pressure (psi)
-float ox_pressure_table[2][INTERPOLATION_TABLE_LENGTH] = {
-    {55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 105, 110, 115, 120, 125, 130, 135, 140, 145, 150},
-    {0.0259, 0.10527, 0.33866, 0.90826, 2.1099, 4.369, 8.2426, 14.41, 23.653, 36.84, 54.901, 78.814, 109.59, 148.27, 195.93, 253.68, 322.72, 404.33, 500.05, 611.86}};
-
-#define OX_MANIFOLD_TABLE_LEN 21
-// thrust (lbf) to pressure (psi)
-float ox_manifold_table[2][INTERPOLATION_TABLE_LENGTH] = {
-    {192.5, 210.556, 228.611, 246.667, 264.722, 282.778, 300.833, 318.889, 336.944, 355.0, 373.056, 391.111, 409.167, 427.222, 445.278, 463.333, 481.389, 499.444, 517.5, 535.556, 550.0},
-    {118.055, 127.34, 136.64, 146.082, 155.44, 165.182, 175.069, 184.896, 194.888, 205.049, 215.378, 225.702, 236.381, 246.93, 257.695, 268.683, 279.647, 290.878, 301.999, 313.482, 322.79}};
-
-#define IPA_MANIFOLD_TABLE_LEN 21
-// thrust (lbf) to pressure (psi)
-float ipa_manifold_table[2][INTERPOLATION_TABLE_LENGTH] = {
-    {192.5, 210.556, 228.611, 246.667, 264.722, 282.778, 300.833, 318.889, 336.944, 355.0, 373.056, 391.111, 409.167, 427.222, 445.278, 463.333, 481.389, 499.444, 517.5, 535.556, 550.0},
-    {120.844, 130.535, 140.262, 150.16, 159.99, 170.243, 180.67, 191.054, 201.631, 212.408, 223.382, 234.368, 245.752, 257.017, 268.529, 280.3, 292.062, 304.129, 316.095, 328.466, 338.509}};
 
 Venturi ox_venturi{.inlet_area = 0.127, .throat_area = 0.066, .cd = 1};  // in^2 for both
 Venturi ipa_venturi{.inlet_area = 0.127, .throat_area = 0.062, .cd = 1}; // in^2 for both
@@ -111,8 +98,8 @@ void mass_balance(float total_mass_flow, float *mass_flow_ox, float *mass_flow_i
 // OUTPUT: valve flow coefficient (assume this is unitless)
 // INPUT: mass_flow (lbm/s), downstream pressure (psi), fluid properties
 float sub_critical_cv(float mass_flow, float upstream_pressure, float downstream_pressure, float density) {
-  float pressure_delta = upstream_pressure - downstream_pressure; // TODO RJN OL - update for cold flows
-  pressure_delta = pressure_delta > 0 ? pressure_delta : 0.0001;  // block negative under sqrt and divide by 0
+  float pressure_delta = upstream_pressure - downstream_pressure;
+  pressure_delta = pressure_delta > 0 ? pressure_delta : 0.0001; // block negative under sqrt and divide by 0
   return mass_flow * IN3_TO_GAL * PER_SEC_TO_PER_MIN * sqrt(1 / (pressure_delta * density * DENSITY_WATER));
 }
 
@@ -132,18 +119,9 @@ float lox_valve_angle(float cv) {
 float ipa_valve_angle(float cv) {
   return -IPA_GAMMA * log(IPA_ALPHA / cv - 1) + IPA_BETA;
 }
-// Lookup ox manifold pressure using linear interpolation
-// INPUT: thrust
-// OUTPUT: ox manifold pressure (psi)
-float ox_manifold_pressure(float thrust) {
-  return clamped_table_interplolation(thrust, ox_manifold_table, OX_MANIFOLD_TABLE_LEN);
-}
 
-// Lookup ipa manifold pressure using linear interpolation
-// INPUT: thrust
-// OUTPUT: ipa manifold pressure (psi)
-float ipa_manifold_pressure(float thrust) {
-  return clamped_table_interplolation(thrust, ipa_manifold_table, IPA_MANIFOLD_TABLE_LEN);
+float manifold_drop(float target_mass_flow, float density, float injector_area, float c_d) {
+  return pow(target_mass_flow, 2) / (2 * density * GRAVITY_FT_S * 12 * pow(c_d * injector_area, 2));
 }
 
 // Estimates mass flow across a venturi using pressure sensor data and fluid information.
@@ -165,8 +143,10 @@ void open_loop_thrust_control(float thrust, Sensor_Data sensor_data, float *angl
   float mass_flow_ipa;
   mass_balance(mass_flow_total, &mass_flow_ox, &mass_flow_ipa);
 
-  float ox_valve_downstream_pressure_goal = ox_manifold_pressure(thrust); // TODO RJN OL - add line drop?
-  float ipa_valve_downstream_pressure_goal = ipa_manifold_pressure(thrust);
+  float ox_manifold_drop = manifold_drop(mass_flow_ox, ox_density_from_temperature(sensor_data.ox.valve_temperature), OX_INJ_AREA, OX_INJ_CD);
+  float ipa_manifold_drop = manifold_drop(mass_flow_ipa, ipa_density(), IPA_INJ_AREA, IPA_INJ_CD);
+  float ox_valve_downstream_pressure_goal = 14.7 + ox_manifold_drop; // TODO RJN - change to chamber pressure for hotfires
+  float ipa_valve_downstream_pressure_goal = 14.7 + ipa_manifold_drop;
 
   *angle_ox = lox_valve_angle(sub_critical_cv(mass_flow_ox, sensor_data.ox.valve_upstream_pressure, ox_valve_downstream_pressure_goal, ox_density_from_temperature(sensor_data.ox.valve_temperature)));
   *angle_ipa = ipa_valve_angle(sub_critical_cv(mass_flow_ipa, sensor_data.ipa.valve_upstream_pressure, ipa_valve_downstream_pressure_goal, ipa_density()));
@@ -177,6 +157,8 @@ void open_loop_thrust_control(float thrust, Sensor_Data sensor_data, float *angl
   vc_state.measured_ipa_mdot = measured_mass_flow_ipa;
   vc_state.ol_lox_angle = *angle_ox;
   vc_state.ol_ipa_angle = *angle_ipa;
+  vc_state.ox_valve_downstream_calc = ox_valve_downstream_pressure_goal;
+  vc_state.ipa_valve_downstream_calc = ipa_valve_downstream_pressure_goal;
 }
 
 // get valve angles (degrees) given thrust (lbf) and current sensor data using PID controllers
@@ -200,8 +182,10 @@ void closed_loop_thrust_control(float thrust, Sensor_Data sensor_data, float *an
   float err_mass_flow_ox = measured_mass_flow_ox - ol_mass_flow_ox;
   float err_mass_flow_ipa = measured_mass_flow_ipa - ol_mass_flow_ipa;
 
-  float ox_valve_downstream_pressure_goal = ox_manifold_pressure(thrust);
-  float ipa_valve_downstream_pressure_goal = ipa_manifold_pressure(thrust);
+  float ox_manifold_drop = manifold_drop(ol_mass_flow_ox, ox_density_from_temperature(sensor_data.ox.valve_temperature), OX_INJ_AREA, OX_INJ_CD);
+  float ipa_manifold_drop = manifold_drop(ol_mass_flow_ipa, ipa_density(), IPA_INJ_AREA, IPA_INJ_CD);
+  float ox_valve_downstream_pressure_goal = 14.7 + ox_manifold_drop; // TODO RJN - change to chamber pressure for hotfires
+  float ipa_valve_downstream_pressure_goal = 14.7 + ipa_manifold_drop;
 
   float ol_angle_ox = lox_valve_angle(sub_critical_cv(ol_mass_flow_ox, sensor_data.ox.valve_upstream_pressure, ox_valve_downstream_pressure_goal, ox_density_from_temperature(sensor_data.ox.valve_temperature)));
   float ol_angle_ipa = ipa_valve_angle(sub_critical_cv(ol_mass_flow_ipa, sensor_data.ipa.valve_upstream_pressure, ipa_valve_downstream_pressure_goal, ipa_density()));
@@ -215,6 +199,8 @@ void closed_loop_thrust_control(float thrust, Sensor_Data sensor_data, float *an
   vc_state.measured_ipa_mdot = measured_mass_flow_ipa;
   vc_state.ol_lox_angle = ol_angle_ox;
   vc_state.ol_ipa_angle = ol_angle_ipa;
+  vc_state.ox_valve_downstream_calc = ox_valve_downstream_pressure_goal;
+  vc_state.ipa_valve_downstream_calc = ipa_valve_downstream_pressure_goal;
 }
 
 void log_only(Sensor_Data sensor_data) {
@@ -227,4 +213,6 @@ void log_only(Sensor_Data sensor_data) {
   vc_state.measured_ipa_mdot = measured_mass_flow_ipa;
   vc_state.ol_lox_angle = 0;
   vc_state.ol_ipa_angle = 0;
+  vc_state.ox_valve_downstream_calc = 0;
+  vc_state.ipa_valve_downstream_calc = 0;
 }
