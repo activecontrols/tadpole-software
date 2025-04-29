@@ -159,36 +159,26 @@ void closed_loop_thrust_control(float thrust, Sensor_Data sensor_data, float *an
   float measured_mass_flow_ox = estimate_mass_flow(sensor_data.ox, ox_venturi, ox_density_from_temperature(sensor_data.ox.venturi_temperature));
   float measured_mass_flow_ipa = estimate_mass_flow(sensor_data.ipa, ipa_venturi, ipa_density());
 
-  float ol_chamber_pressure = chamber_pressure(thrust);
-  float err_chamber_pressure = sensor_data.chamber_pressure - ol_chamber_pressure;
-  float ol_mdot_total = mass_flow_rate(ol_chamber_pressure);
-  float cl_mdot_total = ol_mdot_total - ClosedLoopControllers::Chamber_Pressure_Controller.compute(err_chamber_pressure);
+  float ol_mass_flow_ipa = thrust;
 
-  float ol_mass_flow_ox;
-  float ol_mass_flow_ipa;
-  mass_balance(cl_mdot_total, &ol_mass_flow_ox, &ol_mass_flow_ipa);
-
-  float err_mass_flow_ox = measured_mass_flow_ox - ol_mass_flow_ox;
   float err_mass_flow_ipa = measured_mass_flow_ipa - ol_mass_flow_ipa;
 
-  float ox_manifold_drop = manifold_drop(ol_mass_flow_ox, ox_density_from_temperature(sensor_data.ox.valve_temperature), OX_INJ_AREA, OX_INJ_CD);
   float ipa_manifold_drop = manifold_drop(ol_mass_flow_ipa, ipa_density(), IPA_INJ_AREA, IPA_INJ_CD);
-  float ox_valve_downstream_pressure_goal = 14.7 + ox_manifold_drop; // TODO RJN - change to chamber pressure for hotfires
   float ipa_valve_downstream_pressure_goal = 14.7 + ipa_manifold_drop;
 
-  float ol_angle_ox = 50;
+  // float ol_angle_ox = 50;
   float ol_angle_ipa = ipa_valve_angle(sub_critical_cv(ol_mass_flow_ipa, sensor_data.ipa.valve_upstream_pressure, ipa_valve_downstream_pressure_goal, ipa_density()));
 
-  *angle_ox = ol_angle_ox - ClosedLoopControllers::LOX_Angle_Controller.compute(err_mass_flow_ox);
+  *angle_ox = 50; // ol_angle_ox - ClosedLoopControllers::LOX_Angle_Controller.compute(err_mass_flow_ox);
   *angle_ipa = ol_angle_ipa - ClosedLoopControllers::IPA_Angle_Controller.compute(err_mass_flow_ipa);
 
-  vc_state.ol_lox_mdot = ol_mass_flow_ox;
+  vc_state.ol_lox_mdot = 0;
   vc_state.ol_ipa_mdot = ol_mass_flow_ipa;
   vc_state.measured_lox_mdot = measured_mass_flow_ox;
   vc_state.measured_ipa_mdot = measured_mass_flow_ipa;
-  vc_state.ol_lox_angle = ol_angle_ox;
+  vc_state.ol_lox_angle = 50;
   vc_state.ol_ipa_angle = ol_angle_ipa;
-  vc_state.ox_valve_downstream_calc = ox_valve_downstream_pressure_goal;
+  vc_state.ox_valve_downstream_calc = 0;
   vc_state.ipa_valve_downstream_calc = ipa_valve_downstream_pressure_goal;
 }
 
