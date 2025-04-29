@@ -14,7 +14,7 @@
 #define OX_INJ_AREA 0.0498   // in^2
 #define IPA_INJ_AREA 0.04031 // in^2
 #define OX_INJ_CD 0.35       // TODO RJN - change during hotfires
-#define IPA_INJ_CD 0.54
+#define IPA_INJ_CD 0.7
 
 #define INTERPOLATION_TABLE_LENGTH 30 // max length of all tables - set to enable passing tables to functions
 
