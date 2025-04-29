@@ -34,7 +34,7 @@ Thermocouple lox_venturi_temperature(SPI_DEVICE_TC_LOX_VENTURI);
 Thermocouple lox_valve_temperature(SPI_DEVICE_TC_LOX_VALVE);
 
 void begin() {
-  lox_venturi_temperature.begin(MAX31856_TCTYPE_K);
-  lox_valve_temperature.begin(MAX31856_TCTYPE_K);
+  lox_venturi_temperature.begin(MAX31856_TCTYPE_E);
+  lox_valve_temperature.begin(MAX31856_TCTYPE_E);
 }
 } // namespace TC
