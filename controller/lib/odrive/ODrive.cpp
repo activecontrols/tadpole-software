@@ -58,8 +58,6 @@ void ODrive::checkConnection() {
  */
 void ODrive::setPos(float pos) {
   posCmd = pos;
-  pos = 0.25 - pos; // invert command send to motor
-
   if (pos < MIN_ODRIVE_POS) {
     Router::info_no_newline("Clipping pos to ");
     Router::info(MIN_ODRIVE_POS);
@@ -71,6 +69,7 @@ void ODrive::setPos(float pos) {
     Router::info(MAX_ODRIVE_POS);
     pos = MAX_ODRIVE_POS;
   }
+  pos = 0.25 - pos; // invert command send to motor
 
 #if (ENABLE_ODRIVE_COMM)
   ODriveCAN::setPosition(pos);

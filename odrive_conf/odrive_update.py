@@ -1,6 +1,6 @@
 shared_settings = {
-	"axis0.controller.config.pos_gain": 5,
-	"axis0.controller.config.vel_gain": 1,
+	"axis0.controller.config.pos_gain": 6,
+	"axis0.controller.config.vel_gain": 2,
 	"axis0.controller.config.vel_integrator_gain": 2,
 	"axis0.controller.config.vel_limit": 5,
 

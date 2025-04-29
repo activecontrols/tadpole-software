@@ -28,8 +28,8 @@ struct ODriveUserData {
 #define INT_BUFFER_SIZE (50)
 #define MAX_THRUST (600)
 #define MIN_THRUST (0)
-#define MAX_ODRIVE_POS (90.0 / 360.0)
-#define MIN_ODRIVE_POS (0.0 / 360.0)
+#define MAX_ODRIVE_POS (80.0 / 360.0) // max angle = 80 deg
+#define MIN_ODRIVE_POS (25.0 / 360.0) // min angle = 25 deg
 
 void onHeartbeatCB(Heartbeat_msg_t &msg, void *user_data);
 void setup_can(_MB_ptr handler);
