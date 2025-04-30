@@ -3,7 +3,6 @@
 #include "math.h"
 
 #define tadpole_AREA_OF_THROAT 1.69 // in^2
-#define tadpole_C_STAR 4998.0654    // ft / s // TODO RJN OL - replace with data from testing
 #define tadpole_MASS_FLOW_RATIO 1.2 // #ox = 1.2 * ipa
 #define GRAVITY_FT_S 32.1740        // Gravity in (ft / s^2)
 
@@ -24,21 +23,27 @@ float cf_thrust_table[2][INTERPOLATION_TABLE_LENGTH] = {
     {220, 550},
     {1.12, 1.3}};
 
+#define CSTAR_CHAMBER_PRESSURE_TABLE_LEN 2
+// thrust (lbf) to cf (unitless)
+float cstar_chamber_pressure_table[2][INTERPOLATION_TABLE_LENGTH] = {
+    {100, 250},
+    {4455, 3857}};
+
 #define OX_DENSITY_TABLE_LEN 20
 // temperature (K) to density (lb/in^3)
 float ox_density_table[2][INTERPOLATION_TABLE_LENGTH] = {
     {55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 105, 110, 115, 120, 125, 130, 135, 140, 145, 150},
     {0.04709027778, 0.04631539352, 0.04550925926, 0.0446880787, 0.04385474537, 0.04300810185, 0.04214525463, 0.04126099537, 0.04035127315, 0.03941087963, 0.03843229167, 0.03740856481, 0.03632986111, 0.03518287037, 0.03394965278, 0.03260416667, 0.03110532407, 0.02938020833, 0.0272806713, 0.02440335648}};
 
-#define IPA_CV_TABLE_LEN 16
+#define IPA_CV_TABLE_LEN 11
 float ipa_valve_cv_table[2][INTERPOLATION_TABLE_LENGTH] = {
-    {0, 0.0807, 0.0812, 0.0812, 0.0812, 0.1185, 0.2065, 0.3559, 0.5746, 0.8635, 1.2144, 1.6087, 2.0153, 2.3885, 2.6666, 2.7699},
-    {0, 6.0000, 12.0000, 18.0000, 24.0000, 30.0000, 36.0000, 42.0000, 48.0000, 54.0000, 60.0000, 66.0000, 72.0000, 78.0000, 84.0000, 90.0000}};
+    {0.095, 0.130, 0.222, 0.336, 0.469, 0.640, 0.868, 1.164, 1.507, 1.836, 2.029},
+    {25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75}};
 
-#define OX_CV_TABLE_LEN 16
+#define OX_CV_TABLE_LEN 12
 float ox_valve_cv_table[2][INTERPOLATION_TABLE_LENGTH] = {
-    {0, 0.0857, 0.0876, 0.0876, 0.0955, 0.1574, 0.2766, 0.4583, 0.7002, 0.9924, 1.3173, 1.6498, 1.9571, 2.1988, 2.3269, 2.3350},
-    {0, 6.0000, 12.0000, 18.0000, 24.0000, 30.0000, 36.0000, 42.0000, 48.0000, 54.0000, 60.0000, 66.0000, 72.0000, 78.0000, 84.0000, 90.0000}};
+    {0.084, 0.143, 0.237, 0.366, 0.531, 0.730, 0.960, 1.217, 1.495, 1.787, 2.084, 2.378},
+    {25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80}};
 
 Venturi ox_venturi{.inlet_area = 0.127, .throat_area = 0.066, .cd = 1};  // in^2 for both
 Venturi ipa_venturi{.inlet_area = 0.127, .throat_area = 0.062, .cd = 1}; // in^2 for both
@@ -93,7 +98,7 @@ float chamber_pressure(float thrust) {
 // INPUT: chamber pressure (psi)
 // OUTPUT: total mass flow rate (lbm/s)
 float mass_flow_rate(float chamber_pressure) {
-  return chamber_pressure * tadpole_AREA_OF_THROAT / tadpole_C_STAR * GRAVITY_FT_S;
+  return chamber_pressure * tadpole_AREA_OF_THROAT / clamped_table_interplolation(chamber_pressure, cstar_chamber_pressure_table, CSTAR_CHAMBER_PRESSURE_TABLE_LEN) * GRAVITY_FT_S;
 }
 
 // convert total mass flow into OX and IPA flow rates
