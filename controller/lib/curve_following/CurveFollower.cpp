@@ -165,13 +165,15 @@ void followThrustLerpCurve() {
 
       Sensor_Data sd = get_sensor_data();
 
-      float angle_ox;
-      float angle_fuel;
-      // log_only(sd);
-      // open_loop_thrust_control(thrust, sd, &angle_ox, &angle_fuel);
-      closed_loop_thrust_control(thrust, sd, &angle_ox, &angle_fuel);
-      Driver::loxODrive.setPos(angle_ox / 360);
-      Driver::ipaODrive.setPos(angle_fuel / 360);
+      if (seconds < ltc[0].time) {
+        log_only(sd);
+      } else {
+        float angle_ox;
+        float angle_fuel;
+        closed_loop_thrust_control(thrust, sd, &angle_ox, &angle_fuel);
+        Driver::loxODrive.setPos(angle_ox / 360);
+        Driver::ipaODrive.setPos(angle_fuel / 360);
+      }
 
       if (timer - lastlog > LOG_INTERVAL_US) {
         lastlog += LOG_INTERVAL_US;
