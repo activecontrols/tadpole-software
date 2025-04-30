@@ -17,11 +17,11 @@
 
 #define INTERPOLATION_TABLE_LENGTH 30 // max length of all tables - set to enable passing tables to functions
 
-#define CF_THRUST_TABLE_LEN 2 // TODO RJN OL - replace with data from testing
+#define CF_THRUST_TABLE_LEN 2
 // thrust (lbf) to cf (unitless)
 float cf_thrust_table[2][INTERPOLATION_TABLE_LENGTH] = {
     {220, 550},
-    {1.12, 1.3}};
+    {1.08, 1.3}};
 
 #define CSTAR_CHAMBER_PRESSURE_TABLE_LEN 2
 // thrust (lbf) to cf (unitless)
