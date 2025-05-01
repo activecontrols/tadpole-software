@@ -29,7 +29,6 @@ void reset() {
   WC_ERROR.isError = false;
 }
 
-// TODO RJN - set these redlines
 WindowComparator lox_valve_upstream_pressure(WC_LOX_VALVE_UPSTREAM_ID, -3000, 3000);
 WindowComparator lox_valve_downstream_pressure(WC_LOX_VALVE_DOWNSTREAM_ID, -3000, 3000);
 WindowComparator lox_venturi_differential_pressure(WC_LOX_VENTURI_DIFFERENTIAL_ID, -3000, 3000);
