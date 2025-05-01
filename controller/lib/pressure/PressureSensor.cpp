@@ -10,6 +10,7 @@ PressureSensor::PressureSensor(int demuxAddr, float slope) : ADS131M0x(demuxAddr
 }
 
 void PressureSensor::begin() {
+  resetDevice();
 }
 
 // returns the absolute pressure
