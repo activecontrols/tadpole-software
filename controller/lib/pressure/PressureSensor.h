@@ -9,6 +9,7 @@ class PressureSensor : ADS131M0x {
 
 private:
   float slope;
+  float last_good_value;
 
 public:
   float offset; // public to allow for calibration

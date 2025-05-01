@@ -7,6 +7,7 @@
 PressureSensor::PressureSensor(int demuxAddr, float slope) : ADS131M0x(demuxAddr) {
   this->slope = slope;
   this->offset = 0;
+  this->last_good_value = 0;
 }
 
 void PressureSensor::begin() {
@@ -22,7 +23,7 @@ float PressureSensor::getPressure() {
   adcOutput out = this->readADC();
   if (!out.crc_ok) {
     Serial.print(" crc err ");
-    return -1;
+    return last_good_value;
   }
 
   // if (!(out.status & 0b1)) {
@@ -37,7 +38,9 @@ float PressureSensor::getPressure() {
   Serial.print(voltage * 1000);
   Serial.print(" mV ");
 #endif
-  return map(voltage, 0, 1, 0, 10) * slope + offset;
+  float rval = map(voltage, 0, 1, 0, 10) * slope + offset;
+  last_good_value = rval;
+  return rval;
 }
 
 void PressureSensor::zero(float target) {
