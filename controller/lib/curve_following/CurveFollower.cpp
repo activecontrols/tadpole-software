@@ -146,7 +146,7 @@ void followAngleLerpCurve() {
 /**
  * Follows a thrust curve by interpolating between thrust values.
  */
-void followThrustLerpCurve() {
+void followThrustLerpCurve(float start_angle_ox, float start_angle_fuel) {
   lerp_point_thrust *ltc = Loader::lerp_thrust_curve;
   int kill_reason = DONT_KILL;
   elapsedMicros timer = elapsedMicros();
@@ -167,6 +167,8 @@ void followThrustLerpCurve() {
 
       if (seconds < ltc[0].time) {
         log_only(sd);
+        Driver::loxODrive.setPos(start_angle_ox / 360);
+        Driver::ipaODrive.setPos(start_angle_fuel / 360);
       } else {
         float angle_ox;
         float angle_fuel;
@@ -304,7 +306,7 @@ void arm() {
 #endif
 
   ZucrowInterface::send_sync_to_zucrow(TEENSY_SYNC_RUNNING);
-  Loader::header.is_thrust ? followThrustLerpCurve() : followAngleLerpCurve();
+  Loader::header.is_thrust ? followThrustLerpCurve(lox_start, ipa_start) : followAngleLerpCurve();
   ZucrowInterface::send_sync_to_zucrow(TEENSY_SYNC_IDLE);
 
   Router::info("Finished following curve!");
