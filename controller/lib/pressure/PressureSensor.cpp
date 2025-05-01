@@ -89,5 +89,26 @@ void zero() {
   chamber.zero(14.7);
   zeroed_since_boot = true;
   Router::info(" finished!");
+
+  Router::info_no_newline("LOX Valve Upstream Offset (expected -38): ");
+  Router::info(lox_valve_upstream.offset);
+
+  Router::info_no_newline("LOX Valve Downstream Offset (expected -30): ");
+  Router::info(lox_valve_downstream.offset);
+
+  Router::info_no_newline("IPA Valve Upstream Offset (expected -70): ");
+  Router::info(ipa_valve_upstream.offset);
+
+  Router::info_no_newline("IPA Valve Downstream Offset (expected -78): ");
+  Router::info(ipa_valve_downstream.offset);
+
+  Router::info_no_newline("Chamber Offset (expected -10): ");
+  Router::info(chamber.offset);
+
+  Router::info_no_newline("LOX Diffy Offset (-1): ");
+  Router::info(lox_venturi_differential.offset);
+
+  Router::info_no_newline("IPA Diffy Offset (-12): ");
+  Router::info(ipa_venturi_differential.offset);
 }
 } // namespace PT
