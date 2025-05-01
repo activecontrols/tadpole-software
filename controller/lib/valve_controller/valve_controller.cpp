@@ -12,22 +12,22 @@
 
 #define OX_INJ_AREA 0.0498   // in^2
 #define IPA_INJ_AREA 0.04031 // in^2
-#define OX_INJ_CD 0.445      // TODO RJN - change during hotfires
-#define IPA_INJ_CD 0.7
+#define OX_INJ_CD 0.51
+#define IPA_INJ_CD 0.8
 
 #define INTERPOLATION_TABLE_LENGTH 30 // max length of all tables - set to enable passing tables to functions
 
 #define CF_THRUST_TABLE_LEN 2
 // thrust (lbf) to cf (unitless)
 float cf_thrust_table[2][INTERPOLATION_TABLE_LENGTH] = {
-    {220, 550},
-    {1.08, 1.3}};
+    {220, 560},
+    {1.08, 1.347}};
 
 #define CSTAR_CHAMBER_PRESSURE_TABLE_LEN 2
 // thrust (lbf) to cf (unitless)
 float cstar_chamber_pressure_table[2][INTERPOLATION_TABLE_LENGTH] = {
-    {100, 250},
-    {4455, 3857}};
+    {100, 240},
+    {4455, 4300}};
 
 #define OX_DENSITY_TABLE_LEN 20
 // temperature (K) to density (lb/in^3)
@@ -199,8 +199,8 @@ void closed_loop_thrust_control(float thrust, Sensor_Data sensor_data, float *an
   float ox_valve_downstream_pressure_goal = chamber_pressure(thrust) + ox_manifold_drop;
   float ipa_valve_downstream_pressure_goal = chamber_pressure(thrust) + ipa_manifold_drop;
 
-  float ol_angle_ox = lox_valve_angle(sub_critical_cv(ol_mass_flow_ox, sensor_data.ox.valve_upstream_pressure, ox_valve_downstream_pressure_goal, ox_density_from_temperature(sensor_data.ox.valve_temperature)));
-  float ol_angle_ipa = ipa_valve_angle(sub_critical_cv(ol_mass_flow_ipa, sensor_data.ipa.valve_upstream_pressure, ipa_valve_downstream_pressure_goal, ipa_density()));
+  float ol_angle_ox = lox_valve_angle(sub_critical_cv(ol_mass_flow_ox, sensor_data.ox.valve_upstream_pressure, sensor_data.ox.valve_downstream_pressure, ox_density_from_temperature(sensor_data.ox.valve_temperature)));
+  float ol_angle_ipa = ipa_valve_angle(sub_critical_cv(ol_mass_flow_ipa, sensor_data.ipa.valve_upstream_pressure, sensor_data.ipa.valve_downstream_pressure, ipa_density()));
 
   *angle_ox = ol_angle_ox - ClosedLoopControllers::LOX_Angle_Controller.compute(err_mass_flow_ox);
   *angle_ipa = ol_angle_ipa - ClosedLoopControllers::IPA_Angle_Controller.compute(err_mass_flow_ipa);
