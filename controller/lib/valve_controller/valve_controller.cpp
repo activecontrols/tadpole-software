@@ -26,8 +26,8 @@ float cf_thrust_table[2][INTERPOLATION_TABLE_LENGTH] = {
 #define CSTAR_CHAMBER_PRESSURE_TABLE_LEN 2
 // thrust (lbf) to cf (unitless)
 float cstar_chamber_pressure_table[2][INTERPOLATION_TABLE_LENGTH] = {
-    {100, 240},
-    {4455, 4300}};
+    {100, 230},
+    {4455, 3800}};
 
 #define OX_DENSITY_TABLE_LEN 20
 // temperature (K) to density (lb/in^3)
