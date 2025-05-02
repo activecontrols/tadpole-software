@@ -12,7 +12,7 @@
 #define KILLED_BY_ANGLE_OOR_LOX 3       // angle compare caused kill
 #define KILLED_BY_ANGLE_OOR_IPA 4       // angle compare caused kill
 #define ANGLE_OOR_START 3               // start angle OOR checks if t > 3 seconds
-#define ANGLE_OOR_THRESH (10.0 / 360.0) // if angle is 10 degrees off, instantly kill
+#define ANGLE_OOR_THRESH (15.0 / 360.0) // if angle is 10 degrees off, instantly kill
 #define KILLED_BY_ODRIVE_FAULT_LOX 5    // odrive exits closed loop control
 #define KILLED_BY_ODRIVE_FAULT_IPA 6    // odrive exits closed loop control
 #define KILLED_BY_WC 7                  // window comparator checks

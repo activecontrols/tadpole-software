@@ -38,7 +38,7 @@ void PI_Controller::reset() {
 namespace ClosedLoopControllers {
 PI_Controller Chamber_Pressure_Controller(0, 0, INFINITY);
 PI_Controller LOX_Angle_Controller(2.0, 45, 30);
-PI_Controller IPA_Angle_Controller(2.0, 45, 30);
+PI_Controller IPA_Angle_Controller(2.0, 55, 30);
 
 void reset() {
   Chamber_Pressure_Controller.reset();
