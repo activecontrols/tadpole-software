@@ -173,7 +173,7 @@ void open_loop_thrust_control(float thrust, Sensor_Data sensor_data, float *angl
 }
 
 // get valve angles (degrees) given thrust (lbf) and current sensor data using PID controllers
-void closed_loop_thrust_control(float thrust, Sensor_Data sensor_data, float *angle_ox, float *angle_ipa) {
+void closed_loop_thrust_control(float thrust, Sensor_Data sensor_data, float ox_acc_factor, float ipa_acc_factor, float *angle_ox, float *angle_ipa) {
   // ol_ for open loop computations
   // err_ for err between ol and sensor
   // col_ for closed loop computation
@@ -184,7 +184,7 @@ void closed_loop_thrust_control(float thrust, Sensor_Data sensor_data, float *an
   float ol_chamber_pressure = chamber_pressure(thrust);
   float err_chamber_pressure = sensor_data.chamber_pressure - ol_chamber_pressure;
   float ol_mdot_total = mass_flow_rate(ol_chamber_pressure);
-  float cl_mdot_total = ol_mdot_total - ClosedLoopControllers::Chamber_Pressure_Controller.compute(err_chamber_pressure);
+  float cl_mdot_total = ol_mdot_total - ClosedLoopControllers::Chamber_Pressure_Controller.compute(err_chamber_pressure, 1);
 
   float ol_mass_flow_ox;
   float ol_mass_flow_ipa;
@@ -201,8 +201,8 @@ void closed_loop_thrust_control(float thrust, Sensor_Data sensor_data, float *an
   float ol_angle_ox = lox_valve_angle(sub_critical_cv(ol_mass_flow_ox, sensor_data.ox.valve_upstream_pressure, ox_valve_downstream_pressure_goal, ox_density_from_temperature(sensor_data.ox.valve_temperature)));
   float ol_angle_ipa = ipa_valve_angle(sub_critical_cv(ol_mass_flow_ipa, sensor_data.ipa.valve_upstream_pressure, ipa_valve_downstream_pressure_goal, ipa_density()));
 
-  *angle_ox = ol_angle_ox - ClosedLoopControllers::LOX_Angle_Controller.compute(err_mass_flow_ox);
-  *angle_ipa = ol_angle_ipa - ClosedLoopControllers::IPA_Angle_Controller.compute(err_mass_flow_ipa);
+  *angle_ox = ol_angle_ox - ClosedLoopControllers::LOX_Angle_Controller.compute(err_mass_flow_ox, ox_acc_factor);
+  *angle_ipa = ol_angle_ipa - ClosedLoopControllers::IPA_Angle_Controller.compute(err_mass_flow_ipa, ipa_acc_factor);
 
   vc_state.ol_lox_mdot = ol_mass_flow_ox;
   vc_state.ol_ipa_mdot = ol_mass_flow_ipa;

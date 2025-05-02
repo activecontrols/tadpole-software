@@ -170,9 +170,15 @@ void followThrustLerpCurve(float start_angle_ox, float start_angle_fuel) {
         Driver::loxODrive.setPos(start_angle_ox / 360);
         Driver::ipaODrive.setPos(start_angle_fuel / 360);
       } else {
+        float lox_angle_delta = abs(Driver::loxODrive.getLastPosCmd() - (0.25 - Driver::loxODrive.last_enc_msg.Pos_Estimate));
+        float lox_acc_factor = min(0, 1 - (lox_angle_delta / (ANGLE_OOR_THRESH - 1.5)));
+
+        float ipa_angle_delta = abs(Driver::ipaODrive.getLastPosCmd() - (0.25 - Driver::ipaODrive.last_enc_msg.Pos_Estimate));
+        float ipa_acc_factor = min(0, 1 - (ipa_angle_delta / ANGLE_OOR_THRESH - 1.5));
+
         float angle_ox;
         float angle_fuel;
-        closed_loop_thrust_control(thrust, sd, &angle_ox, &angle_fuel);
+        closed_loop_thrust_control(thrust, sd, lox_acc_factor, ipa_acc_factor, &angle_ox, &angle_fuel);
         Driver::loxODrive.setPos(angle_ox / 360);
         Driver::ipaODrive.setPos(angle_fuel / 360);
       }

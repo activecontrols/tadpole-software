@@ -5,7 +5,7 @@ class PI_Controller {
 public:
   PI_Controller(float kp, float ki, float max_output);
   void reset();
-  float compute(float input_error);
+  float compute(float input_error, float acc_factor);
   float p_component;
   float i_component;
 

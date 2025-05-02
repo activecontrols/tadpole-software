@@ -41,6 +41,6 @@ struct VC_State {
 
 extern VC_State vc_state;
 void open_loop_thrust_control(float thrust, Sensor_Data sensor_data, float *angle_ox, float *angle_ipa);
-void closed_loop_thrust_control(float thrust, Sensor_Data sensor_data, float *angle_ox, float *angle_ipa);
+void closed_loop_thrust_control(float thrust, Sensor_Data sensor_data, float ox_acc_factor, float ipa_acc_factor, float *angle_ox, float *angle_ipa);
 void log_only(Sensor_Data sensor_data);
 #endif

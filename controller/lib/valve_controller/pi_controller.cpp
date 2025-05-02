@@ -7,13 +7,13 @@ PI_Controller::PI_Controller(float kp, float ki, float max_output) {
   this->max_output = max_output;
 }
 
-float PI_Controller::compute(float input_error) {
+float PI_Controller::compute(float input_error, float acc_factor) {
   long long this_compute_time = millis();
   if (this->last_compute_time == -1) {
     this->last_compute_time = this_compute_time; // zeroes out the delta on the first iteration
   }
 
-  float temp_err_sum = this->err_sum + input_error * (this_compute_time - last_compute_time) * 0.001;
+  float temp_err_sum = this->err_sum + input_error * (this_compute_time - last_compute_time) * 0.001 * acc_factor;
   this->last_compute_time = this_compute_time;
 
   p_component = this->kp * input_error;
