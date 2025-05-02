@@ -198,8 +198,8 @@ void closed_loop_thrust_control(float thrust, Sensor_Data sensor_data, float *an
   float ox_valve_downstream_pressure_goal = chamber_pressure(thrust) + ox_manifold_drop;
   float ipa_valve_downstream_pressure_goal = chamber_pressure(thrust) + ipa_manifold_drop;
 
-  float ol_angle_ox = lox_valve_angle(sub_critical_cv(ol_mass_flow_ox, sensor_data.ox.valve_upstream_pressure, sensor_data.ox.valve_downstream_pressure, ox_density_from_temperature(sensor_data.ox.valve_temperature)));
-  float ol_angle_ipa = ipa_valve_angle(sub_critical_cv(ol_mass_flow_ipa, sensor_data.ipa.valve_upstream_pressure, sensor_data.ipa.valve_downstream_pressure, ipa_density()));
+  float ol_angle_ox = lox_valve_angle(sub_critical_cv(ol_mass_flow_ox, sensor_data.ox.valve_upstream_pressure, ox_valve_downstream_pressure_goal, ox_density_from_temperature(sensor_data.ox.valve_temperature)));
+  float ol_angle_ipa = ipa_valve_angle(sub_critical_cv(ol_mass_flow_ipa, sensor_data.ipa.valve_upstream_pressure, ipa_valve_downstream_pressure_goal, ipa_density()));
 
   *angle_ox = ol_angle_ox - ClosedLoopControllers::LOX_Angle_Controller.compute(err_mass_flow_ox);
   *angle_ipa = ol_angle_ipa - ClosedLoopControllers::IPA_Angle_Controller.compute(err_mass_flow_ipa);
