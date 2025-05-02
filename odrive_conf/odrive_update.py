@@ -1,7 +1,4 @@
 shared_settings = {
-	"axis0.controller.config.pos_gain": 5,
-	"axis0.controller.config.vel_gain": 1.5,
-	"axis0.controller.config.vel_integrator_gain": 2,
 	"axis0.controller.config.vel_limit": 5,
 
 	"axis0.controller.config.input_filter_bandwidth": 1000.0, # frequency pos updates will be commanded
@@ -16,6 +13,19 @@ shared_settings = {
 	"can.config.baud_rate": 500000
 }
 
+ox_only = {
+	"axis0.controller.config.pos_gain": 7,
+	"axis0.controller.config.vel_gain": 2,
+	"axis0.controller.config.vel_integrator_gain": 2,
+}
+
+ipa_only = {
+	"axis0.controller.config.pos_gain": 7.4,
+	"axis0.controller.config.vel_gain": 0.65,
+	"axis0.controller.config.vel_integrator_gain": 1.72,
+}
+
+
 def update_json(fname):
 	with open("odrive_conf/" + fname) as f:
 		lines = f.readlines()
@@ -24,6 +34,18 @@ def update_json(fname):
 		for setting, value in shared_settings.items():
 			if f'"{setting}"' in line:
 				lines[i] = f'  "{setting}": {value},\n'
+
+		if fname == 'lox.json':
+			for i, line in enumerate(lines):
+				for setting, value in ox_only.items():
+					if f'"{setting}"' in line:
+						lines[i] = f'  "{setting}": {value},\n'
+
+		if fname == 'ipa.json':
+			for i, line in enumerate(lines):
+				for setting, value in ipa_only.items():
+					if f'"{setting}"' in line:
+						lines[i] = f'  "{setting}": {value},\n'
 	
 	with open("odrive_conf/" + fname, "w+") as f:
 		f.writelines(lines)
