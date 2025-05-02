@@ -62,7 +62,7 @@ void Safety::kill_response(int kill_reason) {
 }
 
 // checks various kill conditions, returns the first one found, or DONT_KILL
-int Safety::check_for_kill() {
+int Safety::check_for_kill(float time_seconds) {
 #ifdef ENABLE_ZUCROW_SAFETY
   if (ZucrowInterface::check_fault_from_zucrow()) {
     return KILLED_BY_ZUCROW;
@@ -76,11 +76,13 @@ int Safety::check_for_kill() {
 #endif
 
 #ifdef ENABLE_ODRIVE_SAFETY_CHECKS
-  if (abs((0.25 - Driver::loxODrive.last_enc_msg.Pos_Estimate) - Driver::loxODrive.getLastPosCmd()) > ANGLE_OOR_THRESH) {
-    return KILLED_BY_ANGLE_OOR_LOX;
-  }
-  if (abs((0.25 - Driver::ipaODrive.last_enc_msg.Pos_Estimate) - Driver::ipaODrive.getLastPosCmd()) > ANGLE_OOR_THRESH) {
-    return KILLED_BY_ANGLE_OOR_IPA;
+  if (time_seconds > ANGLE_OOR_START) {
+    if (abs((0.25 - Driver::loxODrive.last_enc_msg.Pos_Estimate) - Driver::loxODrive.getLastPosCmd()) > ANGLE_OOR_THRESH) {
+      return KILLED_BY_ANGLE_OOR_LOX;
+    }
+    if (abs((0.25 - Driver::ipaODrive.last_enc_msg.Pos_Estimate) - Driver::ipaODrive.getLastPosCmd()) > ANGLE_OOR_THRESH) {
+      return KILLED_BY_ANGLE_OOR_IPA;
+    }
   }
 
   if (Driver::loxODrive.odrive_status.last_heartbeat.Axis_State != AXIS_STATE_CLOSED_LOOP_CONTROL) {

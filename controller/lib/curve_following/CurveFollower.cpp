@@ -123,7 +123,7 @@ void followAngleLerpCurve() {
       counter++;
 
       ZucrowInterface::send_valve_angles_to_zucrow(Driver::loxODrive.position, Driver::ipaODrive.position);
-      kill_reason = Safety::check_for_kill();
+      kill_reason = Safety::check_for_kill(seconds);
       if (kill_reason != DONT_KILL) {
         Safety::kill_response(kill_reason);
         CurveLogger::log_curve_csv(seconds, i, -1, sd);
@@ -184,7 +184,7 @@ void followThrustLerpCurve(float start_angle_ox, float start_angle_fuel) {
       counter++;
 
       ZucrowInterface::send_valve_angles_to_zucrow(Driver::loxODrive.position, Driver::ipaODrive.position);
-      kill_reason = Safety::check_for_kill();
+      kill_reason = Safety::check_for_kill(seconds);
       if (kill_reason != DONT_KILL) {
         Safety::kill_response(kill_reason);
         CurveLogger::log_curve_csv(seconds, i, thrust, sd);
