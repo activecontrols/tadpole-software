@@ -26,7 +26,7 @@ float cf_thrust_table[2][INTERPOLATION_TABLE_LENGTH] = {
 #define CSTAR_CHAMBER_PRESSURE_TABLE_LEN 2
 float cstar_chamber_pressure_table[2][INTERPOLATION_TABLE_LENGTH] = {
     {100, 275},
-    {4345, 4000}};
+    {4345, 3950}};
 
 #define OX_DENSITY_TABLE_LEN 20
 // temperature (K) to density (lb/in^3)
