@@ -3,7 +3,7 @@
 #include "valve_controller.h"
 #include "PressureSensor.h"
 #include "Thermocouples.h"
-#include "CurveLogger.h"
+#include "LogWriter.h"
 #include "SDCard.h"
 #include "Loader.h"
 #include "Router.h"
@@ -73,7 +73,7 @@ void run_log_loop(float log_time_seconds) {
 
     if (timer - lastlog > LOG_INTERVAL_US) {
       lastlog += LOG_INTERVAL_US;
-      CurveLogger::log_curve_csv(seconds, sd);
+      LogWriter::log_csv_data(seconds, sd);
     }
     counter++;
 
@@ -102,7 +102,7 @@ void arm() {
   // filenames use DOS 8.3 standard
   Router::info_no_newline("Enter log filename (1-8 chars + '.' + 3 chars): ");
   String log_file_name = Router::read(50);
-  CurveLogger::create_curve_log(log_file_name.c_str()); // lower case files have issues on teensy
+  LogWriter::create_data_log(log_file_name.c_str()); // lower case files have issues on teensy
 
   float log_time;
   Router::info_no_newline("Enter log time (seconds): ");
@@ -117,14 +117,14 @@ void arm() {
   String final_check_str = Router::read(50);
   if (final_check_str != "y") {
     Router::info("ARMING FAILURE: Cancelled by operator.");
-    CurveLogger::close_curve_log();
+    LogWriter::close_data_log();
     return;
   }
 
   run_log_loop(log_time);
 
-  Router::info("Finished following curve!");
-  CurveLogger::close_curve_log();
+  Router::info("Finished logging data!");
+  LogWriter::close_data_log();
 }
 
 } // namespace CurveFollower
