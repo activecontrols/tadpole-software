@@ -29,18 +29,10 @@ struct Sensor_Data {
 };
 
 struct VC_State {
-  float ol_lox_mdot;
-  float ol_ipa_mdot;
   float measured_lox_mdot;
   float measured_ipa_mdot;
-  float ol_lox_angle;
-  float ol_ipa_angle;
-  float ox_valve_downstream_calc;
-  float ipa_valve_downstream_calc;
 };
 
 extern VC_State vc_state;
-void open_loop_thrust_control(float thrust, Sensor_Data sensor_data, float *angle_ox, float *angle_ipa);
-void closed_loop_thrust_control(float thrust, Sensor_Data sensor_data, float ox_acc_factor, float ipa_acc_factor, float *angle_ox, float *angle_ipa);
 void log_only(Sensor_Data sensor_data);
 #endif

@@ -5,7 +5,7 @@
 
 namespace CurveLogger {
 void create_curve_log(const char *filename);
-void log_curve_csv(float time, int phase, float thrust, Sensor_Data sd);
+void log_curve_csv(float time, Sensor_Data sd);
 void close_curve_log();
 
 }; // namespace CurveLogger
