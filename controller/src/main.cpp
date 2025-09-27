@@ -30,7 +30,7 @@ void setup() {
 
   // while (true) {
   //   LogController::print_all_sensors();
-  //   delay(500);
+  //   delay(1000);
   // }
 }
 

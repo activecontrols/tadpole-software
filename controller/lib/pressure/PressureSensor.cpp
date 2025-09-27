@@ -2,7 +2,7 @@
 #include "SPI_Demux.h"
 #include "Router.h"
 
-#define PRINT_PT_MV // enable to print adc mv measurement (for calibration)
+// #define PRINT_PT_MV // enable to print adc mv measurement (for calibration)
 
 PressureSensor::PressureSensor(int demuxAddr, float slope) : ADS131M0x(demuxAddr) {
   this->slope = slope;
@@ -57,12 +57,12 @@ void PressureSensor::zero(float target) {
 namespace PT {
 bool zeroed_since_boot;
 PressureSensor lox_valve_upstream(SPI_DEVICE_PT_LOX_VALVE_UPSTREAM, 1);
-PressureSensor lox_valve_downstream(SPI_DEVICE_PT_LOX_VALVE_DOWNSTREAM, 1); // not used during throttle
+PressureSensor lox_valve_downstream(SPI_DEVICE_PT_LOX_VALVE_DOWNSTREAM, 1);
 PressureSensor lox_venturi_differential(SPI_DEVICE_PT_LOX_VENTURI_DIFFERENTIAL, 1);
 
-PressureSensor ipa_valve_upstream(SPI_DEVICE_PT_IPA_VALVE_UPSTREAM, 1);
-PressureSensor ipa_valve_downstream(SPI_DEVICE_PT_IPA_VALVE_DOWNSTREAM, 1); // not used during throttle
-PressureSensor ipa_venturi_differential(SPI_DEVICE_PT_IPA_VENTURI_DIFFERENTIAL, 1);
+PressureSensor ipa_valve_upstream(SPI_DEVICE_PT_IPA_VALVE_UPSTREAM, 151.4);
+PressureSensor ipa_valve_downstream(SPI_DEVICE_PT_IPA_VALVE_DOWNSTREAM, 10.13);
+PressureSensor ipa_venturi_differential(SPI_DEVICE_PT_IPA_VENTURI_DIFFERENTIAL, 9.26);
 
 PressureSensor chamber(SPI_DEVICE_PT_CHAMBER, 1);
 
@@ -94,25 +94,25 @@ void zero() {
   zeroed_since_boot = true;
   Router::info(" finished!");
 
-  Router::info_no_newline("LOX Valve Upstream Offset (expected -38): ");
+  Router::info_no_newline("LOX Valve Upstream Offset (expected 0): ");
   Router::info(lox_valve_upstream.offset);
 
-  Router::info_no_newline("LOX Valve Downstream Offset (expected -30): ");
+  Router::info_no_newline("LOX Valve Downstream Offset (expected 0): ");
   Router::info(lox_valve_downstream.offset);
 
-  Router::info_no_newline("IPA Valve Upstream Offset (expected -70): ");
+  Router::info_no_newline("IPA Valve Upstream Offset (expected -80): ");
   Router::info(ipa_valve_upstream.offset);
 
-  Router::info_no_newline("IPA Valve Downstream Offset (expected -78): ");
+  Router::info_no_newline("IPA Valve Downstream Offset (expected -6.56): ");
   Router::info(ipa_valve_downstream.offset);
 
-  Router::info_no_newline("Chamber Offset (expected -10): ");
+  Router::info_no_newline("Chamber Offset (expected 0): ");
   Router::info(chamber.offset);
 
-  Router::info_no_newline("LOX Diffy Offset (-1): ");
+  Router::info_no_newline("LOX Diffy Offset (0): ");
   Router::info(lox_venturi_differential.offset);
 
-  Router::info_no_newline("IPA Diffy Offset (-12): ");
+  Router::info_no_newline("IPA Diffy Offset (-3.24): ");
   Router::info(ipa_venturi_differential.offset);
 }
 } // namespace PT
