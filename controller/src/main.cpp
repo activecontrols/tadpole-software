@@ -1,24 +1,21 @@
 #include <Arduino.h>
 
-#include "CurveFollower.h"
+#include "LogController.h"
 #include "PressureSensor.h"
 #include "Thermocouples.h"
 #include "SPI_Demux.h"
 #include "Loader.h"
 #include "Router.h"
 
-void ping()
-{
+void ping() {
   Router::info("pong");
 }
 
-void help()
-{
+void help() {
   Router::print_all_cmds();
 }
 
-void setup()
-{
+void setup() {
   Router::begin();
   Router::info("Controller started.");
 
@@ -29,10 +26,14 @@ void setup()
   Loader::begin();        // registers data loader functions with the router
   PT::begin();            // initializes the PT Boards
   TC::begin();            // initializes the TC Boards
-  CurveFollower::begin(); // creates curve following commands
+  LogController::begin(); // creates logging commands
+
+  // while (true) {
+  //   LogController::print_all_sensors();
+  //   delay(500);
+  // }
 }
 
-void loop()
-{
+void loop() {
   Router::run(); // loop only runs once, since there is an internal loop in Router::run()
 }

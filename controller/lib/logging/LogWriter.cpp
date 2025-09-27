@@ -36,7 +36,7 @@ void log_csv_data(float time, Sensor_Data sd) {
   }
 }
 
-// creates a log file for the current curve and prints csv header
+// creates a log file and prints csv header
 void create_data_log(const char *filename) {
   odriveLogFile = SDCard::open(filename, FILE_WRITE);
   odriveLogFile.println(LOG_HEADER);

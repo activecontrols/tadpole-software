@@ -1,4 +1,4 @@
-#include "CurveFollower.h"
+#include "LogController.h"
 
 #include "valve_controller.h"
 #include "PressureSensor.h"
@@ -11,7 +11,7 @@
 #define LOG_INTERVAL_US 5000
 #define COMMAND_INTERVAL_US 1000
 
-namespace CurveFollower {
+namespace LogController {
 
 // gets sensor data from PTs and TCs and performs safety checks
 Sensor_Data get_sensor_data() {
@@ -55,9 +55,6 @@ void print_all_sensors() {
   Router::info(" "); // newline
 }
 
-/**
- * Follows an angle curve by interpolating between LOX and IPA positions.
- */
 void run_log_loop(float log_time_seconds) {
   elapsedMicros timer = elapsedMicros();
   unsigned long lastlog = timer;
@@ -86,13 +83,13 @@ void run_log_loop(float log_time_seconds) {
   Router::info(" loop iterations.");
 }
 
-// init CurveFollower and add relevant router cmds
+// add relevant router cmds
 void begin() {
   Router::add({print_all_sensors, "print_sensors"});
   Router::add({arm, "arm"});
 }
 
-// prompt user for log file name, then follow curve
+// prompt user for log file name and time, then start logging
 void arm() {
   if (!PT::zeroed_since_boot) {
     Router::info("ARMING FAILURE: pt boards have not been zeroed.");
@@ -127,4 +124,4 @@ void arm() {
   LogWriter::close_data_log();
 }
 
-} // namespace CurveFollower
+} // namespace LogController
