@@ -14,25 +14,14 @@ struct Venturi {
   float cd;
 };
 
-struct Fluid_Line {
-  float valve_upstream_pressure;       // psi
-  float valve_downstream_pressure;     // psi
-  float venturi_differential_pressure; // psi
-  float venturi_temperature;           // K
-  float valve_temperature;             // K
-};
-
 struct Sensor_Data {
-  float chamber_pressure; // psi
-  Fluid_Line ox;
-  Fluid_Line ipa;
+  float water_venturi_upstream_pressure;
+  float water_venturi_throat_pressure;
 };
 
 struct VC_State {
-  float measured_lox_mdot;
-  float measured_ipa_mdot;
+  float measured_water_mdot;
 };
 
-extern VC_State vc_state;
-void log_only(Sensor_Data sensor_data);
+VC_State log_only(Sensor_Data sensor_data);
 #endif

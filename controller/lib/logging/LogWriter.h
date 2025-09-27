@@ -5,7 +5,7 @@
 
 namespace LogWriter {
 void create_data_log(const char *filename);
-void log_csv_data(float time, Sensor_Data sd);
+void log_csv_data(float time, Sensor_Data sd, VC_State vc_state);
 void close_data_log();
 
 }; // namespace LogWriter
