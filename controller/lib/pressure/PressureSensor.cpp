@@ -94,23 +94,8 @@ void zero() {
   zeroed_since_boot = true;
   Router::info(" finished!");
 
-  Router::info_no_newline("LOX Valve Upstream Offset (expected 0): ");
-  Router::info(lox_valve_upstream.offset);
-
-  Router::info_no_newline("LOX Valve Downstream Offset (expected 0): ");
-  Router::info(lox_valve_downstream.offset);
-
-  Router::info_no_newline("IPA Valve Upstream Offset (expected -80): ");
-  Router::info(ipa_valve_upstream.offset);
-
   Router::info_no_newline("IPA Valve Downstream Offset (expected -6.56): ");
   Router::info(ipa_valve_downstream.offset);
-
-  Router::info_no_newline("Chamber Offset (expected 0): ");
-  Router::info(chamber.offset);
-
-  Router::info_no_newline("LOX Diffy Offset (0): ");
-  Router::info(lox_venturi_differential.offset);
 
   Router::info_no_newline("IPA Diffy Offset (-3.24): ");
   Router::info(ipa_venturi_differential.offset);

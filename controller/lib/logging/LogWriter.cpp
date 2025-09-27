@@ -9,7 +9,7 @@ namespace LogWriter {
 File odriveLogFile;
 CString<400> csv_line;
 
-#define LOG_HEADER "time,chamber_pressure,water_upstream_pressure,water_throat_pressure,water_mdot"
+#define LOG_HEADER "time,water_upstream_pressure,water_throat_pressure,water_mdot"
 
 // logs time, phase, thrust, and sensor data in .csv format
 int print_counter = 0;

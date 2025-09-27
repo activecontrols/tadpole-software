@@ -31,8 +31,8 @@ void print_labeled_sensor(const char *msg, float sensor_value, const char *unit)
 
 void print_all_sensors() {
   Router::info("  Sensor Status ");
-  print_labeled_sensor("Water Upstream: ", PT::lox_valve_upstream.getPressure(), " psi");
-  print_labeled_sensor("  Water Throat: ", PT::lox_valve_downstream.getPressure(), " psi");
+  print_labeled_sensor("Water Upstream: ", PT::ipa_valve_downstream.getPressure(), " psi");
+  print_labeled_sensor("  Water Throat: ", PT::ipa_venturi_differential.getPressure(), " psi");
   Router::info(" "); // newline
 }
 
