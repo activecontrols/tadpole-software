@@ -63,7 +63,7 @@ void move_to_angles() {
   Router::info("Response: " + angleSTR);
 
   float secondary_angle;
-  int result = std::sscanf(angleSTR.c_str(), "%f", &secondary_angle);
+  result = std::sscanf(angleSTR.c_str(), "%f", &secondary_angle);
   if (result != 1) {
     Router::info("Could not convert input to an float, not continuing");
     return;
@@ -81,10 +81,10 @@ void move_to_angles() {
 
 // TODO - deal with status messages across different acutators
 void handle_can_msg(const CAN_message_t &msg) {
-  Serial.print("New CAN msg from ID: ");
-  Serial.println(msg.id, HEX);
-  parse_CAN_frame(msg.buf, msg.len, decode_str, DECODE_STR_LEN);
-  Serial.println();
+  // Serial.print("New CAN msg from ID: ");
+  // Serial.println(msg.id, HEX);
+  // parse_CAN_frame(msg.buf, msg.len, decode_str, DECODE_STR_LEN);
+  // Serial.println();
 }
 
 } // namespace TadpoleGimbal
