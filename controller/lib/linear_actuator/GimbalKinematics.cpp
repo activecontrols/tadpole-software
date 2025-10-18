@@ -48,6 +48,6 @@ void calc_actuator_lengths(float primary_angle, float secondary_angle, float *pr
   engine_point_s = rotate_x(engine_point_s, primary_angle);
   engine_point_s = rotate_y(engine_point_s, secondary_angle);
 
-  *primary_length = distance(base_point_p, engine_point_p);
-  *secondary_length = distance(base_point_s, engine_point_s);
+  *primary_length = distance(base_point_p, engine_point_p) - 12.6;
+  *secondary_length = distance(base_point_s, engine_point_s) - 12.6;
 }

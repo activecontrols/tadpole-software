@@ -71,12 +71,12 @@ void move_to_angles() {
 
   float primary_length;
   float secondary_length;
-  calc_actuator_lengths(primary_angle, secondary_angle, &primary_length, &secondary_length);
+  calc_actuator_lengths(primary_angle / 180 * 3.14, secondary_angle / 180 * 3.14, &primary_length, &secondary_length);
 
   // TODO - convert length to actuator units
 
-  gimbalCAN.write(prep_CAN_msg(PRIMARY_CAN_ID, primary_length));
-  gimbalCAN.write(prep_CAN_msg(SECONDARY_CAN_ID, secondary_length));
+  gimbalCAN.write(prep_CAN_msg(PRIMARY_CAN_ID, primary_length * 5000 + 10000));
+  gimbalCAN.write(prep_CAN_msg(SECONDARY_CAN_ID, secondary_length * 5000 + 10000));
 }
 
 // TODO - deal with status messages across different acutators
