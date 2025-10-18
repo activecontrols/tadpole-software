@@ -40,10 +40,10 @@ void begin() {
     comms_log_file = SDCard::open("log.txt", FILE_WRITE);
   } else {
     Router::info("SD card not found.");
-    while (true) {
-      Router::info("Reboot once SD card inserted...");
-      delay(1000);
-    }
+    // while (true) {
+    //   Router::info("Reboot once SD card inserted...");
+    //   delay(1000);
+    // }
   }
 }
 
