@@ -57,14 +57,14 @@ void PressureSensor::zero(float target) {
 namespace PT {
 bool zeroed_since_boot;
 PressureSensor lox_valve_upstream(SPI_DEVICE_PT_LOX_VALVE_UPSTREAM, 1);
-PressureSensor lox_valve_downstream(SPI_DEVICE_PT_LOX_VALVE_DOWNSTREAM, 1);
+PressureSensor lox_valve_downstream(SPI_DEVICE_PT_LOX_VALVE_DOWNSTREAM, 152.95);
 PressureSensor lox_venturi_differential(SPI_DEVICE_PT_LOX_VENTURI_DIFFERENTIAL, 1);
 
-PressureSensor ipa_valve_upstream(SPI_DEVICE_PT_IPA_VALVE_UPSTREAM, 151.4);
-PressureSensor ipa_valve_downstream(SPI_DEVICE_PT_IPA_VALVE_DOWNSTREAM, 10.13);
-PressureSensor ipa_venturi_differential(SPI_DEVICE_PT_IPA_VENTURI_DIFFERENTIAL, 9.26);
+PressureSensor ipa_valve_upstream(SPI_DEVICE_PT_IPA_VALVE_UPSTREAM, 1);
+PressureSensor ipa_valve_downstream(SPI_DEVICE_PT_IPA_VALVE_DOWNSTREAM, 9.56);
+PressureSensor ipa_venturi_differential(SPI_DEVICE_PT_IPA_VENTURI_DIFFERENTIAL, 1);
 
-PressureSensor chamber(SPI_DEVICE_PT_CHAMBER, 1);
+PressureSensor chamber(SPI_DEVICE_PT_CHAMBER, 10.569);
 
 void begin() {
   lox_valve_upstream.begin();
@@ -94,13 +94,13 @@ void zero() {
   zeroed_since_boot = true;
   Router::info(" finished!");
 
-  Router::info_no_newline("upstream (-6.56): ");
+  Router::info_no_newline("upstream (-32): ");
   Router::info(lox_venturi_differential.offset);
 
-  Router::info_no_newline("downstream (-3.24): ");
+  Router::info_no_newline("downstream (-1.76): ");
   Router::info(ipa_venturi_differential.offset);
 
-  Router::info_no_newline("throat (-3.24): ");
+  Router::info_no_newline("throat (-1.13): ");
   Router::info(chamber.offset);
 }
 } // namespace PT
