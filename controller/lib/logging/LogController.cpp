@@ -1,6 +1,7 @@
 #include "LogController.h"
 
 #include "valve_controller.h"
+#include "Encoder.h"
 #include "PressureSensor.h"
 #include "Thermocouples.h"
 #include "LogWriter.h"
@@ -20,6 +21,10 @@ Sensor_Data get_sensor_data() {
   sd.upstream = PT::lox_venturi_differential.getPressure();
   sd.downstream = PT::ipa_venturi_differential.getPressure();
   sd.throat = PT::chamber.getPressure();
+
+  double ep;
+  Encoder::encoder.read_pos(&ep);
+  sd.encoder_pos = ep;
 
   return sd;
 }

@@ -9,16 +9,17 @@ namespace LogWriter {
 File odriveLogFile;
 CString<400> csv_line;
 
-#define LOG_HEADER "time,upstream,downstream,throat"
+#define LOG_HEADER "time,upstream,downstream,throat,encoder"
 
 // logs time, phase, thrust, and sensor data in .csv format
 int print_counter = 0;
 void log_csv_data(float time, Sensor_Data sd, VC_State vc_state) {
   csv_line.clear();
-  csv_line << time << ","
-           << sd.upstream << ","
-           << sd.downstream << ","
-           << sd.throat;
+  csv_line << time << ",\t"
+           << sd.upstream << ",\t"
+           << sd.downstream << ",\t"
+           << sd.throat << ",\t"
+           << sd.encoder_pos;
 
   odriveLogFile.println(csv_line.str);
   odriveLogFile.flush();

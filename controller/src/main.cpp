@@ -6,6 +6,7 @@
 #include "SPI_Demux.h"
 #include "Loader.h"
 #include "Router.h"
+#include "Encoder.h"
 
 void ping() {
   Router::info("pong");
@@ -26,6 +27,7 @@ void setup() {
   Loader::begin();        // registers data loader functions with the router
   PT::begin();            // initializes the PT Boards
   TC::begin();            // initializes the TC Boards
+  Encoder::begin();       // inits abs encoder
   LogController::begin(); // creates logging commands
 
   // while (true) {

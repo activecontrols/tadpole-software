@@ -18,6 +18,7 @@ struct Sensor_Data {
   float upstream;
   float downstream;
   float throat;
+  float encoder_pos;
 };
 
 struct VC_State {
