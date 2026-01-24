@@ -15,12 +15,12 @@ struct Venturi {
 };
 
 struct Sensor_Data {
-  float water_venturi_upstream_pressure;
-  float water_venturi_throat_pressure;
+  float upstream;
+  float downstream;
+  float throat;
 };
 
 struct VC_State {
-  float measured_water_mdot;
 };
 
 VC_State log_only(Sensor_Data sensor_data);

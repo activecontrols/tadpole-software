@@ -17,8 +17,9 @@ namespace LogController {
 Sensor_Data get_sensor_data() {
   Sensor_Data sd;
 
-  sd.water_venturi_upstream_pressure = PT::ipa_valve_downstream.getPressure();
-  sd.water_venturi_throat_pressure = PT::ipa_venturi_differential.getPressure();
+  sd.upstream = PT::lox_venturi_differential.getPressure();
+  sd.downstream = PT::ipa_venturi_differential.getPressure();
+  sd.throat = PT::chamber.getPressure();
 
   return sd;
 }
@@ -31,8 +32,18 @@ void print_labeled_sensor(const char *msg, float sensor_value, const char *unit)
 
 void print_all_sensors() {
   Router::info("  Sensor Status ");
-  print_labeled_sensor("Water Upstream: ", PT::ipa_valve_downstream.getPressure(), " psi");
-  print_labeled_sensor("  Water Throat: ", PT::ipa_venturi_differential.getPressure(), " psi");
+  print_labeled_sensor("  Upstream: ", PT::lox_venturi_differential.getPressure(), " psi");
+  print_labeled_sensor("Downstream: ", PT::ipa_venturi_differential.getPressure(), " psi");
+  print_labeled_sensor("    Throat: ", PT::chamber.getPressure(), " psi");
+
+  // print_labeled_sensor("Water Upstream: ", PT::ipa_valve_downstream.getPressure(), " psi");
+  // print_labeled_sensor("  Water Throat: ", PT::ipa_venturi_differential.getPressure(), " psi");
+
+  // print_labeled_sensor("a: ", PT::ipa_valve_upstream.getPressure(), " psi");
+  // print_labeled_sensor("  b: ", PT::lox_valve_downstream.getPressure(), " psi");
+  // print_labeled_sensor("c: ", PT::lox_valve_upstream.getPressure(), " psi");
+  // print_labeled_sensor("  d: ", PT::lox_venturi_differential.getPressure(), " psi");
+  // print_labeled_sensor("  e: ", PT::chamber.getPressure(), " psi");
   Router::info(" "); // newline
 }
 

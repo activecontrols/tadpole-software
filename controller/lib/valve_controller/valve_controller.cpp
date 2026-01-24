@@ -18,8 +18,8 @@ float estimate_mass_flow(float pressure_delta, Venturi venturi, float fluid_dens
 
 VC_State log_only(Sensor_Data sensor_data) {
   VC_State vc_state;
-  vc_state.measured_water_mdot = estimate_mass_flow(
-      sensor_data.water_venturi_upstream_pressure - sensor_data.water_venturi_throat_pressure,
-      water_venturi, water_density());
+  // vc_state.measured_water_mdot = estimate_mass_flow(
+  //     sensor_data.water_venturi_upstream_pressure - sensor_data.water_venturi_throat_pressure,
+  //     water_venturi, water_density());
   return vc_state;
 }

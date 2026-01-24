@@ -82,22 +82,25 @@ void begin() {
 
 void zero() {
   Router::info_no_newline("Zeroing ...");
-  lox_valve_upstream.zero(14.7);
-  lox_valve_downstream.zero(14.7);
+  // lox_valve_upstream.zero(14.7);
+  // lox_valve_downstream.zero(14.7);
   lox_venturi_differential.zero(14.7);
 
-  ipa_valve_upstream.zero(14.7);
-  ipa_valve_downstream.zero(14.7);
+  // ipa_valve_upstream.zero(14.7);
+  // ipa_valve_downstream.zero(14.7);
   ipa_venturi_differential.zero(14.7);
 
   chamber.zero(14.7);
   zeroed_since_boot = true;
   Router::info(" finished!");
 
-  Router::info_no_newline("IPA Valve Downstream Offset (expected -6.56): ");
-  Router::info(ipa_valve_downstream.offset);
+  Router::info_no_newline("upstream (-6.56): ");
+  Router::info(lox_venturi_differential.offset);
 
-  Router::info_no_newline("IPA Diffy Offset (-3.24): ");
+  Router::info_no_newline("downstream (-3.24): ");
   Router::info(ipa_venturi_differential.offset);
+
+  Router::info_no_newline("throat (-3.24): ");
+  Router::info(chamber.offset);
 }
 } // namespace PT
